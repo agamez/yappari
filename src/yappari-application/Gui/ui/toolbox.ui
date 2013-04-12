@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<ui version="4.0">
+ <class>ToolBox</class>
+ <widget class="QToolBox" name="ToolBox">
+  <property name="currentIndex">
+   <number>0</number>
+  </property>
+  <property name="windowTitle">
+   <string>ToolBox</string>
+  </property>
+  <widget class="QWidget" name="page">
+   <attribute name="label">
+    <string>Page 1</string>
+   </attribute>
+  </widget>
+  <widget class="QWidget" name="page">
+   <attribute name="label">
+    <string>Page 2</string>
+   </attribute>
+  </widget>
+ </widget>
+</ui>

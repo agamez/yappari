@@ -1,0 +1,234 @@
+US	United States of America	1	310,311,312,313,314,315,316	10	false
+GB	United Kingdom	44	234,235	10	false
+FR	France	33	208	9	false
+DE	Germany	49	262	10,11	false
+IT	Italy	39	222	9,10	false
+RU	Russian Federation	7	250	10	false
+AF	Afghanistan	93	412	9	false
+AL	Albania	355	276	9	false
+DZ	Algeria	213	603		false
+AS	American Samoa	1	544	10	false
+AD	Andorra	376	213		false
+AO	Angola	244	631		false
+AI	Anguilla	1	365	10	false
+AG	Antigua And Barbuda	1	344	10	false
+AR	Argentina	54	722	10,11	false
+AM	Armenia	374	283	8	false
+AW	Aruba	297	363	7	false
+AC	Ascension Island	247			false
+AU	Australia	61	505	9	false
+AT	Austria	43	232	10,11,12,13	false
+AZ	Azerbaijan	994	400	9	false
+AX	Åland Islands	358		9	false
+BS	Bahamas	1	364	10	false
+BH	Bahrain	973	426	8	false
+BD	Bangladesh	880	470	10	false
+BB	Barbados	1	342	10	false
+BY	Belarus	375	257	9	false
+BE	Belgium	32	206	9	false
+BZ	Belize	501	702		false
+BJ	Benin	229	616		false
+BM	Bermuda	1	350	10	false
+BT	Bhutan	975	402	8	false
+BO	Bolivia	591	736	8	false
+BA	Bosnia And Herzegovina	387	218	8	false
+BW	Botswana	267	652	8	false
+BR	Brazil	55	724	10	false
+VG	British Virgin Islands	1	348	10	false
+BN	Brunei Darussalam	673	528	7	false
+BG	Bulgaria	359	284	9	false
+BF	Burkina Faso	226	613	8	false
+BI	Burundi	257	642		false
+CI	Côte D'ivoire	225	612		true
+KH	Cambodia	855	456	8,9	false
+CM	Cameroon	237	624		false
+CA	Canada	1	302	10	false
+CV	Cape Verde	238	625		false
+KY	Cayman Islands	1	346	10	false
+CF	Central African Republic	236	623		false
+TD	Chad	235	622		false
+CL	Chile	56	730	9	false
+CN	China	86	460	11	false
+CX	Christmas Island	672			false
+CC	Cocos (keeling) Islands	672			false
+CO	Colombia	57	732	10	false
+KM	Comoros	269	654		false
+CG	Congo	242	629		false
+CK	Cook Islands	682	548		false
+CR	Costa Rica	506	712	8	false
+HR	Croatia	385	219	8,9	false
+CU	Cuba	53	368		false
+CY	Cyprus	357	280	8	false
+CZ	Czech Republic	420	230	9	false
+DK	Denmark	45	238	8	false
+DJ	Djibouti	253	638		false
+DM	Dominica	1	366	10	false
+DO	Dominican Republic	1	370	10	false
+EC	Ecuador	593	740	8	false
+EG	Egypt	20	602	9,10	false
+SV	El Salvador	503	706	8	false
+GQ	Equatorial Guinea	240	627		false
+ER	Eritrea	291	657		false
+EE	Estonia	372	248		false
+ET	Ethiopia	251	636		false
+FK	Falkland Islands	500	750		false
+FO	Faroe Islands	298	288		false
+FM	Federated States Of Micronesia	691	550		false
+FJ	Fiji	679	542		false
+FI	Finland	358	244	9	false
+GF	French Guiana	594	742		false
+PF	French Polynesia	689	547		false
+GA	Gabon	241	628		true
+GM	Gambia	220	607		false
+GE	Georgia	995	282		false
+GH	Ghana	233	620	9	false
+GI	Gibraltar	350	266		false
+GR	Greece	30	202	10	false
+GL	Greenland	299	290		false
+GD	Grenada	1	352	10	false
+GP	Guadeloupe	590	340	9	false
+GU	Guam	1	535	10	false
+GT	Guatemala	502	704	8	false
+GN	Guinea	224	611		false
+GW	Guinea-bissau	245	632		false
+GY	Guyana	592	738		false
+HT	Haiti	509	372		false
+HN	Honduras	504	708	8	false
+HK	Hong Kong	852	454	8	false
+HU	Hungary	36	216	9	false
+IS	Iceland	354	274		false
+IN	India	91	404,405	10	false
+ID	Indonesia	62	510	9,10,11	false
+IR	Iran	98	432	10	false
+IQ	Iraq	964	418	10	false
+IE	Ireland	353	272	9	false
+IL	Israel	972	425	9	false
+JM	Jamaica	1	338	10	false
+JP	Japan	81	440,441	10	false
+JO	Jordan	962	416	9	false
+KZ	Kazakhstan	7	401	10	false
+KE	Kenya	254	639	9	false
+KI	Kiribati	686	545		false
+KW	Kuwait	965	419	8	false
+KG	Kyrgyzstan	996	437		false
+LA	Laos	856	457		false
+LV	Latvia	371	247	8	false
+LB	Lebanon	961	415	7,8	false
+LS	Lesotho	266	651		false
+LR	Liberia	231	618		false
+LY	Libyan Arab Jamahiriya	218	606		false
+LI	Liechtenstein	423	295	7	false
+LT	Lithuania	370	246	8	false
+LU	Luxembourg	352	270	9	false
+MO	Macao	853	455	8	false
+MK	Macedonia	389	294		false
+MG	Madagascar	261	646		false
+MW	Malawi	265	650		false
+MY	Malaysia	60	502	9,10	false
+MV	Maldives	960	472	7	false
+ML	Mali	223	610		false
+MT	Malta	356	278	8	false
+MH	Marshall Islands	692	551		false
+MQ	Martinique	596	340	9	false
+MR	Mauritania	222	609		false
+MU	Mauritius	230	617		false
+YT	Mayotte	269			false
+MX	Mexico	52	334	10,11	false
+MC	Monaco	377	212	8,9	false
+MN	Mongolia	976	428		false
+ME	Montenegro	382	297		false
+MS	Montserrat	1	354	10	false
+MA	Morocco	212	604	9	false
+MZ	Mozambique	258	643	9	false
+MM	Myanmar	95	414		false
+NA	Namibia	264	649	9	false
+NR	Nauru	674	536		false
+NP	Nepal	977	429		false
+NL	Netherlands	31	204	9	false
+AN	Netherlands Antilles	599	362	7,8	false
+NC	New Caledonia	687	546		false
+NZ	New Zealand	64	530	8,9,10	false
+NI	Nicaragua	505	710	8	false
+NE	Niger	227	614		false
+NG	Nigeria	234	621	10	false
+NU	Niue	683			false
+NF	Norfolk Island	672			false
+KP	North Korea	850	467		false
+MP	Northern Mariana Islands	1	534		false
+NO	Norway	47	242	8	false
+OM	Oman	968	422	8	false
+PK	Pakistan	92	410	10	false
+PW	Palau	680	552		false
+PS	Palestinian Territory	970	423		false
+PA	Panama	507	714	8	false
+PG	Papua New Guinea	675	537		false
+PY	Paraguay	595	744	9	false
+PE	Peru	51	716	9	false
+PH	Philippines	63	515	10	false
+PN	Pitcairn	672			false
+PL	Poland	48	260	9	false
+PT	Portugal	351	268	9	false
+PR	Puerto Rico	1	330	10	false
+QA	Qatar	974	427	8	false
+RE	Réunion	262	647	9	false
+MD	Republic Of Moldova	373	259		false
+RO	Romania	40	226	9	false
+RW	Rwanda	250	635		false
+WS	Samoa	685	549		false
+SM	San Marino	378	292		false
+ST	Sao Tome And Principe	239	626		false
+SA	Saudi Arabia	966	420	9	false
+SN	Senegal	221	608		false
+RS	Serbia	381	220	8,9	false
+SC	Seychelles	248	633		false
+SL	Sierra Leone	232	619		false
+SG	Singapore	65	525	8	false
+SK	Slovakia	421	231	9	false
+SI	Slovenia	386	293	8	false
+SB	Solomon Islands	677	540		false
+SO	Somalia	252	637		false
+ZA	South Africa	27	655	9	false
+KR	South Korea	82	450	9,10	false
+ES	Spain	34	214	9	false
+LK	Sri Lanka	94	413	9	false
+SH	St Helena	290			false
+KN	St Kitts And Nevis	1	356	10	false
+LC	St Lucia	1	358	10	false
+PM	St Pierre And Miquelon	508	308		false
+VC	St Vincent And Grenadines	1	360	10	false
+SD	Sudan	249	634		false
+SR	Suriname	597	746	7	false
+SJ	Svalbard And Jan Mayen	47		8	false
+SZ	Swaziland	268	653	8	false
+SE	Sweden	46	240	9	false
+CH	Switzerland	41	228	9	false
+SY	Syrian Arab Republic	963	417	9	false
+TW	Taiwan	886	466	9	false
+TJ	Tajikistan	992	436		false
+TZ	Tanzania	255	640	9	false
+TH	Thailand	66	520	9	false
+CD	The Democratic Republic Of Congo	243	630		false
+TL	Timor-leste	670	514		false
+TG	Togo	228	615		false
+TK	Tokelau	690			false
+TO	Tonga	676	539		false
+TT	Trinidad And Tobago	1	374	10	false
+TN	Tunisia	216	605	8	false
+TR	Turkey	90	286	10	false
+TM	Turkmenistan	993	438		false
+TC	Turks And Caicos Islands	1	376	10	false
+TV	Tuvalu	688			false
+UG	Uganda	256	641		false
+UA	Ukraine	380	255	9	false
+AE	United Arab Emirates	971	424,430,431	9	false
+UY	Uruguay	598	748	8	false
+VI	Us Virgin Islands	1	332	10	false
+UZ	Uzbekistan	998	434		false
+VU	Vanuatu	678	541		false
+VA	Vatican City	379	225		false
+VE	Venezuela	58	734	10	false
+VN	Vietnam	84	452	9,10	false
+WF	Wallis And Futuna	681	543		false
+YE	Yemen	967	421		false
+ZM	Zambia	260	645	9	false
+ZW	Zimbabwe	263	648	9	false

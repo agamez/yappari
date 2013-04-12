@@ -1,0 +1,7 @@
+<node>
+	<interface name="com.nokia.mce.request">
+		<method name="req_vibrator_pattern_activate">
+			<arg name="name" type="s" direction="in"/>
+		</method>
+	</interface>
+</node>

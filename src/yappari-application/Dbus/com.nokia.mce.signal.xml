@@ -1,0 +1,10 @@
+<node>
+	<interface name="com.nokia.mce.signal">
+		<signal name="tklock_mode_ind">
+			<arg name="lock_mode" type="s" direction="out"/>
+		</signal>
+		<signal name="display_status_ind">
+			<arg name="display_mode" type="s" direction="out"/>
+		</signal>
+	</interface>
+</node>

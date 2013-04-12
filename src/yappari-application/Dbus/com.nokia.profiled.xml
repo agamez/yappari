@@ -1,0 +1,12 @@
+<node>
+	<interface name="com.nokia.profiled">
+		<method name="get_value">
+			<arg name="profile" type="s" direction="in"/>
+			<arg name="attribute" type="s" direction="in"/>
+			<arg name="value" type="s" direction="out"/>
+		</method>
+		<method name="get_profile">
+			<arg name="value" type="s" direction="out"/>
+		</method>
+	</interface>
+</node>

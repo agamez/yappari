@@ -1,0 +1,8 @@
+<node>
+	<interface name="org.scorpius.Yappari">
+		<method name="ShowWindow"/>
+		<method name="isRunning">
+			<arg name="text" type="b" direction="out"/>
+		</method>
+	</interface>
+</node>

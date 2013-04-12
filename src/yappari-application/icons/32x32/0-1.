@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+opendir(my $dh, ".") || die;
+
+while(readdir $dh) {
+	$file = $_;
+	push (@files, $file);
+}
+closedir $dh;
+
+foreach (@files)
+{
+	$file = $_;
+
+	($c, $tmp) = split(/-/,$file);
+
+	($d,$ext) = split(/\./,$tmp);
+
+	if ($ext == "png")
+	{
+		$c = hex($c);
+
+		if ($d >= 63) {
+			$newd = $d - 63;
+			$c = $c + 1;
+		}
+		else
+		{
+			$newd = $d + 1;
+		}
+		$c = sprintf("%x",$c);
+		$newfile = "new/$c-$newd.$ext";
+		print "$file -> $newfile\n";
+		rename ($file,$newfile);
+	}
+}
+closedir $dh;

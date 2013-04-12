@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Yappari
+Comment=Yappari status area applet
+Type=default
+X-Path=libyappari-status-menu-plugin.so

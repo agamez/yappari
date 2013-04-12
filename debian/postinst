@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# Optify Yappari
+ln -fs /opt/maemo/usr/bin/Yappari /usr/bin/Yappari
+ln -fs /opt/maemo/usr/share/yappari /usr/share/yappari
+
+# Add Yappari to the notification bubble settings
+NOTIFICATIONS_CONF="/etc/hildon-desktop/notification-groups.conf"
+NOTIFICATIONS_KEY="yappari-message"
+
+if ! grep -q "$NOTIFICATIONS_KEY" "$NOTIFICATIONS_CONF"; then
+    echo -n "Updating $NOTIFICATIONS_CONF..."
+    cat >>$NOTIFICATIONS_CONF << EOF
+### BEGIN Added by Yappari postinst ###
+
+[yappari-message]
+Destination=Yappari
+Icon=yappari-notification
+LED-Pattern=PatternCommunicationEmail
+Split-In-Threads=message-thread
+Group=YappariGroup
+
+### END Added by Yappari postinst ###
+EOF
+    echo "done."
+    echo "**********************************************************" 
+    echo ""
+    echo "***** REBOOT YOUR PHONE!!!!! REBOOT YOUR PHONE!!!!!! *****"
+    echo "***** REBOOT YOUR PHONE!!!!! REBOOT YOUR PHONE!!!!!! *****"
+    echo "***** REBOOT YOUR PHONE!!!!! REBOOT YOUR PHONE!!!!!! *****"
+    echo ""
+    echo "**********************************************************" 
+fi

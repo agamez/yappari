@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SelectEmojiWidget</class>
+ <widget class="QTabWidget" name="SelectEmojiWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>515</width>
+    <height>345</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Select moji</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>true</bool>
+  </property>
+  <property name="tabPosition">
+   <enum>QTabWidget::South</enum>
+  </property>
+  <property name="currentIndex">
+   <number>4</number>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>48</width>
+    <height>48</height>
+   </size>
+  </property>
+  <property name="elideMode">
+   <enum>Qt::ElideNone</enum>
+  </property>
+  <property name="movable">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="emoji1">
+   <attribute name="title">
+    <string/>
+   </attribute>
+  </widget>
+  <widget class="QWidget" name="emoji2">
+   <attribute name="title">
+    <string/>
+   </attribute>
+  </widget>
+  <widget class="QWidget" name="emoji3">
+   <attribute name="title">
+    <string/>
+   </attribute>
+  </widget>
+  <widget class="QWidget" name="emoji4">
+   <attribute name="title">
+    <string/>
+   </attribute>
+  </widget>
+  <widget class="QWidget" name="emoji5">
+   <attribute name="title">
+    <string/>
+   </attribute>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

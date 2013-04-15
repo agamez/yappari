@@ -156,6 +156,7 @@ void Connection::requestMessageWithMedia(FMessage &message)
     attrs.insert("hash", message.data);
     attrs.insert("type", message.getMediaWAType());
     attrs.insert("size", QString::number(message.media_size));
+
     mediaNode.setAttributes(attrs);
 
     ProtocolTreeNode iqNode("iq");
@@ -187,6 +188,10 @@ void Connection::sendMessageWithMedia(FMessage& message)
         attrs.insert("file", message.media_name);
         attrs.insert("size", QString::number(message.media_size));
         attrs.insert("url", message.media_url);
+
+        if (message.media_wa_type == FMessage::Audio ||
+            message.media_wa_type == FMessage::Video)
+            attrs.insert("duration", QString::number(message.media_duration_seconds));
     }
 
     if (message.media_wa_type == FMessage::Contact && !message.media_name.isEmpty())
@@ -464,19 +469,30 @@ bool Connection::read()
                         }
                     }
 
-                    if (child.getTag() == "media")
+                    if (child.getTag() == "media" || child.getTag() == "duplicate")
                     {
                         Key k(JID_DOMAIN,true,id);
                         FMessage message = store.value(k);
 
                         if (message.key.id == id)
                         {
-
-                            message.status = FMessage::ReceivedByTarget;
+                            message.status = (child.getTag() == "media")
+                                        ? FMessage::Uploading
+                                        : FMessage::Uploaded;
                             message.media_url = child.getAttributeValue("url");
+                            message.media_mime_type = child.getAttributeValue("mimetype");
+                            if (message.media_wa_type == FMessage::Video ||
+                                message.media_wa_type == FMessage::Audio)
+                            {
+                                QString duration = child.getAttributeValue("duration");
+                                message.media_duration_seconds =
+                                        (duration.isEmpty()) ? 0 : duration.toInt();
+                            }
+
                             store.remove(k);
 
                             emit mediaUploadAccepted(message);
+
                         }
                     }
                 }
@@ -568,6 +584,11 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 message.media_url = child.getAttributeValue("url");
                 message.media_name = child.getAttributeValue("file");
                 message.media_size = child.getAttributeValue("size").toLongLong();
+                message.media_mime_type = child.getAttributeValue("mimetype");
+
+                if (message.media_wa_type == FMessage::Video ||
+                    message.media_wa_type == FMessage::Audio)
+                    message.media_duration_seconds = child.getAttributeValue("seconds").toInt();
 
                 QString encoding = child.getAttributeValue("encoding");
                 if (encoding == "text" || encoding == "raw")

@@ -52,11 +52,17 @@ public:
 signals:
     void topReached();
     void updateTimestamps();
+    void mediaDownload(FMessage message);
 
 public slots:
     void insertMessageAtTop(FMessage message);
     void insertMessageAtBottom(FMessage message);
+    void mediaDownloadHandler(FMessage message);
     void updateStatus(FMessage message);
+    void updateProgress(FMessage message, float p);
+    void updateUri(FMessage message);
+    void updateImage(FMessage message);
+    void resetButton(FMessage message);
     void deleteAllMessages();
 
 private slots:

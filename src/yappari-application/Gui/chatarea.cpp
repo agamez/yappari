@@ -101,21 +101,6 @@ void ChatArea::insertMessage(FMessage message, bool atTop)
 
 void ChatArea::insertBodyMessage(FMessage message, bool atTop)
 {
-    // Creation of the QLabel
-    /*
-    QLabel *label = new QLabel(container);
-
-    label->setTextFormat(Qt::RichText);
-    label->setOpenExternalLinks(true);
-    label->setFrameStyle(QFrame::NoFrame);
-
-    label->setWordWrap(true);
-    label->setAlignment(Qt::AlignTop|Qt::AlignLeft);
-    label->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Maximum);
-
-    label->setText(createHTML(message));
-    */
-
     ChatTextItem *textItem = new ChatTextItem(message,container);
     connect(this,SIGNAL(updateTimestamps()),textItem,SLOT(updateTimestamp()));
     QWidget *label = textItem;
@@ -140,10 +125,14 @@ void ChatArea::insertMediaMessage(FMessage message, bool atTop)
 {
     QWidget *label = 0;
 
-    if (message.media_wa_type == FMessage::Image)
+    if (message.media_wa_type == FMessage::Image ||
+        message.media_wa_type == FMessage::Video ||
+        message.media_wa_type == FMessage::Audio)
     {
         ChatImageItem *imageItem = new ChatImageItem(message,container);
         connect(this,SIGNAL(updateTimestamps()),imageItem,SLOT(updateTimestamp()));
+        connect(imageItem,SIGNAL(mediaDownload(FMessage)),
+                this,SLOT(mediaDownloadHandler(FMessage)));
         label = imageItem;
     }
 
@@ -166,6 +155,11 @@ void ChatArea::insertMediaMessage(FMessage message, bool atTop)
     }
 }
 
+void ChatArea::mediaDownloadHandler(FMessage message)
+{
+    emit mediaDownload(message);
+}
+
 void ChatArea::updateStatus(FMessage message)
 {
     if (widgets.contains(message.key))
@@ -186,6 +180,44 @@ void ChatArea::updateStatus(FMessage message)
 
     }
 }
+
+void ChatArea::updateProgress(FMessage message, float p)
+{
+    if (widgets.contains(message.key) && message.type == FMessage::MediaMessage)
+    {
+        ChatImageItem *label = (ChatImageItem *)widgets.value(message.key);
+        label->updateProgress(p);
+    }
+}
+
+void ChatArea::updateUri(FMessage message)
+{
+    if (widgets.contains(message.key) && message.type == FMessage::MediaMessage)
+    {
+        ChatImageItem *label = (ChatImageItem *)widgets.value(message.key);
+        label->updateUri(message.local_file_uri);
+    }
+}
+
+void ChatArea::updateImage(FMessage message)
+{
+    if (widgets.contains(message.key) && message.type == FMessage::MediaMessage)
+    {
+        ChatImageItem *label = (ChatImageItem *)widgets.value(message.key);
+        label->updateImage(message);
+    }
+}
+
+
+void ChatArea::resetButton(FMessage message)
+{
+    if (widgets.contains(message.key) && message.type == FMessage::MediaMessage)
+    {
+        ChatImageItem *label = (ChatImageItem *)widgets.value(message.key);
+        label->resetButton();
+    }
+}
+
 
 QString ChatArea::createHTML(FMessage message)
 {

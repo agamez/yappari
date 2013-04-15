@@ -47,6 +47,7 @@
 #include "ui_chatwindow.h"
 #include "conversationdelegate.h"
 #include "mutedialog.h"
+#include "mediaselectdialog.h"
 #include "globalconstants.h"
 
 #include "Whatsapp/util/utilities.h"
@@ -55,6 +56,8 @@
 #include "hildon-input-method/hildon-im-protocol.h"
 
 #include "Whatsapp/util/rfc6234/sha224-256.c"
+
+#include "client.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -75,6 +78,8 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
     muted = false;
     muteExpireTimestamp = 0;
 
+    connect(ui->scrollArea,SIGNAL(mediaDownload(FMessage)),
+            this,SLOT(mediaDownloadRequested(FMessage)));
     connect(ui->sendButton,SIGNAL(clicked()),this,SLOT(sendButtonClicked()));
     connect(ui->selectEmojiButton,SIGNAL(clicked()),this,SLOT(selectEmojiButtonClicked()));
 
@@ -119,6 +124,12 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
 
     connect(this,SIGNAL(updateLoggedMessage(FMessage)),
             &logger,SLOT(updateLoggedMessage(FMessage)));
+
+    connect(this,SIGNAL(updateUriMessage(FMessage)),
+            &logger,SLOT(updateUriMessage(FMessage)));
+
+    connect(this,SIGNAL(updateDuration(FMessage)),
+            &logger,SLOT(updateDuration(FMessage)));
 
     //connect(ui->actionDeleteAll,SIGNAL(triggered()),
     //        &logger,SLOT(deleteAllMessages()));
@@ -505,56 +516,96 @@ QString ChatWindow::getText()
 
 void ChatWindow::sendMultimediaMessage()
 {
-    QDir home = QDir::home();
-    QString imagesFolder = home.path() + IMAGES_DIR;
-    if (!home.exists(imagesFolder))
-        imagesFolder = (!home.exists(home.path() + DEFAULT_DIR)) ?
-                    home.path() : home.path() + DEFAULT_DIR;
+    // Select type of media to send
+    MediaSelectDialog dialog(this);
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"),
-                                                    imagesFolder,
-                                                    tr("Images (*.png *.jpg *.jpeg *.gif *.PNG *.JPG *.JPEG *.GIF)"));
-
-    if (!fileName.isNull())
+    if (dialog.exec() == QDialog::Accepted)
     {
-        QFile file(fileName);
+        // Something I guess
 
-        if (file.size() > MAX_FILE_SIZE)
+        int waType = dialog.getMediaSelected();
+
+        QString mediaFolder = Client::getPathFor(waType, true);
+        QString fileExtensions;
+
+        switch (waType)
         {
-            QMessageBox msg(this);
+            case FMessage::Video:
+                fileExtensions = EXTENSIONS_VIDEO;
+                break;
 
-            msg.setText("You can't send files bigger than 12 MB");
-            msg.exec();
+            case FMessage::Audio:
+                fileExtensions = EXTENSIONS_AUDIO;
+                break;
+
+            case FMessage::Image:
+                fileExtensions = EXTENSIONS_IMAGE;
+                break;
+
+            default:
+                return;
+
         }
-        else
+
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
+                                                        mediaFolder,
+                                                        fileExtensions);
+
+        if (!fileName.isNull())
         {
-            Utilities::logData("File selected: " + fileName);
+            QFile file(fileName);
 
-            FMessage msg(JID_DOMAIN, true);
-
-            msg.status = FMessage::Unsent;
-            msg.type = FMessage::RequestMediaMessage;
-            msg.media_size = file.size();
-            msg.remote_resource = contact.jid;
-            msg.media_wa_type = FMessage::Image;
-            msg.media_name = fileName;
-
-            if (file.open(QIODevice::ReadOnly))
+            if (file.size() > MAX_FILE_SIZE)
             {
-                QByteArray bytes = file.readAll();
-                SHA256Context sha256;
+                QMessageBox msg(this);
 
-                SHA256Reset(&sha256);
-                SHA256Input(&sha256, reinterpret_cast<uint8_t *>(bytes.data()),
-                            bytes.length());
-                QByteArray result;
-                result.resize(SHA256HashSize);
-                SHA256Result(&sha256, reinterpret_cast<uint8_t *>(result.data()));
-                msg.setData(result.toBase64());
+                msg.setText("You can't send files bigger than 12 MB");
+                msg.exec();
+            }
+            else
+            {
+                // Confirmation dialog
+                QMessageBox msg(this);
+                int index = fileName.lastIndexOf('/');
+                index++;
+                msg.setText("Are you sure you want to send the file " +
+                            fileName.mid(index) + "?");
+                msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
 
-                file.close();
+                if (msg.exec() == QMessageBox::Yes)
+                {
+                    Utilities::logData("File selected: " + fileName);
 
-                emit sendMessage(msg);
+                    FMessage msg(JID_DOMAIN, true);
+
+                    msg.status = FMessage::Unsent;
+                    msg.type = FMessage::RequestMediaMessage;
+                    msg.media_size = file.size();
+                    msg.remote_resource = contact.jid;
+                    msg.media_wa_type = waType;
+                    msg.media_name = fileName;
+
+                    // We still don't know the duration in seconds
+                    msg.media_duration_seconds = 0;
+
+                    if (file.open(QIODevice::ReadOnly))
+                    {
+                        QByteArray bytes = file.readAll();
+                        SHA256Context sha256;
+
+                        SHA256Reset(&sha256);
+                        SHA256Input(&sha256, reinterpret_cast<uint8_t *>(bytes.data()),
+                                    bytes.length());
+                        QByteArray result;
+                        result.resize(SHA256HashSize);
+                        SHA256Result(&sha256, reinterpret_cast<uint8_t *>(result.data()));
+                        msg.setData(result.toBase64());
+
+                        file.close();
+
+                        emit sendMessage(msg);
+                    }
+                }
             }
         }
     }
@@ -573,17 +624,31 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
     connect(mediaUpload,SIGNAL(readyToSendMessage(MediaUpload*,FMessage)),
             this,SLOT(mediaUploadStarted(MediaUpload*, FMessage)));
 
-    mediaUpload->sendPicture(contact.jid, msg.media_name, msg.media_url);
+    connect(mediaUpload,SIGNAL(sslError(MediaUpload*)),
+            this,SLOT(sslErrorHandler(MediaUpload*)));
+
+    connect(mediaUpload,SIGNAL(httpError(MediaUpload*)),
+            this,SLOT(httpErrorHandler(MediaUpload*)));
+
+    //mediaUpload->sendPicture(contact.jid, msg.media_name, msg.media_url,
+    //                          (msg.status == FMessage::Uploading));
+
+    //mediaUpload->sendVideo(contact.jid, msg.media_name, msg.media_url,
+    //                         (msg.status == FMessage::Uploading));
+
+    mediaUpload->sendMedia(contact.jid,msg);
+
 }
 
 
 void ChatWindow::mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg)
 {
-    Q_UNUSED(mediaUpload);
-
     emit logMessage(msg);
 
     showMessageInUI(msg);
+
+    connect(mediaUpload,SIGNAL(progress(FMessage,float)),
+            ui->scrollArea,SLOT(updateProgress(FMessage,float)));
 }
 
 void ChatWindow::mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg)
@@ -591,8 +656,87 @@ void ChatWindow::mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg)
     disconnect(mediaUpload, 0, 0, 0);
     mediaUpload->deleteLater();
 
+    // Update duration
+    ui->scrollArea->updateImage(msg);
+
+    emit updateDuration(msg);
+
     emit sendMessage(msg);
 }
+
+void ChatWindow::sslErrorHandler(MediaUpload *mediaUpload)
+{
+    disconnect(mediaUpload, 0, 0, 0);
+    mediaUpload->deleteLater();
+
+    Utilities::logData("SSL error while trying to upload a picture. Maybe bad time & date settings on the phone?");
+
+    QMessageBox msg(this);
+
+    msg.setText("There has been an SSL error while trying to upload a multimedia message.\nPlease check your phone has the correct date & time settings.");
+    msg.exec();
+}
+
+void ChatWindow::httpErrorHandler(MediaUpload *mediaUpload)
+{
+    disconnect(mediaUpload, 0, 0, 0);
+    mediaUpload->deleteLater();
+
+    Utilities::logData("HTTP error while trying to upload a picture.");
+
+    QMessageBox msg(this);
+
+    msg.setText("There has been an HTTP error while trying to upload a multimedia message.\nPlease check your log for more details.");
+    msg.exec();
+}
+
+void ChatWindow::mediaDownloadRequested(FMessage msg)
+{
+    Utilities::logData("Media download requested: " + msg.media_url);
+
+    MediaDownload *mediaDownload = new MediaDownload();
+
+    connect(mediaDownload,SIGNAL(progress(FMessage,float)),
+            ui->scrollArea,SLOT(updateProgress(FMessage,float)));
+
+    connect(mediaDownload,SIGNAL(downloadFinished(MediaDownload *, FMessage)),
+            this,SLOT(mediaDownloadFinished(MediaDownload *, FMessage)));
+
+    connect(mediaDownload,SIGNAL(httpError(MediaDownload*, FMessage, int)),
+            this,SLOT(mediaDownloadError(MediaDownload*, FMessage, int)));
+
+    mediaDownload->backgroundTransfer(msg);
+}
+
+void ChatWindow::mediaDownloadFinished(MediaDownload *mediaDownload, FMessage msg)
+{
+    disconnect(mediaDownload, 0, 0, 0);
+    mediaDownload->deleteLater();
+
+    Utilities::logData("About to update the URI");
+
+    ui->scrollArea->updateUri(msg);
+
+    emit updateUriMessage(msg);
+
+}
+
+void ChatWindow::mediaDownloadError(MediaDownload *mediaDownload, FMessage msg, int errorCode)
+{
+    disconnect(mediaDownload, 0, 0, 0);
+    mediaDownload->deleteLater();
+
+    Utilities::logData("There has been an error while trying to download media. Maybe the file is not available in the servers anymore.  Error = " +
+                       QString::number(errorCode));
+
+    QMessageBox message(this);
+
+    message.setText("There has been an error while trying to download media.\nMaybe the file is not available in the servers anymore.");
+    message.exec();
+
+    ui->scrollArea->resetButton(msg);
+}
+
 
 void ChatWindow::deleteAllMessages()
 {
@@ -654,6 +798,3 @@ void ChatWindow::updateTimestamps()
     Utilities::logData("ChatWindow " + contact.jid + " updateTimeStamps()");
     ui->scrollArea->requestUpdateTimestamps();
 }
-
-
-

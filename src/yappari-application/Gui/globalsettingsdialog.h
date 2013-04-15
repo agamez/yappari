@@ -1,26 +1,4 @@
-#ifndef GLOBALSETTINGSDIALOG_H
-#define GLOBALSETTINGSDIALOG_H
-
-#include <QMaemo5ListPickSelector>
-#include <QDialog>
-
-namespace Ui {
-    class GlobalSettingsDialog;
-}
-
-class GlobalSettingsDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    explicit GlobalSettingsDialog(QWidget *parent = 0);
-    ~GlobalSettingsDialog();
-
-    quint16 getPort();
-    QString getSync();
-    bool getShowNicknames();
-    bool getShowNumbers();
-    bool getPopupOnFirstMessage();/* Copyright 2012 Naikel Aparicio. All rights reserved.
+/* Copyright 2012 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -48,7 +26,31 @@ public:
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#ifndef GLOBALSETTINGSDIALOG_H
+#define GLOBALSETTINGSDIALOG_H
 
+#include <QMaemo5ListPickSelector>
+#include <QDialog>
+
+namespace Ui {
+    class GlobalSettingsDialog;
+}
+
+class GlobalSettingsDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit GlobalSettingsDialog(QWidget *parent = 0);
+    ~GlobalSettingsDialog();
+
+    quint16 getPort();
+    QString getSync();
+    bool getShowNicknames();
+    bool getShowNumbers();
+    bool getPopupOnFirstMessage();
+    bool getImportMediaToGallery();
+    int getAutomaticDownloadBytes();
 
 private:
     Ui::GlobalSettingsDialog *ui;

@@ -1,0 +1,7 @@
+<node>
+	<interface name="com.nokia.image_viewer">
+		<method name="mime_open">
+			<arg name="file" type="s" direction="in"/>
+		</method>
+	</interface>
+</node>

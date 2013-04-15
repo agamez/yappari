@@ -1,4 +1,4 @@
-/* Copyright 2012 Naikel Aparicio. All rights reserved.
+/* Copyright 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,46 +26,56 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
-#ifndef CHATIMAGEITEM_H
-#define CHATIMAGEITEM_H
 
-#include <QWidget>
+#ifndef HTTPREQUESTV2_H
+#define HTTPREQUESTV2_H
 
-#include "Whatsapp/fmessage.h"
+#include <QSslSocket>
+#include <QByteArray>
+#include <QHash>
+#include <QUrl>
 
-namespace Ui {
-    class ChatImageItem;
-}
-
-class ChatImageItem : public QWidget
+class HttpRequestv2 : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit ChatImageItem(FMessage message, QWidget *parent = 0);
 
-    ~ChatImageItem();
+    enum Method {
+        GET,
+        POST
+    };
+
+    explicit HttpRequestv2(QObject *parent = 0);
+
+    void get(QUrl url);
+    void post(QUrl url, const char *data, int length);
+    void setHeader(QString header, QString value);
+    QByteArray readAll();
+    QString getHeader(QString header);
 
 signals:
-    void mediaDownload(FMessage message);
+    void finished();
+    void socketError(QAbstractSocket::SocketError);
+    void progress(float p);
 
 public slots:
-    void downloadOrViewImage();
-    void setImage();
-    void setNickname(FMessage message);
-    void setTimestamp(FMessage message);
-    void setButton();
-    void updateTimestamp();
-    void updateProgress(float p);
-    void updateUri(QString uri);
-    void updateImage(FMessage message);
-    void resetButton();
+    void sendRequest();
+    void readResponse();
+    void socketErrorHandler(QAbstractSocket::SocketError err);
 
 private:
-    Ui::ChatImageItem *ui;
-    bool waiting;
+    QUrl url;
+    Method method;
+    QHash<QString,QString> headers;
+    const char *data;
+    qint64 length;
 
-    FMessage message;
+    void connectToHost();
+
+protected:
+    QSslSocket *socket;
+    int errorCode;
+
 };
 
-#endif // CHATIMAGEITEM_H
+#endif // HTTPREQUESTV2_H

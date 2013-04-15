@@ -72,13 +72,26 @@
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer">
+       <widget class="QProgressBar" name="progressBar">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="value">
+         <number>24</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>98</width>
+          <width>40</width>
           <height>20</height>
          </size>
         </property>

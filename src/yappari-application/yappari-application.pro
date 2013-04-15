@@ -118,6 +118,11 @@ SOURCES += main.cpp \
     Gui/chattextitem.cpp \
     qt-json/json.cpp \
     Gui/whatsnewwindow.cpp \
+    Whatsapp/httprequestv2.cpp \
+    Whatsapp/mediadownload.cpp \
+    Dbus/dbusnokiaimageviewerif.cpp \
+    Dbus/dbusnokiamediaplayerif.cpp \
+    Gui/mediaselectdialog.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -209,6 +214,11 @@ HEADERS += \
     Gui/voiceregistrationwidget.h \
     Gui/chattextitem.h \
     Gui/whatsnewwindow.h \
+    Whatsapp/httprequestv2.h \
+    Whatsapp/mediadownload.h \
+    Dbus/dbusnokiaimageviewerif.h \
+    Dbus/dbusnokiamediaplayerif.h \
+    Gui/mediaselectdialog.h
 
 CONFIG += mobility qtdbus network link_pkgconfig
 MOBILITY = contacts systeminfo messaging
@@ -230,7 +240,8 @@ FORMS += \
     Gui/ui/mutedialog.ui \
     Gui/ui/globalsettingsdialog.ui \
     Gui/ui/voiceregistrationwidget.ui \
-    Gui/ui/whatsnewwindow.ui
+    Gui/ui/whatsnewwindow.ui \
+    Gui/ui/mediaselectdialog.ui
 
 maemo5 {
   #VARIABLES
@@ -279,3 +290,20 @@ maemo5 {
   countries.path = $$SHAREDIR/yappari
   countries.files += countries.tab mime-types.tab
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

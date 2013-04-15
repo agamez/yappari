@@ -490,7 +490,6 @@ void MainWindow::mediaUploadAccepted(FMessage message)
 
 }
 
-
 void MainWindow::sendMessageFromChat(FMessage message)
 {
     ChatDisplayItem *item = lastContactsList.value
@@ -709,6 +708,8 @@ void MainWindow::showGlobalSettingsDialog()
         Client::showNicknames = dialog.getShowNicknames();
         Client::showNumbers = dialog.getShowNumbers();
         Client::popupOnFirstMessage = dialog.getPopupOnFirstMessage();
+        Client::automaticDownloadBytes = dialog.getAutomaticDownloadBytes();
+        Client::importMediaToGallery = dialog.getImportMediaToGallery();
 
         emit settingsUpdated();
     }
@@ -857,7 +858,9 @@ void MainWindow::resetNewDayTimer()
     QDateTime tomorrow = QDateTime(now.date().addDays(1));
     qint64 nextRunTime = tomorrow.toMSecsSinceEpoch() -
                          now.toMSecsSinceEpoch();
-
     newDayTimer->start(nextRunTime);
+
+    Utilities::logData("Resetting timestamps at " + QString::number(now.toMSecsSinceEpoch()));
+    Utilities::logData("Next run in " + QString::number(nextRunTime));
 }
 

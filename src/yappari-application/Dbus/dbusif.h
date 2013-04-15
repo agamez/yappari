@@ -8,8 +8,8 @@
  * Do not edit! All changes made to it will be lost.
  */
 
-#ifndef DBUSIF_H_1340640704
-#define DBUSIF_H_1340640704
+#ifndef DBUSIF_H_1366609200
+#define DBUSIF_H_1366609200
 
 #include <QtCore/QObject>
 #include <QtCore/QByteArray>

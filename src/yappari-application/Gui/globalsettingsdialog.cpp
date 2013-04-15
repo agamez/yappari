@@ -36,6 +36,8 @@
 
 #include "client.h"
 
+#define MAX_BYTES       12288
+
 GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GlobalSettingsDialog)
@@ -84,6 +86,11 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
     ui->nicknamesCheckBox->setChecked(Client::showNicknames);
     ui->shownumbersCheckBox->setChecked(Client::showNumbers);
     ui->popupCheckbox->setChecked(Client::popupOnFirstMessage);
+    ui->importCheckbox->setChecked(Client::importMediaToGallery);
+
+    // Configure automatic download bytes
+
+    ui->automaticDownloadLineEdit->setText(QString::number(Client::automaticDownloadBytes));
 }
 
 GlobalSettingsDialog::~GlobalSettingsDialog()
@@ -125,5 +132,23 @@ bool GlobalSettingsDialog::getPopupOnFirstMessage()
 {
     return ui->popupCheckbox->isChecked();
 }
+
+bool GlobalSettingsDialog::getImportMediaToGallery()
+{
+    return ui->importCheckbox->isChecked();
+}
+
+int GlobalSettingsDialog::getAutomaticDownloadBytes()
+{
+    int bytes = ui->automaticDownloadLineEdit->text().toInt();
+
+    if (bytes > MAX_BYTES)
+        bytes = MAX_BYTES;
+    else if (bytes < 0)
+        bytes = 0;  // disable this feature
+
+    return bytes;
+}
+
 
 

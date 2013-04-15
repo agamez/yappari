@@ -8,3 +8,5 @@ qdbusxml2cpp -c DBusIfAdaptor -a dbusifadaptor.h:dbusifadaptor.cpp org.scorpius.
 qdbusxml2cpp -v -c DBusNokiaHildonSVNDIf -p dbusnokiahildonsvndif.h:dbusnokiahildonsvndif.cpp com.nokia.HildonSVNotificationDaemon.xml
 qdbusxml2cpp -v -c DBusNotificationsIf -p dbusnotificationsif.h:dbusnotificationsif.cpp org.freedesktop.Notifications.xml
 qdbusxml2cpp -v -c DBusNokiaMCESignalIf -p dbusnokiamcesignalif.h:dbusnokiamcesignalif.cpp com.nokia.mce.signal.xml
+qdbusxml2cpp -v -c DBusNokiaMediaPlayerIf -p dbusnokiamediaplayerif.h:dbusnokiamediaplayerif.cpp com.nokia.mediaplayer.xml
+qdbusxml2cpp -v -c DBusNokiaImageViewerIf -p dbusnokiaimageviewerif.h:dbusnokiaimageviewerif.cpp com.nokia.image_viewer.xml

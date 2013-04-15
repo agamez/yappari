@@ -27,6 +27,7 @@
  */
 
 #include <QSslConfiguration>
+#include <QSslSocket>
 
 #include "httprequest.h"
 #include "globalconstants.h"

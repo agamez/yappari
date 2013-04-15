@@ -81,6 +81,12 @@
 #define NOKIA_MCE_OBJECT                        "/com/nokia/mce/request"
 #define NOKIA_MCE_VIBRATE_PATTERN               "PatternChatAndEmail"
 
+#define NOKIA_MEDIAPLAYER_DBUS_NAME             "com.nokia.mediaplayer"
+#define NOKIA_MEDIAPLAYER_DBUS_PATH             "/com/nokia/mediaplayer"
+
+#define NOKIA_IMAGEVIEWER_DBUS_NAME             "com.nokia.image_viewer"
+#define NOKIA_IMAGEVIEWER_DBUS_PATH             "/com/nokia/image_viewer"
+
 #define HD_NOTIFICATION_MANAGER_DBUS_NAME       "org.freedesktop.Notifications"
 #define HD_NOTIFICATION_MANAGER_DBUS_PATH       "/org/freedesktop/Notifications"
 
@@ -114,6 +120,8 @@
 #define SETTINGS_SHOW_NICKNAMES             "shownicknames"
 #define SETTINGS_SHOW_NUMBERS               "shownumbers"
 #define SETTINGS_POPUP_ON_FIRST_MESSAGE     "popuponfirstmessage"
+#define SETTINGS_AUTOMATIC_DOWNLOAD         "automaticdownload"
+#define SETTINGS_IMPORT_TO_GALLERY          "importmediatogallery"
 
 #define SETTINGS_WHATSNEW                   "whatsnew"
 
@@ -123,6 +131,8 @@
 #define DEFAULT_SHOW_NICKNAMES              false
 #define DEFAULT_SHOW_NUMBERS                true
 #define DEFAULT_POPUP_ON_FIRST_MESSAGE      false
+#define DEFAULT_AUTOMATIC_DOWNLOAD          100
+#define DEFAULT_IMPORT_TO_GALLERY           false
 
 // Synchronization options
 
@@ -148,19 +158,29 @@
 // Directories
 
 #define HOME_DIR        "/.yappari/"
+#define YAPPARI_DIR     "/Yappari"
 #define LOGS_DIR        HOME_DIR"logs/"
 #define CONF_DIR        "/.config/scorpius"
 #define DEFAULT_DIR     "/MyDocs"
-#define IMAGES_DIR      "/MyDocs/.images"
+#define CACHE_DIR       "/.yappari/cache"
+#define IMAGES_DIR      "images"
+#define VIDEOS_DIR      "videos"
+#define AUDIO_DIR       "sounds"
 
 #define GRAYCHECK       "<img src=\"/usr/share/yappari/icons/17x13/yappari-graycheck.png\" />"
 #define CHECK           "<img src=\"/usr/share/yappari/icons/17x13/yappari-greencheck.png\" />"
 #define DOUBLECHECK     "<img src=\"/usr/share/yappari/icons/17x13/yappari-greendoublecheck.png\" />"
 #define UPLOADING       "<img src=\"/usr/share/yappari/icons/17x13/yappari-uploading.png\" />"
 
+// Extensions
+
+#define EXTENSIONS_VIDEO   "Videos (*.avi *.mpg *.mpeg *.mpe *.3gp *.wmv *.mp4 *.mov *.qt *.AVI *.MPG *.MPEG *.MPE *.3GP *.WMV *.MP4 *.MOV *.QT)"
+#define EXTENSIONS_IMAGE   "Images (*.png *.jpg *.jpeg *.gif *.PNG *.JPG *.JPEG *.GIF)"
+#define EXTENSIONS_AUDIO   "Audio Files (*.aac *.mp3 *.m4a *.wma *.wav *.ogg *.AAC *.MP3 *.M4A *.WMA *.WAV *.OGG)"
+
 // Donate URL
 
 #define DONATE_URL      "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER    92269247
+#define MAGIC_NUMBER    30516824
 
 #endif // GLOBALCONSTANTS_H

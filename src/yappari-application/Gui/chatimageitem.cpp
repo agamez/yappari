@@ -27,12 +27,16 @@
  */
 
 #include <QDesktopServices>
+#include <QPainter>
 
 #include "globalconstants.h"
 #include "client.h"
 
 #include "Whatsapp/util/datetimeutilities.h"
 #include "Whatsapp/util/utilities.h"
+
+#include "Dbus/dbusnokiaimageviewerif.h"
+#include "Dbus/dbusnokiamediaplayerif.h"
 
 #include "chatimageitem.h"
 #include "ui_chatimageitem.h"
@@ -43,16 +47,95 @@ ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
 {
     ui->setupUi(this);
 
+    waiting = false;
     this->message = message;
 
-    QImage image = QImage::fromData(message.data);
+    setImage();
 
-    ui->image->setPixmap(QPixmap::fromImage(image));
+    ui->progressBar->setRange(0,100);
+    ui->progressBar->setValue(0);
+    ui->progressBar->hide();
 
-    connect(ui->viewImageButton,SIGNAL(clicked()),this,SLOT(viewImageInBrowser()));
+    connect(ui->viewImageButton,SIGNAL(clicked()),this,SLOT(downloadOrViewImage()));
+
+    setButton();
 
     setNickname(message);
     setTimestamp(message);
+}
+
+void ChatImageItem::setImage()
+{
+    QImage image;
+
+    if (message.media_wa_type == FMessage::Audio)
+        image.load("/usr/share/yappari/icons/100x100/audio_overlay_icon.png");
+    else if (message.data.isEmpty() && message.media_wa_type == FMessage::Video)
+        image.load("/usr/share/yappari/icons/100x100/video_overlay_icon.png");
+    else
+        image = QImage::fromData(message.data);
+
+    if (message.media_wa_type == FMessage::Image)
+    {
+        ui->image->setPixmap(QPixmap::fromImage(image));
+        return;
+    }
+
+
+    // We need an overlay for the video and the audio
+
+    // ToDo: PREVIEW MIGHT BE EMPTY!!!!
+
+
+    QSize size = (image.isNull()) ? QSize(100,100) : image.size();
+
+    QImage imageWithOverlay = QImage(size, QImage::Format_ARGB32_Premultiplied);
+
+    QImage overlayImage;
+    if (message.media_wa_type == FMessage::Video)
+        overlayImage.load("/usr/share/yappari/icons/100x100/play_overlay_icon.png");
+
+    QPainter painter(&imageWithOverlay);
+    painter.setCompositionMode(QPainter::CompositionMode_Source);
+    painter.fillRect(image.rect(), Qt::transparent);
+
+    if (!image.isNull())
+    {
+        painter.setCompositionMode((QPainter::CompositionMode_SourceOver));
+        painter.drawImage(0, 0, image);
+    }
+
+    if (message.media_wa_type == FMessage::Video)
+    {
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.drawImage(0, 0, overlayImage);
+    }
+
+    QFont font = painter.font();
+    font.setPointSize(14);
+    font.setBold(true);
+
+    painter.setFont(font);
+
+    QPen pen(QColor(Qt::white));
+    painter.setPen(pen);
+
+    QRect rect = QRect(0, 80, 100, 20);
+
+    if (message.media_duration_seconds > 0)
+    {
+        QString duration;
+        int minutes = message.media_duration_seconds / 60;
+        int seconds = message.media_duration_seconds % 60;
+        painter.drawText(rect, Qt::AlignCenter,
+                         duration.sprintf("%02d:%02d",
+                         minutes,
+                         seconds));
+    }
+    painter.end();
+    ui->image->setPixmap(QPixmap::fromImage(imageWithOverlay));
+
+
 }
 
 
@@ -77,7 +160,7 @@ void ChatImageItem::setNickname(FMessage message)
                    from + ":</div>";
 
     ui->nickname->setTextFormat(Qt::RichText);
-    ui->nickname->setAlignment(Qt::AlignTop|Qt::AlignLeft);
+    ui->nickname->setAlignment(Qt::AlignCenter|Qt::AlignLeft);
     ui->nickname->setText(html);
 }
 
@@ -103,24 +186,53 @@ void ChatImageItem::setTimestamp(FMessage message)
         html.append("<div align=\"right\">");
 
         if (message.status == FMessage::ReceivedByServer)
+        {
+            waiting = false;
+            ui->progressBar->hide();
             html.append(CHECK);
+        }
         else if (message.status == FMessage::ReceivedByTarget)
            html.append(DOUBLECHECK);
         else if (message.status == FMessage::Uploading)
-           html.append(UPLOADING);
+        {
+            ui->progressBar->show();
+            html.append(UPLOADING);
+        }
         else
            html.append(GRAYCHECK);
 
         html.append("</div>");
     }
 
-    html.append("<div style=\"font-size:18px;color:gray\">" + time +
+    html.append("<div align=\"right\" style=\"font-size:18px;color:gray\">" + time +
                 "</div>");
+    if (waiting)
+    {
+        html.append("<div align=\"right\" style=\"font-size:14px;color:gray;\">Please wait...</div>");
+        html.append("<div align=\"right\" style=\"font-size:14px;color:gray;\">Might take several minutes</div>");
+    }
 
     ui->timestamp->setTextFormat(Qt::RichText);
-    ui->timestamp->setAlignment(Qt::AlignTop|Qt::AlignLeft);
+    ui->timestamp->setAlignment(Qt::AlignTop);
     ui->timestamp->setText(html);
+}
 
+void ChatImageItem::setButton()
+{
+    if (message.local_file_uri.isEmpty())
+    {
+        ui->viewImageButton->setText("Download");
+        if (message.media_size <= (Client::automaticDownloadBytes * 1024))
+            QTimer::singleShot(50,this,SLOT(downloadOrViewImage()));
+    }
+    else
+    {
+        if (message.media_wa_type == FMessage::Image)
+            ui->viewImageButton->setText("View");
+        else
+            ui->viewImageButton->setText("Play");
+        ui->viewImageButton->setEnabled(true);
+    }
 }
 
 ChatImageItem::~ChatImageItem()
@@ -128,9 +240,49 @@ ChatImageItem::~ChatImageItem()
     delete ui;
 }
 
-void ChatImageItem::viewImageInBrowser()
+void ChatImageItem::downloadOrViewImage()
 {
-    QDesktopServices::openUrl(QUrl(message.media_url));
+    if (!message.local_file_uri.isEmpty())
+    {
+        QString uri = "file://" + message.local_file_uri;
+
+        QDBusConnection dbus = QDBusConnection::sessionBus();
+
+
+        switch (message.media_wa_type)
+        {
+            case FMessage::Audio:
+            case FMessage::Video:
+                {
+                    DBusNokiaMediaPlayerIf *mediaPlayerBus =
+                            new DBusNokiaMediaPlayerIf(NOKIA_MEDIAPLAYER_DBUS_NAME,
+                                                       NOKIA_MEDIAPLAYER_DBUS_PATH,
+                                                       dbus,this);
+
+                    mediaPlayerBus->mime_open(uri);
+                }
+                break;
+
+            case FMessage::Image:
+                {
+                    DBusNokiaImageViewerIf *imageViewerBus =
+                    new DBusNokiaImageViewerIf(NOKIA_IMAGEVIEWER_DBUS_NAME,
+                                               NOKIA_IMAGEVIEWER_DBUS_PATH,
+                                               dbus,this);
+
+                    imageViewerBus->mime_open(uri);
+                }
+                break;
+        }
+    }
+    else
+    {
+        // Download media
+
+        Utilities::logData("ChatImageItem(): Requesting download");
+        ui->viewImageButton->setEnabled(false);
+        emit mediaDownload(message);
+    }
 }
 
 void ChatImageItem::updateTimestamp()
@@ -138,3 +290,36 @@ void ChatImageItem::updateTimestamp()
     Utilities::logData("ChatImageItem: updateTimestamp()");
     setTimestamp(message);
 }
+
+void ChatImageItem::updateProgress(float p)
+{
+    ui->progressBar->show();
+    ui->progressBar->setValue((int)p);
+
+    if (p == 100 && message.key.from_me)
+    {
+        waiting = true;
+        setTimestamp(message);
+    }
+}
+
+void ChatImageItem::updateUri(QString uri)
+{
+    ui->progressBar->hide();
+    message.local_file_uri = uri;
+    setButton();
+}
+
+void ChatImageItem::resetButton()
+{
+    ui->progressBar->hide();
+    ui->viewImageButton->setEnabled(true);
+}
+
+void ChatImageItem::updateImage(FMessage message)
+{
+    this->message = message;
+    setImage();
+}
+
+

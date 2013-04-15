@@ -46,25 +46,34 @@ class MediaUpload : public QObject
         QString contentType;
         FMessage::MediaWAType waType;
         QString url;
+        bool upload;
+        qint64 duration;
     };
 
 
 public:
     explicit MediaUpload(QObject *parent = 0);
 
-    void sendPicture(QString jid, QString fileName, QString url);
+    void sendPicture(QString jid, MediaDescriptor descriptor);
+    void sendVideo(QString jid, MediaDescriptor descriptor);
+    void sendMedia(QString jid, FMessage message);
     void sendMedia(QString jid, MediaDescriptor descriptor);
     void uploadMedia();
 
 signals:
     void sendMessage(MediaUpload *obj, FMessage msg);
     void readyToSendMessage(MediaUpload *obj, FMessage msg);
+    void sslError(MediaUpload *obj);
+    void progress(FMessage msg, float p);
+    void httpError(MediaUpload *obj);
 
 public slots:
     void finished(MultiPartUploader *uploader, QVariantMap dictionary);
+    void errorHandler(QAbstractSocket::SocketError error);
+    void updateProgress(float p);
 
 private:
-    FMessage *msg;
+    FMessage msg;
 
     QString generateMediaFilename(QString extension);
 

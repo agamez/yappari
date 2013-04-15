@@ -55,6 +55,8 @@ public:
 public slots:
     void logMessage(FMessage message);
     void updateLoggedMessage(FMessage message);
+    void updateUriMessage(FMessage message);
+    void updateDuration(FMessage message);
     void deleteAllMessages();
 
 private:

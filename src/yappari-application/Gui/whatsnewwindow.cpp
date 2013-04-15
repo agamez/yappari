@@ -39,9 +39,11 @@
 #define TEXT "<b>Thank you for installing Yappari!</b><br><br>"\
     "If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>"\
     "<b>New in this version:</b><br>"\
-    "<li>&bull; Implemented new WhatsApp multimedia upload method.</li>"\
-    "<li>&bull; Fixed all crashes I know of.</li>"\
-    "<li>&bull; Fixed offline multimedia reception bug.</li>"
+    "<li>&bull; Sending and reception of audio and videos.</li>"\
+    "<li>&bull; Proper handling of the duplicate multimedia message.</li>"\
+    "<li>&bull; Added option to import multimedia to phone's gallery automatically.</li>"\
+    "<li>&bull; Added option to automatically download multimedia files.</li>"\
+    "<li>&bull; Added confirmation dialog after selecting a file to send.</li>"
 
 WhatsNewWindow::WhatsNewWindow(QWidget *parent) :
     QMainWindow(parent),

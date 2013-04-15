@@ -30,12 +30,14 @@
 #ifndef MULTIPARTUPLOADER_H
 #define MULTIPARTUPLOADER_H
 
+#include <QNetworkReply>
+
 #include <QList>
 
-#include "httprequest.h"
+#include "httprequestv2.h"
 #include "formdata.h"
 
-class MultiPartUploader : public HttpRequest
+class MultiPartUploader : public HttpRequestv2
 {
     Q_OBJECT
 
@@ -46,14 +48,17 @@ public:
 
 public slots:
     void error(QNetworkReply::NetworkError error);
-    void onResponse(QNetworkReply *reply);
+    //void onResponse(QNetworkReply *reply);
+    void onResponse();
 
 signals:
     void finished(MultiPartUploader *obj, QVariantMap dictionary);
 
 private:
+    QByteArray writeBuffer;
+
     QString generateBoundary();
-    void get(QUrl url, bool post, QString boundary);
+    //void get(QUrl url, bool post, QString boundary);
     void postData(QString boundary, QList<FormData*>& formData);
 };
 

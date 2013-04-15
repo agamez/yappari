@@ -1,3 +1,19 @@
+yappari (0.0.30) unstable; urgency=low
+
+  * Added a confirmation dialog after selecting a multimedia file to send.
+  * Handling of the duplicate message.
+  * Added progress bar to ChatImageItem widget.
+  * Log database is now version 2 that includes local_file_uri column.
+  * ChatImageItem widget's View button now works only if local_file_uri is
+    defined.
+  * MediaDownload implemented.  All multimedia files (image, audio, video)
+    are supported.
+  * So far all multimedia HTTP requestis go through QSslSocket via 
+    HttpRequestv2.
+  * Media player and Image Viewer are now called via Dbus interfaces.
+
+ -- Scorpius <naikel@gmail.com>  Mon, 15 Apr 2013 12:48:48 -0430
+
 yappari (0.0.29) unstable; urgency=low
 
   * Fixed bug where reading packets bigger than 1 KB.  This includes fixing

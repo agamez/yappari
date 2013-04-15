@@ -37,8 +37,27 @@
 #include "Whatsapp/util/utilities.h"
 
 #define MAX_MESSAGES               7
-#define LOG_VERSION                1
+#define LOG_VERSION                2
 #define LOG_EXTENSION              ".dblog"
+
+// Column definitions
+
+#define LOG_LOCALID                  0
+#define LOG_NAME                     1
+#define LOG_FROM_ME                  2
+#define LOG_TIMESTAMP                3
+#define LOG_ID                       4
+#define LOG_TYPE                     5
+#define LOG_DATA                     6
+#define LOG_THUMB_IMAGE              7
+#define LOG_STATUS                   8
+#define LOG_MEDIA_URL                9
+#define LOG_MEDIA_MIME_TYPE         10
+#define LOG_MEDIA_WA_TYPE           11
+#define LOG_MEDIA_SIZE              12
+#define LOG_MEDIA_NAME              13
+#define LOG_MEDIA_DURATION_SECONDS  14
+#define LOG_LOCAL_FILE_URI          15
 
 ChatLogger::ChatLogger(QObject *parent):
     QObject(parent)
@@ -89,7 +108,8 @@ bool ChatLogger::init(QString jid)
                    "media_wa_type integer,"
                    "media_size integer,"
                    "media_name varchar(256),"
-                   "media_duration_seconds integer"
+                   "media_duration_seconds integer,"
+                   "local_file_uri varchar(512)"
                    ")");
 
         query.exec("create table settings ("
@@ -104,6 +124,28 @@ bool ChatLogger::init(QString jid)
     else
     {
         QSqlQuery query(db);
+
+        // Check the DB is the current version
+
+        query.prepare("select version from settings");
+        query.exec();
+
+        if (query.next())
+        {
+            if (query.value(0).toInt() == 1)
+            {
+                // Upgrade it to version 2
+
+                Utilities::logData("Upgrading log " + jid + " to version " +
+                                   QString::number(LOG_VERSION));
+
+                query.prepare("alter table log add column local_file_uri varchar(512)");
+                query.exec();
+                query.prepare("update settings set version="+
+                              QString::number(LOG_VERSION));
+                query.exec();
+            }
+        }
 
         query.exec("select max(localid) from log");
         query.next();
@@ -124,11 +166,11 @@ void ChatLogger::logMessage(FMessage message)
     query.prepare("insert into log (name, from_me, timestamp, "
                   "id, type, data, thumb_image, status, "
                   "media_url, media_mime_type, media_wa_type, media_size, "
-                  "media_name, media_duration_seconds) "
+                  "media_name, media_duration_seconds, local_file_uri) "
                   "values (:name, :from_me, :timestamp, :id, "
                   ":type, :data, :thumb_image, :status, "
                   ":media_url, :media_mime_type, :media_wa_type, :media_size, "
-                  ":media_name, :media_duration_seconds"
+                  ":media_name, :media_duration_seconds, :local_file_uri"
                   ")");
 
     query.bindValue(":name",message.notify_name);
@@ -151,6 +193,7 @@ void ChatLogger::logMessage(FMessage message)
     query.bindValue(":media_size",message.media_size);
     query.bindValue(":media_name",message.media_name);
     query.bindValue(":media_duration_seconds",message.media_duration_seconds);
+    query.bindValue(":local_file_uri", message.local_file_uri);
 
     query.exec();
 
@@ -159,26 +202,32 @@ void ChatLogger::logMessage(FMessage message)
 
 FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
 {
-    QString id = query.value(4).toString();
-    bool from_me = query.value(2).toBool();
+    QString id = query.value(LOG_ID).toString();
+    bool from_me = query.value(LOG_FROM_ME).toBool();
     FMessage msg(jid,from_me,id);
 
-    msg.notify_name = query.value(1).toString();
-    msg.setThumbImage(query.value(7).toString());
-    msg.type = (FMessage::ContentType) query.value(5).toInt();
-    msg.status = (FMessage::Status) query.value(8).toInt();
-    msg.setTimestamp(query.value(3).toLongLong());
+    msg.notify_name = query.value(LOG_NAME).toString();
+    msg.setThumbImage(query.value(LOG_THUMB_IMAGE).toString());
+    msg.type = (FMessage::ContentType) query.value(LOG_TYPE).toInt();
+    msg.status = (FMessage::Status) query.value(LOG_STATUS).toInt();
 
-    msg.media_url = query.value(9).toString();
-    msg.media_mime_type = query.value(10).toString();
-    msg.media_wa_type = (FMessage::MediaWAType) query.value(11).toInt();
-    msg.media_size = query.value(12).toLongLong();
-    msg.media_duration_seconds = query.value(13).toInt();
+    if (msg.status == FMessage::Uploading)
+        msg.status = FMessage::Unsent;
+
+    msg.setTimestamp(query.value(LOG_TIMESTAMP).toLongLong());
+
+    msg.media_url = query.value(LOG_MEDIA_URL).toString();
+    msg.media_mime_type = query.value(LOG_MEDIA_MIME_TYPE).toString();
+    msg.media_wa_type = (FMessage::MediaWAType) query.value(LOG_MEDIA_WA_TYPE).toInt();
+    msg.media_size = query.value(LOG_MEDIA_SIZE).toLongLong();
+    msg.media_name = query.value(LOG_MEDIA_NAME).toString();
+    msg.media_duration_seconds = query.value(LOG_MEDIA_DURATION_SECONDS).toInt();
+    msg.local_file_uri = query.value(LOG_LOCAL_FILE_URI).toString();
 
     if (msg.type == FMessage::MediaMessage)
-        msg.setData(QByteArray::fromBase64(query.value(6).toString().toUtf8()));
+        msg.setData(QByteArray::fromBase64(query.value(LOG_DATA).toString().toUtf8()));
     else
-        msg.setData(query.value(6).toString());
+        msg.setData(query.value(LOG_DATA).toString());
 
     return msg;
 }
@@ -209,7 +258,7 @@ QList<FMessage> ChatLogger::lastMessages()
 
         list.append(msg);
 
-        lastId = query.value(0).toInt();
+        lastId = query.value(LOG_LOCALID).toInt();
     }
     qint64 endTime = QDateTime::currentDateTime().toMSecsSinceEpoch() - startTime;
     Utilities::logData("Log retrieved in " + QString::number(endTime) +
@@ -228,6 +277,32 @@ void ChatLogger::updateLoggedMessage(FMessage message)
 
     query.exec();
 }
+
+void ChatLogger::updateUriMessage(FMessage message)
+{
+    QSqlQuery query(db);
+
+    query.prepare("update log set local_file_uri=:local_file_uri where id=:id");
+
+    query.bindValue(":id",message.key.id);
+    query.bindValue(":local_file_uri",message.local_file_uri);
+
+    query.exec();
+}
+
+
+void ChatLogger::updateDuration(FMessage message)
+{
+    QSqlQuery query(db);
+
+    query.prepare("update log set media_duration_seconds=:media_duration_seconds where id=:id");
+
+    query.bindValue(":id",message.key.id);
+    query.bindValue(":media_duration_seconds",message.media_duration_seconds);
+
+    query.exec();
+}
+
 
 void ChatLogger::deleteAllMessages()
 {
@@ -296,4 +371,5 @@ FMessage ChatLogger::lastMessage(QString jid)
 
     return msg;
 }
+
 

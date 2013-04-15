@@ -109,6 +109,12 @@ public:
     // Pop up conversation windows when first message is received
     static bool popupOnFirstMessage;
 
+    // Automatic download of media if less than this number of bytes
+    static int automaticDownloadBytes;
+
+    // Import media into gallery
+    static bool importMediaToGallery;
+
     // What's new window
     static qint64 whatsnew;
 
@@ -122,6 +128,8 @@ public:
 
     explicit Client(QObject *parent = 0);
     ~Client();
+
+    static QString getPathFor(int media_wa_type, bool gallery);
 
 private:
     MainWindow *mainWin;

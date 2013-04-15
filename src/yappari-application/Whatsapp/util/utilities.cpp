@@ -210,7 +210,7 @@ QString Utilities::formatMessage(QString data, int iconSize)
     //
 
     int pos = 0;
-    QRegExp urlreg("(http://[_a-zA-Z0-9./~-:?#!$&'+,;=]+)");
+    QRegExp urlreg("(http://[_a-zA-Z0-9./~:?#!$&'+,;=-]+)");
 
     urlreg.setCaseSensitivity(Qt::CaseInsensitive);
 
@@ -225,7 +225,7 @@ QString Utilities::formatMessage(QString data, int iconSize)
 
     pos = 0;
 
-    QRegExp wwwreg("(^|\\s)(www\\.[_a-zA-Z0-9./~-:?#!$&'+,;=]+)");
+    QRegExp wwwreg("(^|\\s)(www\\.[_a-zA-Z0-9./~:?#!$&'+,;=-]+)");
     wwwreg.setCaseSensitivity(Qt::CaseInsensitive);
 
     while ((pos = wwwreg.indexIn(result,pos)) != -1)

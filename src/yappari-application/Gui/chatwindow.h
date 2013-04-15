@@ -35,6 +35,7 @@
 
 #include "Whatsapp/fmessage.h"
 #include "Whatsapp/mediaupload.h"
+#include "Whatsapp/mediadownload.h"
 
 #include "Gui/selectemojiwidget.h"
 
@@ -79,6 +80,11 @@ public slots:
     void mediaUploadAccepted(FMessage msg);
     void mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg);
     void mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg);
+    void mediaDownloadFinished(MediaDownload *mediaDownload, FMessage msg);
+    void mediaDownloadRequested(FMessage msg);
+    void mediaDownloadError(MediaDownload *mediaDownload, FMessage msg, int errorCode);
+    void sslErrorHandler(MediaUpload *mediaUpload);
+    void httpErrorHandler(MediaUpload *mediaUpload);
     void deleteAllMessages();
     void mute();
     void unmute();
@@ -86,6 +92,8 @@ public slots:
 signals:
     void logMessage(FMessage message);
     void updateLoggedMessage(FMessage message);
+    void updateUriMessage(FMessage message);
+    void updateDuration(FMessage message);
     void sendMessage(FMessage message);
     void mute(QString jid,bool muted,qint64 muteExpireTimestamp);
 

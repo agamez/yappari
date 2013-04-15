@@ -69,6 +69,8 @@ QString Client::number;
 QString Client::imei;
 
 quint16 Client::port;
+int Client::automaticDownloadBytes;
+bool Client::importMediaToGallery;
 qint64 Client::whatsnew;
 
 bool Client::showNicknames;
@@ -286,6 +288,14 @@ void Client::readSettings()
     this->popupOnFirstMessage = settings->value(SETTINGS_POPUP_ON_FIRST_MESSAGE,
                                                   QVariant(DEFAULT_POPUP_ON_FIRST_MESSAGE)).toBool();
 
+    // Automatic download bytes
+    this->automaticDownloadBytes = settings->value(SETTINGS_AUTOMATIC_DOWNLOAD,
+                                                   QVariant(DEFAULT_AUTOMATIC_DOWNLOAD)).toInt();
+
+    // Automatic import of downloaded media into gallery
+    this->importMediaToGallery = settings->value(SETTINGS_IMPORT_TO_GALLERY,
+                                                  QVariant(DEFAULT_IMPORT_TO_GALLERY)).toBool();
+
     // What's New Window
     this->whatsnew = settings->value(SETTINGS_WHATSNEW).toLongLong();
 }
@@ -300,6 +310,8 @@ void Client::updateSettings()
     settings->setValue(SETTINGS_SHOW_NICKNAMES,showNicknames);
     settings->setValue(SETTINGS_SHOW_NUMBERS,showNumbers);
     settings->setValue(SETTINGS_POPUP_ON_FIRST_MESSAGE,popupOnFirstMessage);
+    settings->setValue(SETTINGS_AUTOMATIC_DOWNLOAD,automaticDownloadBytes);
+    settings->setValue(SETTINGS_IMPORT_TO_GALLERY,importMediaToGallery);
 }
 
 void Client::networkStatusChanged(bool isOnline)
@@ -881,4 +893,33 @@ void Client::userStatusUpdated(QString status)
     Utilities::logData("User status confirmed: " + status);
     settings->setValue(SETTINGS_STATUS,status);
     this->myStatus = status;
+}
+
+QString Client::getPathFor(int media_wa_type, bool gallery)
+{
+    QDir home = QDir::home();
+    QString folder;
+
+    switch (media_wa_type)
+    {
+        case FMessage::Audio:
+            folder = AUDIO_DIR;
+            break;
+        case FMessage::Image:
+            folder = IMAGES_DIR;
+            break;
+        case FMessage::Video:
+            folder = VIDEOS_DIR;
+            break;
+    }
+
+    if (importMediaToGallery || gallery)
+        folder = home.path() + DEFAULT_DIR"/." + folder;
+    else
+        folder = home.path() + CACHE_DIR"/" + folder;
+
+    if (!home.exists(folder))
+        home.mkpath(folder);
+
+    return folder;
 }

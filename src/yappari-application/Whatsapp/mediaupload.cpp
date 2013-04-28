@@ -90,6 +90,9 @@ void MediaUpload::sendVideo(QString jid, MediaDescriptor descriptor)
 
     Utilities::logData("Thumbnail: " + thumbnail);
 
+    // ToDo: Check the thumbnail exists, if it doesn't, request the thumbnail
+    // while the media is uploaded
+
     QImage picture;
 
     picture.load(thumbnail);

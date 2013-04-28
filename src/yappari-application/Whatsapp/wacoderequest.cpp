@@ -61,7 +61,7 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method, QObject *pa
 
     addParam("cc", cc);
     addParam("in", in);
-    // addParam("to", cc + in);
+    addParam("to", cc + in);
     addParam("lg", language.isEmpty() ? "zz" : language);
     addParam("lc", country.isEmpty() ?  "ZZ" : country);
     addParam("mcc", mcc);

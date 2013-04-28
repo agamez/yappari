@@ -33,9 +33,6 @@
 #include <QCloseEvent>
 #include <QUrl>
 
-#include <phonon/mediaobject.h>
-#include <phonon/audiooutput.h>
-
 #include "Dbus/dbusappletif.h"
 #include "Dbus/dbusnokiamcerequestif.h"
 #include "Dbus/notifyobject.h"
@@ -850,6 +847,8 @@ void MainWindow::updateTimestamps()
         ChatWindow *chat = chatWindowList.value(jid);
         chat->updateTimestamps();
     }
+
+    resetNewDayTimer();
 }
 
 void MainWindow::resetNewDayTimer()
@@ -858,6 +857,7 @@ void MainWindow::resetNewDayTimer()
     QDateTime tomorrow = QDateTime(now.date().addDays(1));
     qint64 nextRunTime = tomorrow.toMSecsSinceEpoch() -
                          now.toMSecsSinceEpoch();
+
     newDayTimer->start(nextRunTime);
 
     Utilities::logData("Resetting timestamps at " + QString::number(now.toMSecsSinceEpoch()));

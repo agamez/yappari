@@ -40,9 +40,15 @@
 
 // Whatsapp client spoofing
 
-#define USER_AGENT_VERSION  "2.4.18"
+#define USER_AGENT_VERSION  "2.9.6621"
+#define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" Android/2.3.4 Device/samsung-GT-I9100"
+#define RESOURCE	    "Android-"USER_AGENT_VERSION"-443"
+
+/*
+#define USER_AGENT_VERSION  "2.4.22"
 #define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/14.26 Device/Nokia302"
 #define RESOURCE	    "S40-"USER_AGENT_VERSION"-443"
+*/
 
 /*
 #define USER_AGENT_VERSION  "2.8.3"
@@ -181,6 +187,6 @@
 // Donate URL
 
 #define DONATE_URL      "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER    30516824
+#define MAGIC_NUMBER    529031862
 
 #endif // GLOBALCONSTANTS_H

@@ -1,3 +1,10 @@
+yappari (0.0.31) unstable; urgency=low
+
+  * Fixed bug about timestamps not being updated each day.
+  * Changed all spoofing keys including registration to Android.
+
+ -- Scorpius <naikel@gmail.com>  Sun, 28 Apr 2013 17:21:54 -0430
+
 yappari (0.0.30) unstable; urgency=low
 
   * Added a confirmation dialog after selecting a multimedia file to send.

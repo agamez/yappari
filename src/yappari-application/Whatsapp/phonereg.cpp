@@ -150,10 +150,6 @@ void PhoneReg::onSMSRequestDone(WARequest *req, bool ok, QVariantMap result)
         SMSListener *listener = new SMSListener(this);
         connect(listener,SIGNAL(codeReceived(SMSListener*,QString)),
                 this,SLOT(onSMSReceived(SMSListener*,QString)));
-
-#ifdef Q_WS_SCRATCHBOX
-        onSMSReceived(listener,"000000");
-#endif
     }
     else if (status == "ok")
     {

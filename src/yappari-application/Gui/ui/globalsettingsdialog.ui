@@ -43,7 +43,7 @@
         <x>0</x>
         <y>0</y>
         <width>398</width>
-        <height>550</height>
+        <height>700</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -55,7 +55,7 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>550</height>
+        <height>700</height>
        </size>
       </property>
       <property name="layoutDirection">
@@ -67,7 +67,7 @@
          <x>0</x>
          <y>0</y>
          <width>339</width>
-         <height>219</height>
+         <height>277</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -85,9 +85,23 @@
          </widget>
         </item>
         <item>
+         <widget class="QMaemo5ValueButton" name="syncFreqButton">
+          <property name="text">
+           <string>Synchronization Frequency</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QMaemo5ValueButton" name="portButton">
           <property name="text">
            <string>Port</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="startOnBootCheckBox">
+          <property name="text">
+           <string>Start Yappari when phone boots</string>
           </property>
          </widget>
         </item>

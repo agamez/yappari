@@ -31,6 +31,7 @@
 
 #include "client.h"
 
+#include "ui_chatwindow.h"
 #include "groupwindow.h"
 #include "groupsubjectdialog.h"
 
@@ -45,20 +46,16 @@ GroupWindow::GroupWindow(Group group, QWidget *parent) :
     actionChangeSubject->setObjectName(QString::fromUtf8("actionChangeSubject"));
     actionChangeSubject->setText("Change Subject");
 
-    /*
-    QAction *actionGroupInfo = new QAction(this);
-    actionGroupInfo->setObjectName(QString::fromUtf8("actionGroupInfo"));
-    actionGroupInfo->setText("Group Info");
-    */
-
     QAction *actionLeaveGroup = new QAction(this);
     actionLeaveGroup->setObjectName(QString::fromUtf8("actionLeaveGroup"));
     actionLeaveGroup->setText("Leave Group");
 
     QMenu *groupMenu = menuBar()->addMenu("&Group");
     groupMenu->addAction(actionChangeSubject);
-    //groupMenu->addAction(actionGroupInfo);
     groupMenu->addAction(actionLeaveGroup);
+
+    // ui->actionViewContact->setText("View Group");
+    ui->chatMenu->removeAction(ui->actionViewContact);
 
     // Actions
 

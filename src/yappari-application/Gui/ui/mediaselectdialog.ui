@@ -21,7 +21,13 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../../../../../../../../../../usr/share/icons/hicolor/64x64/hildon/general_image.png</normaloff>../../../../../../../../../../../usr/share/icons/hicolor/64x64/hildon/general_image.png</iconset>
+       <normaloff>../../../../../../../../../../../usr/share/yappari/icons/48x48/80-59.png</normaloff>../../../../../../../../../../../usr/share/yappari/icons/48x48/80-59.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>48</width>
+       <height>48</height>
+      </size>
      </property>
     </widget>
    </item>
@@ -32,7 +38,13 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../../../../../../../../../../usr/share/icons/hicolor/64x64/hildon/general_speaker.png</normaloff>../../../../../../../../../../../usr/share/icons/hicolor/64x64/hildon/general_speaker.png</iconset>
+       <normaloff>../../../../../../../../../../../usr/share/yappari/icons/48x48/85-1.png</normaloff>../../../../../../../../../../../usr/share/yappari/icons/48x48/85-1.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>48</width>
+       <height>48</height>
+      </size>
      </property>
     </widget>
    </item>
@@ -43,7 +55,13 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../../../../../../../../../../usr/share/icons/hicolor/64x64/hildon/general_video.png</normaloff>../../../../../../../../../../../usr/share/icons/hicolor/64x64/hildon/general_video.png</iconset>
+       <normaloff>../../../../../../../../../../../usr/share/yappari/icons/48x48/80-61.png</normaloff>../../../../../../../../../../../usr/share/yappari/icons/48x48/80-61.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>48</width>
+       <height>48</height>
+      </size>
      </property>
     </widget>
    </item>

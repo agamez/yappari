@@ -48,6 +48,7 @@
 #include "conversationdelegate.h"
 #include "mutedialog.h"
 #include "mediaselectdialog.h"
+#include "contactinfowindow.h"
 #include "globalconstants.h"
 
 #include "Whatsapp/util/utilities.h"
@@ -72,16 +73,14 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
     ui->setupUi(this);
     ui->scrollArea->init();
 
-    QFontMetrics metrics(ui->textEdit->currentFont());
-    fontHeight = metrics.height();
-
     muted = false;
     muteExpireTimestamp = 0;
 
     connect(ui->scrollArea,SIGNAL(mediaDownload(FMessage)),
             this,SLOT(mediaDownloadRequested(FMessage)));
     connect(ui->sendButton,SIGNAL(clicked()),this,SLOT(sendButtonClicked()));
-    connect(ui->selectEmojiButton,SIGNAL(clicked()),this,SLOT(selectEmojiButtonClicked()));
+    connect(ui->selectEmojiButton,SIGNAL(clicked()),
+            ui->textEdit,SLOT(selectEmojiButtonClicked()));
 
     ui->centralwidget->installEventFilter(this);
 
@@ -90,14 +89,12 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
 
     isPeerComposing = false;
     isMyselfComposing = false;
-    isEmojiWidgetOpen = false;
     setWindowTitle(contact.name);
-    //ui->conversationWidget->setItemDelegate(new ConversationDelegate(ui->conversationWidget));
 
     setAttribute(Qt::WA_QuitOnClose,false);
 
+    ui->textEdit->setMainWindow(this);
     ui->textEdit->setFocus();
-    ui->textEdit->installEventFilter(this);
 
     // Set the thread name
     Atom atom = XInternAtom(QX11Info::display(), "_HILDON_NOTIFICATION_THREAD", False);
@@ -114,9 +111,6 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
                          );
     }
 
-    connect(&composingTimer,SIGNAL(timeout()),
-            this,SLOT(verifyPaused()));
-
     logger.init(contact.jid);
 
     connect(this,SIGNAL(logMessage(FMessage)),
@@ -131,9 +125,6 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
     connect(this,SIGNAL(updateDuration(FMessage)),
             &logger,SLOT(updateDuration(FMessage)));
 
-    //connect(ui->actionDeleteAll,SIGNAL(triggered()),
-    //        &logger,SLOT(deleteAllMessages()));
-
     connect(ui->actionDeleteAll,SIGNAL(triggered()),
             this,SLOT(deleteAllMessages()));
 
@@ -143,6 +134,9 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
     connect(ui->actionMute,SIGNAL(triggered()),
             this,SLOT(mute()));
 
+    connect(ui->actionViewContact,SIGNAL(triggered()),
+            this,SLOT(viewContact()));
+
     connect(ui->scrollArea,SIGNAL(topReached()),
             this,SLOT(readMoreLogLines()));
 
@@ -151,8 +145,14 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
     qApp->processEvents();
     ui->scrollArea->goToBottom();
 
-    connect(ui->textEdit,SIGNAL(textChanged()),
-            this,SLOT(textChanged()));
+    connect(ui->textEdit,SIGNAL(paused()),
+            this,SLOT(myselfPaused()));
+
+    connect(ui->textEdit,SIGNAL(composing()),
+            this,SLOT(myselfComposing()));
+
+    connect(ui->textEdit,SIGNAL(returnPressed()),
+            this,SLOT(sendButtonClicked()));
 
     Utilities::logData("Created chat window for " + contact.jid + " ID: " +
                        QString::number(this->winId()));
@@ -184,7 +184,7 @@ void ChatWindow::sendButtonClicked()
     // eventually.
     // QString text = ui->textEdit->toPlainText();
 
-    QString text = getText();
+    QString text = Utilities::htmlToWAText(ui->textEdit->toHtml());
 
     if (!text.isEmpty())
     {
@@ -245,6 +245,8 @@ void ChatWindow::available(bool online, qint64 lastSeen)
         text = "Online";
 
     setOnlineText(text);
+
+    emit lastSeenUpdated();
 }
 
 void ChatWindow::setOnlineText(QString text)
@@ -262,9 +264,6 @@ void ChatWindow::myselfComposing()
         message.type = FMessage::ComposingMessage;
 
         emit sendMessage(message);
-
-        lastKeyPressed = QDateTime::currentMSecsSinceEpoch();
-        composingTimer.start(2000);
     }
 }
 
@@ -272,8 +271,6 @@ void ChatWindow::myselfPaused()
 {
     if (contact.type == Contact::TypeContact)
     {
-        composingTimer.stop();
-
         isMyselfComposing = false;
 
         FMessage message(contact.jid,true);
@@ -298,41 +295,11 @@ void ChatWindow::paused()
 
 bool ChatWindow::eventFilter(QObject *obj, QEvent *event)
 {
-    if (obj == ui->textEdit)
+    if (obj == ui->centralwidget)
     {
-        if (event->type() == QEvent::KeyPress)
+        if (event->type() == QEvent::MouseButtonPress)
         {
-            QKeyEvent *keyEvent = (QKeyEvent *) event;
-
-            if (keyEvent->nativeScanCode() == 36)
-            {
-                QTimer::singleShot(0,this,SLOT(sendButtonClicked()));
-                return true;
-            }
-            else if (!isMyselfComposing)
-                QTimer::singleShot(0,this,SLOT(myselfComposing()));
-            else
-                lastKeyPressed = QDateTime::currentMSecsSinceEpoch();
-        }
-        else if (event->type() == QEvent::InputMethod)
-        {
-            QInputMethodEvent *inputEvent = (QInputMethodEvent *) event;
-
-            //Utilities::logData("Commit String: '" + inputEvent->commitString() + "'");
-            if (inputEvent->commitString() == "\n")
-            {
-                // Let's hide the keyboard if it was shown
-                QTimer::singleShot(0,this,SLOT(closeKB()));
-                QTimer::singleShot(0,this,SLOT(sendButtonClicked()));
-                return true;
-            }
-        }
-    }
-    else if (obj == ui->centralwidget)
-    {
-        if (event->type() == QEvent::MouseButtonPress && isEmojiWidgetOpen)
-        {
-            closeEmojiWidget();
+            ui->textEdit->closeEmojiWidget();
 
             return true;
         }
@@ -340,178 +307,6 @@ bool ChatWindow::eventFilter(QObject *obj, QEvent *event)
     }
 
     return QMainWindow::eventFilter(obj,event);
-}
-
-
-static Window findHildonIm()
-{
-    union
-    {
-        Window *win;
-        unsigned char *val;
-    } value;
-
-    Window result = 0;
-    ulong n = 0;
-    ulong extra = 0;
-    int format = 0;
-    Atom realType;
-
-    int status = XGetWindowProperty(QX11Info::display(), QX11Info::appRootWindow(),
-                    XInternAtom(QX11Info::display(), "_HILDON_IM_WINDOW", False), 0L, 4L, 0,
-                    XA_WINDOW, &realType, &format,
-                    &n, &extra, (unsigned char **) &value.val);
-
-    if (status == Success && realType == XA_WINDOW
-          && format == HILDON_IM_WINDOW_ID_FORMAT && n == 1 && value.win != 0) {
-        result = value.win[0];
-        XFree(value.val);
-    } else {
-        qWarning("QHildonInputContext: Unable to get the Hildon IM window id");
-    }
-
-    return result;
-}
-
-void ChatWindow::closeKB()
-{
-    Window w = findHildonIm();
-
-    if (!w)
-        return;
-
-    XEvent ev;
-    memset(&ev, 0, sizeof(XEvent));
-
-    HildonIMActivateMessage *msg = reinterpret_cast<HildonIMActivateMessage *>(&ev.xclient.data);
-
-    ev.xclient.type = ClientMessage;
-    ev.xclient.window = w;
-    ev.xclient.message_type = XInternAtom(QX11Info::display(), "_HILDON_IM_ACTIVATE", False);
-    ev.xclient.format = HILDON_IM_ACTIVATE_FORMAT;
-
-    msg->input_window = winId();
-    msg->app_window = ui->textEdit->window()->winId();
-    msg->cmd = HILDON_IM_HIDE;
-    msg->trigger = HILDON_IM_TRIGGER_NONE;
-
-    XSendEvent(QX11Info::display(),w,false,NoEventMask,&ev);
-    XSync(QX11Info::display(),false);
-}
-
-void ChatWindow::verifyPaused()
-{
-    if ((QDateTime::currentMSecsSinceEpoch() - lastKeyPressed) > 2000)
-        QTimer::singleShot(0,this,SLOT(myselfPaused()));
-}
-
-void ChatWindow::textChanged()
-{
-    int docHeight = ui->textEdit->document()->size().height();
-    int editHeight = ui->textEdit->size().height();
-
-    QFontMetrics metrics(ui->textEdit->currentFont());
-
-    fontHeight = metrics.height();
-
-    double docLines = (docHeight - 8) / fontHeight;
-    double textLines = (editHeight - 39) / fontHeight;
-
-    if (abs(docLines) != abs(textLines))
-    {
-        ui->textEdit->setFixedHeight((docLines * fontHeight) + 39);
-        ui->textEdit->update();
-    }
-}
-
-void ChatWindow::selectEmojiButtonClicked()
-{
-    if (!isEmojiWidgetOpen)
-        openEmojiWidget();
-    else
-        closeEmojiWidget();
-}
-
-void ChatWindow::openEmojiWidget()
-{
-    emojiWidget = new SelectEmojiWidget(this);
-
-    connect(emojiWidget,SIGNAL(emojiSelected(QString)),this,SLOT(addEmoji(QString)));
-
-    isEmojiWidgetOpen = true;
-
-    emojiWidget->show();
-}
-
-void ChatWindow::closeEmojiWidget()
-{
-    emojiWidget->hide();
-    emojiWidget->deleteLater();
-    isEmojiWidgetOpen = false;
-}
-
-void ChatWindow::addEmoji(QString emojiName)
-{
-    closeEmojiWidget();
-
-    QTextCursor cursor = ui->textEdit->textCursor();
-
-    QString html = "<img src=\"/usr/share/yappari/icons/32x32/" + emojiName +".png\" />";
-
-    cursor.insertHtml(html);
-    ui->textEdit->setFocus();
-}
-
-QString ChatWindow::getText()
-{
-    QString html = ui->textEdit->toHtml();
-
-    QRegExp htmlreg("(<img src=\"[^\"]+\" />)");
-
-    int pos = 0;
-    while ((pos = htmlreg.indexIn(html,pos)) != -1)
-    {
-        QString image = htmlreg.cap(1);
-
-        QRegExp imagereg("([a-f0-9]+)-([a-f0-9]+).png");
-
-        int imagePos = imagereg.indexIn(image);
-        if (imagePos != -1)
-        {
-            QByteArray array;
-            uchar e1 = imagereg.cap(1).toInt(0,16);
-            if (e1 == 0x9F)
-            {
-                quint16 e2 = imagereg.cap(2).toInt(0,16);
-                array.append(0xF0);
-                array.append(e1);
-                array.append((e2 & 0xFF00) >> 8);
-                array.append(e2 & 0xFF);
-            }
-            else if (e1 == 0xE2 || e1 == 0xE3)
-            {
-                quint16 e2 = imagereg.cap(2).toInt(0,16);
-                array.append(e1);
-                array.append((e2 & 0xFF00) >> 8);
-                array.append(e2 & 0xFF);
-            }
-            else
-            {
-                uchar e2 = imagereg.cap(2).toInt() + 0x80;
-
-                array.append(0xEE);
-                array.append(e1);
-                array.append(e2);
-            }
-
-            html.replace(pos,image.length(),QString::fromUtf8(array.constData()));
-        }
-    }
-
-    QTextDocument doc;
-    doc.setHtml(html);
-
-    return doc.toPlainText();
 }
 
 void ChatWindow::sendMultimediaMessage()
@@ -525,7 +320,7 @@ void ChatWindow::sendMultimediaMessage()
 
         int waType = dialog.getMediaSelected();
 
-        QString mediaFolder = Client::getPathFor(waType, true);
+        QString mediaFolder = Utilities::getPathFor(waType, true);
         QString fileExtensions;
 
         switch (waType)
@@ -630,11 +425,13 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
     connect(mediaUpload,SIGNAL(httpError(MediaUpload*)),
             this,SLOT(httpErrorHandler(MediaUpload*)));
 
-    //mediaUpload->sendPicture(contact.jid, msg.media_name, msg.media_url,
-    //                          (msg.status == FMessage::Uploading));
+    connect(mediaUpload,SIGNAL(headersReceived(qint64)),
+            this,SLOT(increaseDownloadCounter(qint64)));
 
-    //mediaUpload->sendVideo(contact.jid, msg.media_name, msg.media_url,
-    //                         (msg.status == FMessage::Uploading));
+    /*
+    connect(mediaUpload,SIGNAL(requestSent(qint64)),
+            this,SLOT(increaseUploadCounter(qint64)));
+    */
 
     mediaUpload->sendMedia(contact.jid,msg);
 
@@ -662,6 +459,29 @@ void ChatWindow::mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg)
     emit updateDuration(msg);
 
     emit sendMessage(msg);
+
+    // Increase counters
+    int type;
+    switch (msg.media_wa_type)
+    {
+        case FMessage::Image:
+            type = DataCounters::ImageBytes;
+            break;
+
+        case FMessage::Audio:
+            type = DataCounters::AudioBytes;
+            break;
+
+        case FMessage::Video:
+            type = DataCounters::VideoBytes;
+            break;
+
+        default:
+            type = DataCounters::ProtocolBytes;
+            break;
+    }
+
+    Client::dataCounters.increaseCounter(type, 0, msg.media_size);
 }
 
 void ChatWindow::sslErrorHandler(MediaUpload *mediaUpload)
@@ -705,6 +525,12 @@ void ChatWindow::mediaDownloadRequested(FMessage msg)
     connect(mediaDownload,SIGNAL(httpError(MediaDownload*, FMessage, int)),
             this,SLOT(mediaDownloadError(MediaDownload*, FMessage, int)));
 
+    connect(mediaDownload,SIGNAL(headersReceived(qint64)),
+            this,SLOT(increaseDownloadCounter(qint64)));
+
+    connect(mediaDownload,SIGNAL(requestSent(qint64)),
+            this,SLOT(increaseUploadCounter(qint64)));
+
     mediaDownload->backgroundTransfer(msg);
 }
 
@@ -719,6 +545,28 @@ void ChatWindow::mediaDownloadFinished(MediaDownload *mediaDownload, FMessage ms
 
     emit updateUriMessage(msg);
 
+    // Increase counters
+    int type;
+    switch (msg.media_wa_type)
+    {
+        case FMessage::Image:
+            type = DataCounters::ImageBytes;
+            break;
+
+        case FMessage::Audio:
+            type = DataCounters::AudioBytes;
+            break;
+
+        case FMessage::Video:
+            type = DataCounters::VideoBytes;
+            break;
+
+        default:
+            type = DataCounters::ProtocolBytes;
+            break;
+    }
+
+    Client::dataCounters.increaseCounter(type, msg.media_size, 0);
 }
 
 void ChatWindow::mediaDownloadError(MediaDownload *mediaDownload, FMessage msg, int errorCode)
@@ -797,4 +645,54 @@ void ChatWindow::updateTimestamps()
 {
     Utilities::logData("ChatWindow " + contact.jid + " updateTimeStamps()");
     ui->scrollArea->requestUpdateTimestamps();
+}
+
+void ChatWindow::increaseUploadCounter(qint64 bytes)
+{
+    Client::dataCounters.increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void ChatWindow::increaseDownloadCounter(qint64 bytes)
+{
+    Client::dataCounters.increaseCounter(DataCounters::ProtocolBytes, bytes, 0);
+}
+
+void ChatWindow::requestPhotoRefresh(QString jid, QString photoId, bool largeFormat)
+{
+    emit photoRefresh(jid, photoId, largeFormat);
+}
+
+void ChatWindow::viewContact()
+{
+    ContactInfoWindow *window = new ContactInfoWindow(&contact,this);
+
+    connect(window,SIGNAL(photoRefresh(QString,QString,bool)),
+            this,SLOT(requestPhotoRefresh(QString,QString,bool)));
+
+    connect(this,SIGNAL(photoReceived(QImage,QString)),
+            window,SLOT(photoReceived(QImage,QString)));
+
+    connect(this,SIGNAL(lastSeenUpdated()),
+            window,SLOT(setContactName()));
+
+    connect(this,SIGNAL(userStatusChanged()),
+            window,SLOT(setContactStatus()));
+
+    emit requestStatus(contact.jid);
+
+    window->setAttribute(Qt::WA_Maemo5StackedWindow);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->setWindowFlags(window->windowFlags() | Qt::Window);
+    window->show();
+}
+
+void ChatWindow::photoReceivedHandler(QImage photo, QString photoId)
+{
+    emit photoReceived(photo, photoId);
+}
+
+void ChatWindow::statusChanged(QString status)
+{
+    contact.status = status;
+    emit userStatusChanged();
 }

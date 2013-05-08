@@ -27,6 +27,7 @@
  */
 
 #include <QSystemDeviceInfo>
+#include <QTextDocument>
 #include <QFile>
 
 #include "client.h"
@@ -34,20 +35,9 @@
 #include "utilities.h"
 #include "qtmd5digest.h"
 
+#include "globalconstants.h"
+
 #define DEBUG
-
-/*
-#define BUILD_KEY   "k7Iy3bWARdNeSL8gYgY6WveX12A1g4uTNXrRzt1H"
-#define BUILD_HASH  "889d4f44e479e6c38b4a834c6d8417815f999abe"
-*/
-
-/*
-#define BUILD_KEY   "PdA2DJyKoUrwLw1Bg6EIhzh502dF9noR9uFCllGk"
-#define BUILD_HASH  "1366850357035"
-*/
-
-#define BUILD_KEY   "30820332308202f0a00302010202044c2536a4300b06072a8648ce3804030500307c310b3009060355040613025553311330110603550408130a43616c69666f726e6961311430120603550407130b53616e746120436c61726131163014060355040a130d576861747341707020496e632e31143012060355040b130b456e67696e656572696e67311430120603550403130b427269616e204163746f6e301e170d3130303632353233303731365a170d3434303231353233303731365a307c310b3009060355040613025553311330110603550408130a43616c69666f726e6961311430120603550407130b53616e746120436c61726131163014060355040a130d576861747341707020496e632e31143012060355040b130b456e67696e656572696e67311430120603550403130b427269616e204163746f6e308201b83082012c06072a8648ce3804013082011f02818100fd7f53811d75122952df4a9c2eece4e7f611b7523cef4400c31e3f80b6512669455d402251fb593d8d58fabfc5f5ba30f6cb9b556cd7813b801d346ff26660b76b9950a5a49f9fe8047b1022c24fbba9d7feb7c61bf83b57e7c6a8a6150f04fb83f6d3c51ec3023554135a169132f675f3ae2b61d72aeff22203199dd14801c70215009760508f15230bccb292b982a2eb840bf0581cf502818100f7e1a085d69b3ddecbbcab5c36b857b97994afbbfa3aea82f9574c0b3d0782675159578ebad4594fe67107108180b449167123e84c281613b7cf09328cc8a6e13c167a8b547c8d28e0a3ae1e2bb3a675916ea37f0bfa213562f1fb627a01243bcca4f1bea8519089a883dfe15ae59f06928b665e807b552564014c3bfecf492a0381850002818100d1198b4b81687bcf246d41a8a725f0a989a51bce326e84c828e1f556648bd71da487054d6de70fff4b49432b6862aa48fc2a93161b2c15a2ff5e671672dfb576e9d12aaff7369b9a99d04fb29d2bbbb2a503ee41b1ff37887064f41fe2805609063500a8e547349282d15981cdb58a08bede51dd7e9867295b3dfb45ffc6b259300b06072a8648ce3804030500032f00302c021400a602a7477acf841077237be090df436582ca2f0214350ce0268d07e71e55774ab4eacd4d071cd1efad"
-#define BUILD_HASH  "b17c1774a3403c0145a8c6c2fd171c1a"
 
 #define ICON_PATH   "/usr/share/yappari/icons/32x32/"
 
@@ -136,7 +126,7 @@ QString Utilities::getToken(QString phoneNumber)
     return QString::fromLatin1(bytes.toHex().constData());
 }
 
-QString Utilities::formatMessage(QString data, int iconSize)
+QString Utilities::WATextToHtml(QString data, int iconSize)
 {
     data.replace("<","&lt;");
     data.replace(">","&gt;");
@@ -216,7 +206,7 @@ QString Utilities::formatMessage(QString data, int iconSize)
     //
 
     int pos = 0;
-    QRegExp urlreg("(http://[_a-zA-Z0-9./~:?#!$&'+,;=-]+)");
+    QRegExp urlreg("(https?://[_a-zA-Z0-9./~:?#!$&'+,;=%-]+)");
 
     urlreg.setCaseSensitivity(Qt::CaseInsensitive);
 
@@ -231,12 +221,12 @@ QString Utilities::formatMessage(QString data, int iconSize)
 
     pos = 0;
 
-    QRegExp wwwreg("(^|\\s)(www\\.[_a-zA-Z0-9./~:?#!$&'+,;=-]+)");
+    QRegExp wwwreg("(^|\\s)(www\\.[_a-zA-Z0-9./~:?#!$&'+,;=%-]+)");
     wwwreg.setCaseSensitivity(Qt::CaseInsensitive);
 
     while ((pos = wwwreg.indexIn(result,pos)) != -1)
     {
-        QString url = "<a href=\"http://" + wwwreg.cap(2) + "\">" +
+        QString url = "&nbsp;<a href=\"http://" + wwwreg.cap(2) + "\">" +
                       shortURL(wwwreg.cap(2)) + "</a>";
         result.replace(pos,wwwreg.cap(1).length() + wwwreg.cap(2).length(),url);
 
@@ -300,4 +290,125 @@ QString Utilities::getExtension(QString filename)
         return lower.mid(index+1);
 
     return "unknown";
+}
+
+QString Utilities::getPathFor(int media_wa_type, bool gallery)
+{
+    QDir home = QDir::home();
+    QString folder;
+
+    switch (media_wa_type)
+    {
+        case FMessage::Audio:
+            folder = AUDIO_DIR;
+            break;
+        case FMessage::Image:
+            folder = IMAGES_DIR;
+            break;
+        case FMessage::Video:
+            folder = VIDEOS_DIR;
+            break;
+    }
+
+    if (Client::importMediaToGallery || gallery)
+        folder = home.path() + DEFAULT_DIR"/." + folder;
+    else
+        folder = home.path() + CACHE_DIR"/" + folder;
+
+    if (!home.exists(folder))
+        home.mkpath(folder);
+
+    return folder;
+}
+
+QString Utilities::formatBytes(qint64 bytes)
+{
+    qreal value = bytes;
+
+    int unit = 0;
+    while (value >= 1024)
+    {
+        unit++;
+        value /= 1024;
+    }
+
+    QString result;
+    if (unit)
+        result.sprintf("%4.2f ",value);
+    else
+        result = QString::number(value) + " ";
+
+    switch (unit)
+    {
+        case 0:
+            result.append("B");
+            break;
+        case 1:
+            result.append("KB");
+            break;
+        case 2:
+            result.append("MB");
+            break;
+        case 3:
+            result.append("GB");
+            break;
+        case 4:
+            result.append("TB");
+            break;
+        default:
+            result = "#####";
+            break;
+    }
+
+    return result;
+}
+
+QString Utilities::htmlToWAText(QString html)
+{
+    QRegExp htmlreg("(<img src=\"[^\"]+\" />)");
+
+    int pos = 0;
+    while ((pos = htmlreg.indexIn(html,pos)) != -1)
+    {
+        QString image = htmlreg.cap(1);
+
+        QRegExp imagereg("([a-f0-9]+)-([a-f0-9]+).png");
+
+        int imagePos = imagereg.indexIn(image);
+        if (imagePos != -1)
+        {
+            QByteArray array;
+            uchar e1 = imagereg.cap(1).toInt(0,16);
+            if (e1 == 0x9F)
+            {
+                quint16 e2 = imagereg.cap(2).toInt(0,16);
+                array.append(0xF0);
+                array.append(e1);
+                array.append((e2 & 0xFF00) >> 8);
+                array.append(e2 & 0xFF);
+            }
+            else if (e1 == 0xE2 || e1 == 0xE3)
+            {
+                quint16 e2 = imagereg.cap(2).toInt(0,16);
+                array.append(e1);
+                array.append((e2 & 0xFF00) >> 8);
+                array.append(e2 & 0xFF);
+            }
+            else
+            {
+                uchar e2 = imagereg.cap(2).toInt() + 0x80;
+
+                array.append(0xEE);
+                array.append(e1);
+                array.append(e2);
+            }
+
+            html.replace(pos,image.length(),QString::fromUtf8(array.constData()));
+        }
+    }
+
+    QTextDocument doc;
+    doc.setHtml(html);
+
+    return doc.toPlainText();
 }

@@ -39,6 +39,7 @@
 #include <QHash>
 
 #include "util/messagedigest.h"
+#include "util/datacounters.h"
 #include "protocoltreenode.h"
 #include "bintreenodewriter.h"
 #include "bintreenodereader.h"
@@ -84,7 +85,7 @@ public:
 
     explicit Connection(QTcpSocket *socket, QString domain, QString resource,
                         QString user, QString push_name, QByteArray password,
-                        QObject *parent = 0);
+                        DataCounters *counters, QObject *parent = 0);
     ~Connection();
 
     void login(QByteArray nextChallenge);
@@ -102,16 +103,16 @@ private:
     QStringList dictionary;
     qint64 lastTreeRead;
     int iqid;
+    DataCounters *counters;
 
     ProtocolTreeNode getMessageNode(FMessage& message, ProtocolTreeNode& child);
-    void sendFeatures();
-    void sendAuth();
+    int sendFeatures();
+    int sendAuth();
     QByteArray getAuthBlob(QByteArray nonce);
-    QByteArray readFeaturesUntilChallengeOrSuccess();
-    void sendResponse(QByteArray challengeData);
-    QString getResponse(QString challengeData);
+    QByteArray readFeaturesUntilChallengeOrSuccess(int *bytes);
+    int sendResponse(QByteArray challengeData);
     void parseSuccessNode(ProtocolTreeNode& node);
-    void readSuccess();
+    int readSuccess();
     void sendClientConfig(QString platform);
     void sendAvailableForChat();
 
@@ -121,7 +122,7 @@ private:
     void sendNotificationReceived(QString to, QString id);
     void getReceiptAck(ProtocolTreeNode& node, QString to, QString id, QString receiptType);
     void sendDeliveredReceiptAck(QString to, QString id);
-    QString makeId();
+    QString makeId(QString prefix);
     void sendMessageWithBody(FMessage& message);
     void sendMessageWithMedia(FMessage& message);
     void requestMessageWithMedia(FMessage& message);
@@ -145,9 +146,14 @@ signals:
     void composing(QString jid);
     void paused(QString jid);
     void leaveGroup(QString gjid);
-    void userStatusUpdated(QString status);
+    void userStatusUpdated(FMessage message);
     void lastOnline(QString jid, qint64 timestamp);
     void mediaUploadAccepted(FMessage message);
+    void photoIdReceived(QString jid, QString pictureId);
+    void photoDeleted(QString jid);
+    void photoReceived(QString from, QByteArray data,
+                       QString photoId, bool largeFormat);
+
 
 public slots:
     void sendMessage(FMessage& message);
@@ -155,6 +161,11 @@ public slots:
     void sendSetGroupSubject(QString gjid, QString subject);
     void sendLeaveGroup(QString gjid);
     void sendQueryLastOnline(QString jid);
+    void sendGetPhotoIds(QStringList jids);
+    void sendGetPhoto(QString jid, QString expectedPhotoId, bool largeFormat);
+    void sendGetStatus(QString jid);
+    void sendSetPhoto(QByteArray imageBytes, QByteArray thumbBytes);
+
 };
 
 

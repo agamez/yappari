@@ -66,6 +66,7 @@ public:
     TypingStatus typingStatus;
     qint64 lastSeen;
     QImage photo;
+    QString photoId;
 
     void setOnlineStatus(bool isOnline);
 };

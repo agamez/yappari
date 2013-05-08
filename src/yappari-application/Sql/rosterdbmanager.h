@@ -52,6 +52,8 @@ public slots:
     void updateAlias(Contact *c);
     void updateName(Contact *c);
     void updateLastSeen(Contact *c);
+    void updatePhoto(Contact *c);
+    void updateStatus(Contact *c);
     void removeContact(QString jid);
     ContactList *getAllContacts();
 

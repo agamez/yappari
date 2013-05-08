@@ -79,7 +79,7 @@ QString ChatTextItem::createHTML()
 
     QString from = (from_me)
             ? "You"
-            : message.notify_name.replace("<","&lt;").replace(">","&gt;");
+            : message.notify_name;
 
     QString nickcolor = Client::nickcolor.isEmpty() ? "cyan" : Client::nickcolor;
     QString textcolor = Client::textcolor.isEmpty() ?
@@ -88,7 +88,8 @@ QString ChatTextItem::createHTML()
     QString mycolor = Client::mycolor.isEmpty() ? "#333333" : Client::mycolor;
 
     QString html = "<style type=\"text/css\">"
-                   "table { border-style:solid; border-width:1px; border-color:"
+                   ".nick { color:" + nickcolor + "; }"
+                   "table { float:left; border-style:solid; border-width:1px; border-color:"
                    + mycolor +"; } "
                    + textcolor +
                    "</style>"
@@ -103,10 +104,10 @@ QString ChatTextItem::createHTML()
 
 
     html.append("><tr><td><table width=\"100%\" border=\"0\">"
-                "<tr><td valign=\"center\"><div style=\"color:"
-                + nickcolor + "\">" +
-                from + ":</div>&nbsp;" +
-                Utilities::formatMessage(QString::fromUtf8(message.data),32) +
+                "<tr><td valign=\"center\"><span class=\"nick\">" +
+                Utilities::WATextToHtml(from + ":",32) +
+                "</span> " +
+                Utilities::WATextToHtml(QString::fromUtf8(message.data),32) +
                 "</td><td align=\"right\" valign=\"bottom\">");
 
     if (!day.isEmpty())
@@ -171,4 +172,9 @@ QString ChatTextItem::createHTML()
 */
 
     return html;
+}
+
+FMessage ChatTextItem::getMessage()
+{
+    return message;
 }

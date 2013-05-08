@@ -67,7 +67,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QTextEdit" name="textEdit">
+        <widget class="ChatTextEdit" name="textEdit">
          <property name="maximumSize">
           <size>
            <width>16777215</width>
@@ -98,6 +98,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ChatTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>Gui/chattextedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

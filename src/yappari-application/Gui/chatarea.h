@@ -53,6 +53,7 @@ signals:
     void topReached();
     void updateTimestamps();
     void mediaDownload(FMessage message);
+    void contextMenuRequested(QPoint p, QObject *obj);
 
 public slots:
     void insertMessageAtTop(FMessage message);
@@ -69,6 +70,7 @@ private slots:
     void sliderRangeChanged(int min,int max);
     void sliderMoved(int value);
     void showPrevWidget();
+    void contextMenu(QPoint p, QObject *obj);
 
 private:
     QVBoxLayout *grid;
@@ -86,6 +88,7 @@ private:
 
 protected:
     //bool event(QEvent *);
+    bool eventFilter(QObject *obj, QEvent *event);
 
 };
 

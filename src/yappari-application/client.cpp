@@ -50,7 +50,13 @@
 #include "Whatsapp/util/qtmd5digest.h"
 #include "Whatsapp/util/datetimeutilities.h"
 
+#define MAX_SIZE    0xfc00
+
+DataCounters Client::dataCounters;
+
 Client::ConnectionStatus Client::connectionStatus;
+
+osso_context_t *Client::osso_context;
 
 QSettings *Client::settings;
 
@@ -68,22 +74,31 @@ QString Client::userName;
 QString Client::number;
 QString Client::imei;
 
+QString Client::creation;
+QString Client::expiration;
+QString Client::kind;
+QString Client::accountstatus;
+
 quint16 Client::port;
 int Client::automaticDownloadBytes;
 bool Client::importMediaToGallery;
-qint64 Client::whatsnew;
+qint64 Client::lastSync;
+qint64 Client::whatsNew;
 
 bool Client::showNicknames;
 bool Client::showNumbers;
 bool Client::popupOnFirstMessage;
 
 QString Client::sync;
+int Client::syncFreq;
+
+bool Client::startOnBoot;
 
 bool Client::android;
 
 bool Client::isSynchronizing;
 
-Client::Client(QObject *parent) : QObject(parent)
+Client::Client(bool minimized, QObject *parent) : QObject(parent)
 {
     // Debug info start
     QString version = FULL_VERSION;
@@ -97,12 +112,17 @@ Client::Client(QObject *parent) : QObject(parent)
     seq = 0;
 
     // Contacts roster
+    osso_context = osso_initialize(YAPPARI_APPLICATION_NAME,
+                                   VERSION, FALSE, NULL);
+    int argc = 0;
+    char **argv;
+    osso_abook_init(&argc,&argv,osso_context);
     roster = new ContactRoster(this);
 
     bool showWhatsNew = false;
 
     // Show Whatsnew window?
-    if (whatsnew != MAGIC_NUMBER)
+    if (whatsNew != MAGIC_NUMBER)
     {
         settings->setValue(SETTINGS_WHATSNEW,MAGIC_NUMBER);
         showWhatsNew = true;
@@ -135,7 +155,17 @@ Client::Client(QObject *parent) : QObject(parent)
     connect(mainWin,SIGNAL(queryLastOnline(QString)),
             this,SLOT(requestQueryLastOnline(QString)));
 
-    mainWin->show();
+    connect(mainWin,SIGNAL(photoRequest(QString,QString,bool)),
+            this,SLOT(photoRefresh(QString,QString,bool)));
+
+    connect(mainWin,SIGNAL(requestStatus(QString)),
+            this,SLOT(requestContactStatus(QString)));
+
+    connect(mainWin,SIGNAL(setPhoto(QImage)),
+            this,SLOT(setPhoto(QImage)));
+
+    if (!minimized)
+        mainWin->show();
 
     // Status bar
     QStatusBar *bar = mainWin->statusBar();
@@ -230,6 +260,10 @@ Client::~Client()
     free (strings);
 
     */
+
+    // Update data counters
+    dataCounters.writeCounters();
+
     Utilities::logData("Application destroyed");
     applet->HideApplet();
 }
@@ -260,6 +294,7 @@ void Client::readSettings()
 
     // Sync
     this->sync = settings->value(SETTINGS_SYNC).toString();
+    this->syncFreq = settings->value(SETTINGS_SYNC_FREQ,QVariant(DEFAULT_SYNC_FREQ)).toInt();
 
     // Android
     this->android = settings->value(SETTINGS_ANDROID).toBool();
@@ -272,6 +307,11 @@ void Client::readSettings()
     this->myJid = phoneNumber + "@s.whatsapp.net";
     this->userName = settings->value(SETTINGS_USERNAME).toString();
     this->imei = settings->value(SETTINGS_IMEI).toString();
+
+    this->creation = settings->value(SETTINGS_CREATION).toString();
+    this->kind = settings->value(SETTINGS_KIND).toString();
+    this->expiration = settings->value(SETTINGS_EXPIRATION).toString();
+    this->accountstatus = settings->value(SETTINGS_ACCOUNTSTATUS).toString();
 
     // Port
     this->port = settings->value(SETTINGS_PORT,QVariant(DEFAULT_PORT)).toInt();
@@ -296,8 +336,19 @@ void Client::readSettings()
     this->importMediaToGallery = settings->value(SETTINGS_IMPORT_TO_GALLERY,
                                                   QVariant(DEFAULT_IMPORT_TO_GALLERY)).toBool();
 
+    // Last Synchronization
+    this->lastSync = settings->value(SETTINGS_LAST_SYNC).toLongLong();
+
+    // Start on Boot
+    this->startOnBoot = settings->value(SETTINGS_START_ON_BOOT,
+                                        QVariant(DEFAULT_START_ON_BOOT)).toBool();
+
     // What's New Window
-    this->whatsnew = settings->value(SETTINGS_WHATSNEW).toLongLong();
+    this->whatsNew = settings->value(SETTINGS_WHATSNEW).toLongLong();
+
+    // Read counters
+    dataCounters.readCounters();
+    lastCountersWrite = QDateTime::currentMSecsSinceEpoch();
 }
 
 void Client::updateSettings()
@@ -312,6 +363,20 @@ void Client::updateSettings()
     settings->setValue(SETTINGS_POPUP_ON_FIRST_MESSAGE,popupOnFirstMessage);
     settings->setValue(SETTINGS_AUTOMATIC_DOWNLOAD,automaticDownloadBytes);
     settings->setValue(SETTINGS_IMPORT_TO_GALLERY,importMediaToGallery);
+    settings->setValue(SETTINGS_SYNC_FREQ,syncFreq);
+    settings->setValue(SETTINGS_START_ON_BOOT,startOnBoot);
+
+    QDir home = QDir::home();
+    QString startFile = home.path() + START_FILE;
+
+    if (!startOnBoot && home.exists(startFile))
+        home.remove(startFile);
+    else if (startOnBoot && !home.exists(startFile))
+    {
+        QFile file(startFile);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+            file.close();
+    }
 }
 
 void Client::networkStatusChanged(bool isOnline)
@@ -510,7 +575,7 @@ void Client::connected()
     Utilities::logData("Password: " + password);
 
     connection = new Connection(socket,JID_DOMAIN,RESOURCE,phoneNumber,
-                                userName,password);
+                                userName,password,&dataCounters,this);
 
     QByteArray nextChallenge = QByteArray::fromBase64(settings->value(SETTINGS_NEXTCHALLENGE).toByteArray());
     settings->remove(SETTINGS_NEXTCHALLENGE);
@@ -591,14 +656,23 @@ void Client::connected()
     connect(connection,SIGNAL(leaveGroup(QString)),
             mainWin,SLOT(leaveGroup(QString)));
 
-    connect(connection,SIGNAL(userStatusUpdated(QString)),
-            this,SLOT(userStatusUpdated(QString)));
+    connect(connection,SIGNAL(userStatusUpdated(FMessage)),
+            this,SLOT(userStatusUpdated(FMessage)));
 
     connect(connection,SIGNAL(lastOnline(QString,qint64)),
             mainWin,SLOT(available(QString,qint64)));
 
     connect(connection,SIGNAL(mediaUploadAccepted(FMessage)),
             mainWin,SLOT(mediaUploadAccepted(FMessage)));
+
+    connect(connection,SIGNAL(photoIdReceived(QString,QString)),
+            this,SLOT(photoIdReceived(QString,QString)));
+
+    connect(connection,SIGNAL(photoReceived(QString,QByteArray,QString,bool)),
+            this,SLOT(photoReceived(QString,QByteArray,QString,bool)));
+
+    connect(connection,SIGNAL(photoDeleted(QString)),
+            this,SLOT(photoDeleted(QString)));
 
     // Update participating groups
     connection->updateGroupChats();
@@ -613,16 +687,27 @@ void Client::connected()
     if (this->myStatus.isEmpty())
         changeStatus(DEFAULT_STATUS);
 
-    synchronizeContacts();
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (syncFreq == onConnect ||
+            (syncFreq == onceADay && (lastSync + 86400000U) < now) ||
+            (syncFreq == onceAWeek && (lastSync + 604800000U) < now) ||
+            (syncFreq == onceAMonth && (lastSync + 2419200000U) < now))
+    {
+        synchronizeContacts();
+        lastSync = now;
+        settings->setValue(SETTINGS_LAST_SYNC, lastSync);
+    }
 }
 
 void Client::synchronizeContacts()
 {
     // Contacts syncer
-    syncer = new ContactSyncer(roster);
+    syncer = new ContactSyncer(roster, this);
 
     connect(syncer,SIGNAL(syncFinished()),this,SLOT(syncFinished()));
     connect(syncer,SIGNAL(progress(int)),this,SLOT(syncProgress(int)));
+    connect(syncer,SIGNAL(photoRefresh(QString,QString,bool)),
+            this,SLOT(photoRefresh(QString,QString,bool)));
 
     isSynchronizing = true;
     QTimer::singleShot(0,syncer,SLOT(sync()));
@@ -643,6 +728,10 @@ void Client::syncFinished()
     isSynchronizing = false;
     syncer->deleteLater();
     updateStatus();
+
+    // Get all the photo ids
+    //ContactList contactList = roster->getContactList();
+    //connection->sendGetPhotoIds(contactList.toJidList());
 }
 
 void Client::changeStatus(QString newStatus)
@@ -754,17 +843,35 @@ void Client::read()
 
 void Client::keepAlive()
 {
-    qint64 timeElapsed = QDateTime::currentMSecsSinceEpoch() -
-                         connection->getLastTreeReadTimestamp();
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    qint64 timeElapsed = now - connection->getLastTreeReadTimestamp();
 
     if (timeElapsed >= MIN_INTERVAL)
     {
-        connection->sendNop();
+        // If we need a resync we'd do that instead of sending a ping
+        if ((syncFreq == onceADay && (lastSync + 86400000U) < now) ||
+            (syncFreq == onceAWeek && (lastSync + 604800000U) < now) ||
+            (syncFreq == onceAMonth && (lastSync + 2419200000U) < now))
+        {
+            synchronizeContacts();
+            lastSync = now;
+            settings->setValue(SETTINGS_LAST_SYNC, lastSync);
+        }
+        else
+            connection->sendNop();
+
         keepAliveTimer->start(MIN_INTERVAL);
     }
     else
     {
         keepAliveTimer->start(MIN_INTERVAL - timeElapsed);
+    }
+
+    // Write counters to disk if more than 24 hours have passed
+    if ((lastCountersWrite + 86400000U) < now)
+    {
+        dataCounters.writeCounters();
+        lastCountersWrite = now;
     }
 }
 
@@ -888,38 +995,128 @@ void Client::showStatus(QString status)
     bar->showMessage(status);
 }
 
-void Client::userStatusUpdated(QString status)
+void Client::userStatusUpdated(FMessage message)
 {
-    Utilities::logData("User status confirmed: " + status);
-    settings->setValue(SETTINGS_STATUS,status);
-    this->myStatus = status;
+    QString status = QString::fromUtf8(message.data.constData());
+
+    if (message.key.remote_jid == "s.us")
+    {
+        Utilities::logData("User status confirmed: " + status);
+        settings->setValue(SETTINGS_STATUS,status);
+        this->myStatus = status;
+    }
+    else
+    {
+        int index = message.key.remote_jid.indexOf('@');
+        if (index > 0)
+        {
+            QString jid = message.key.remote_jid.left(index + 1) + "s.whatsapp.net";
+            Contact &c = roster->getContact(jid);
+            c.status = QString::fromUtf8(message.data);
+            message.key.remote_jid = jid;
+            mainWin->statusChanged(message);
+
+            roster->updateStatus(&c);
+        }
+    }
 }
 
-QString Client::getPathFor(int media_wa_type, bool gallery)
+void Client::photoIdReceived(QString jid, QString photoId)
 {
-    QDir home = QDir::home();
-    QString folder;
+    Contact &c = roster->getContact(jid);
 
-    switch (media_wa_type)
+    if (c.photoId != photoId)
     {
-        case FMessage::Audio:
-            folder = AUDIO_DIR;
-            break;
-        case FMessage::Image:
-            folder = IMAGES_DIR;
-            break;
-        case FMessage::Video:
-            folder = VIDEOS_DIR;
-            break;
+        Utilities::logData("Contact " + jid + " has changed his profile photo");
+        connection->sendGetPhoto(jid, QString(), false);
     }
 
-    if (importMediaToGallery || gallery)
-        folder = home.path() + DEFAULT_DIR"/." + folder;
+}
+
+void Client::photoReceived(QString from, QByteArray data,
+                           QString photoId, bool largeFormat)
+{
+    Contact &c = roster->getContact(from);
+
+    if (!largeFormat)
+    {
+        c.photo = QImage::fromData(data).scaled(64, 64, Qt::KeepAspectRatio,
+                                                Qt::SmoothTransformation);
+        c.photoId = photoId;
+
+        roster->updatePhoto(&c);
+
+        mainWin->updatePhoto(c);
+
+        Utilities::logData("Updated picture of " + from + " Size " +
+                           QString::number(c.photo.width()) + "x" +
+                           QString::number(c.photo.width()));
+    }
     else
-        folder = home.path() + CACHE_DIR"/" + folder;
+    {
+        mainWin->photoReceived(c, QImage::fromData(data), photoId);
+    }
+}
 
-    if (!home.exists(folder))
-        home.mkpath(folder);
+void Client::photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat)
+{
+    connection->sendGetPhoto(jid, expectedPhotoId, largeFormat);
+}
 
-    return folder;
+void Client::photoDeleted(QString jid)
+{
+    Contact &c = roster->getContact(jid);
+
+    if (c.photoId != "abook")
+    {
+        if (c.type == Contact::TypeContact)
+            roster->getPhotoFromAddressBook(&c);
+        else
+        {
+            c.photoId.clear();
+            c.photo = QImage();
+        }
+
+        roster->updatePhoto(&c);
+
+        mainWin->updatePhoto(c);
+    }
+}
+
+void Client::requestContactStatus(QString jid)
+{
+    connection->sendGetStatus(jid);
+}
+
+void Client::setPhoto(QImage image)
+{
+    QByteArray data;
+    QByteArray thumbnail;
+
+    if (!image.isNull())
+    {
+        int quality = 80;
+        do
+        {
+            data.clear();
+            QBuffer out(&data);
+            out.open(QIODevice::WriteOnly);
+            image.save(&out, "JPEG", quality);
+            quality -= 10;
+        } while ((quality > 10) && data.size() > MAX_SIZE);
+
+        QImage thumb = image.scaled(100, 100, Qt::KeepAspectRatio,
+                                    Qt::SmoothTransformation);
+        quality = 80;
+        do
+        {
+            thumbnail.clear();
+            QBuffer out(&thumbnail);
+            out.open(QIODevice::WriteOnly);
+            thumb.save(&out, "JPEG", quality);
+            quality -= 10;
+        } while ((quality > 10) && thumbnail.size() > MAX_SIZE);
+    }
+
+    connection->sendSetPhoto(data,thumbnail);
 }

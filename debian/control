@@ -4,18 +4,19 @@ Priority: optional
 Maintainer: Scorpius <naikel@gmail.com>
 Build-Depends: debhelper (>= 5), libqt4-dev, libqtm-dev, mce-dev, hildon-input-method-framework-dev, libx11-dev, libgtk2.0-dev, libosso-dev, libosso-abook-dev, libebook-dev, libhildondesktop1-dev
 Standards-Version: 3.7.3
-Homepage: <insert the upstream URL, if relevant>
+Homepage: http://talk.maemo.org/showthread.php?t=84605
 
 Package: yappari
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: WhatsApp client written in Qt for Nokia N900
- Yappari is a Whatsapp client for the Nokia 900.
+ Yappari is a WhatsApp client for the Nokia N900.
  .
  You have to reboot your phone after installation.
  .
- Yappari supports basic Whatsapp messaging. There's also some
+ Yappari supports messaging and multimedia. There's also some
  basic group support.
+ .
 XB-Maemo-Display-Name: Yappari
 XB-Maemo-Icon-26:
  iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAALHRFWHRDcmVh

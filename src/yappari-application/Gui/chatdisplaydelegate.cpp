@@ -30,7 +30,7 @@
 
 #include "chatdisplaydelegate.h"
 
-#define TEXT_WIDTH 700
+#define TEXT_WIDTH  700
 
 ChatDisplayDelegate::ChatDisplayDelegate(QObject *parent) :
     QStyledItemDelegate(parent)

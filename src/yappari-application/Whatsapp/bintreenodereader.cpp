@@ -44,7 +44,7 @@ BinTreeNodeReader::BinTreeNodeReader(QTcpSocket *socket, QStringList& dictionary
     this->socket = socket;
 }
 
-void BinTreeNodeReader::getOneToplevelStream()
+int BinTreeNodeReader::getOneToplevelStream()
 {
     qint32 bufferSize = readInt24();
     qint8 flags = (bufferSize & 0xff0000) >> 20;
@@ -55,7 +55,7 @@ void BinTreeNodeReader::getOneToplevelStream()
     Utilities::logData("[[ " + readBuffer.toHex());
     decodeStream(flags, 0, bufferSize);
 
-
+    return bufferSize + 3;
 }
 
 void BinTreeNodeReader::decodeStream(qint8 flags, qint32 offset, qint32 length)
@@ -74,9 +74,9 @@ void BinTreeNodeReader::decodeStream(qint8 flags, qint32 offset, qint32 length)
     }
 }
 
-void BinTreeNodeReader::readStreamStart()
+int BinTreeNodeReader::readStreamStart()
 {
-    getOneToplevelStream();
+    int bytes = getOneToplevelStream();
     QDataStream in(readBuffer);
 
     quint8 tag, size;
@@ -91,13 +91,15 @@ void BinTreeNodeReader::readStreamStart()
     AttributeList attribs;
 
     readAttributes(attribs,attribCount,in);
+
+    return bytes;
 }
 
 bool BinTreeNodeReader::nextTree(ProtocolTreeNode& node)
 {
     bool result;
 
-    getOneToplevelStream();
+    node.setSize(getOneToplevelStream());
     QDataStream in(readBuffer);
 
     result = nextTreeInternal(node, in);
@@ -359,25 +361,32 @@ qint32 BinTreeNodeReader::readInt24()
 
 qint16 BinTreeNodeReader::readInt16(QDataStream& in)
 {
-    qint16 result;
-
-    in >> result;
-
-    return(result);
-}
-
-qint32 BinTreeNodeReader::readInt24(QDataStream& in)
-{
-    qint8 r1;
-    qint16 r2;
+    quint8 r1;
+    quint8 r2;
     qint32 result;
 
     in >> r1;
     in >> r2;
 
-    result = (r1 << 16) + r2;
+    result = (r1 << 8) + r2;
 
-    return(result);
+    return result;
+}
+
+qint32 BinTreeNodeReader::readInt24(QDataStream& in)
+{
+    quint8 r1;
+    quint8 r2;
+    quint8 r3;
+    qint32 result;
+
+    in >> r1;
+    in >> r2;
+    in >> r3;
+
+    result = (r1 << 16) + (r2 << 8) + r3;
+
+    return result;
 }
 
 void BinTreeNodeReader::setInputKey(KeyStream *inputKey)

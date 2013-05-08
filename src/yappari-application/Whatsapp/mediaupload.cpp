@@ -36,7 +36,7 @@
 
 #include "util/utilities.h"
 
-#define MAX_SIZE        0xbc00
+#define MAX_SIZE        0xfc00
 
 MediaUpload::MediaUpload(QObject *parent) :
     QObject(parent)
@@ -213,6 +213,11 @@ void MediaUpload::uploadMedia()
             this,SLOT(errorHandler(QAbstractSocket::SocketError)));
     connect(uploader,SIGNAL(progress(float)),
             this,SLOT(updateProgress(float)));
+    connect(uploader,SIGNAL(headersReceived(qint64)),
+            this,SLOT(headersReceivedHandler(qint64)));
+    connect(uploader,SIGNAL(requestSent(qint64)),
+            this,SLOT(requestSentHandler(qint64)));
+
 
     // uploader->open("https://mms.whatsapp.net/client/iphone/upload.php", formData);
     uploader->open(msg.media_url, formData);
@@ -266,6 +271,13 @@ void MediaUpload::updateProgress(float p)
     emit progress(msg,p);
 }
 
+void MediaUpload::requestSentHandler(qint64 bytes)
+{
+    emit requestSent(bytes);
+}
 
-
+void MediaUpload::headersReceivedHandler(qint64 bytes)
+{
+    emit headersReceived(bytes);
+}
 

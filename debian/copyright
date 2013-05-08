@@ -1,17 +1,15 @@
-This package was debianized by Scorpius <scorpius@unknown> on
-Wed, 30 May 2012 15:22:01 -0430.
+This package was debianized by Scorpius <naikel@gmail.com> on
+Wed, 30 May 2013 15:22:01 -0430.
 
 It was downloaded from <url://example.com>
 
 Upstream Author(s):
 
-    <put author's name and email here>
-    <likewise for another author>
+    Scorpius <naikel@gmail.com>
 
 Copyright:
 
-    <Copyright (C) YYYY Name OfAuthor>
-    <likewise for another author>
+    Copyright (C) 2013 Scorpius
 
 License:
 
@@ -32,7 +30,7 @@ License:
 On Debian systems, the complete text of the GNU General
 Public License can be found in `/usr/share/common-licenses/GPL'.
 
-The Debian packaging is (C) 2012, Scorpius <scorpius@unknown> and
+The Debian packaging is (C) 2013, Scorpius <naikel@gmail.com> and
 is licensed under the GPL, see above.
 
 

@@ -29,17 +29,11 @@
 #ifndef CONTACTROSTER_H
 #define CONTACTROSTER_H
 
-#include <QContactManager>
-#include <QHashIterator>
-
 #include "Sql/rosterdbmanager.h"
 
 #include "contactlist.h"
 #include "contact.h"
 #include "group.h"
-
-// QtMobility namespace
-QTM_USE_NAMESPACE
 
 class ContactRoster : public QObject
 {
@@ -62,24 +56,27 @@ public:
     void updateAlias(Contact *contact);
     void updateName(Contact *contact);
     void updateLastSeen(Contact *contact);
+    void updateContact(Contact *contact);
+    void updatePhoto(Contact *contact);
+    void updateStatus(Contact *contact);
+    void getPhotoFromAddressBook(Contact *contact);
 
 private:
-    QContactManager *manager;
-
     ContactList roster;
     RosterDBManager rosterDb;
 
-    void retrieveAllContacts();
     void copy(Contact *from, Contact *to);
     Contact *createContact(QString jid);
     Group *createGroup(QString from, QString author, QString newSubject, QString creation,
                        QString subjectOwner, QString subjectTimestamp);
 
 signals:
-    void updateContact(Contact *c);
+    void updateWholeContact(Contact *c);
     void updateAliasContact(Contact *c);
     void updateNameContact(Contact *c);
     void updateLastSeenContact(Contact *c);
+    void updatePhotoContact(Contact *c);
+    void updateStatusContact(Contact *c);
     void removeContact(QString jid);
 };
 

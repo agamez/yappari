@@ -1,0 +1,10 @@
+description "This init script starts Yappari"
+
+start on started hildon-desktop
+stop on starting shutdown
+
+script
+	if [ -e /home/user/.yappari/start ]; then
+		exec su -l user -c "/usr/bin/run-standalone.sh /usr/bin/Yappari -m"
+	fi
+end script

@@ -58,6 +58,8 @@ private:
     ContactSelectionModel *model;
     MainWindow *mw;
 
+    QString searchStr;
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event);
 
@@ -67,6 +69,7 @@ public slots:
 
 signals:
     void sendRightButtonClicked(const QPoint& p);
+    void showContactInfo(Contact *contact);
 };
 
 #endif // SELECTCONTACTDIALOG_H

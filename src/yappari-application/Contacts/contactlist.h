@@ -38,6 +38,8 @@ class ContactList : public QHash<QString,Contact *>
 {
 public:
     explicit ContactList();
+
+    QStringList toJidList();
 };
 
 #endif // CONTACTLIST_H

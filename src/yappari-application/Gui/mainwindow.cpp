@@ -39,20 +39,23 @@
 
 #include "Contacts/contactitem.h"
 
-#include "aboutdialog.h"
-#include "changestatusdialog.h"
-#include "changeusernamedialog.h"
-#include "chatdisplaydelegate.h"
-#include "contactdisplayitem.h"
-#include "globalsettingsdialog.h"
-#include "mainwindow.h"
-#include "groupwindow.h"
-#include "chatwindow.h"
-#include "selectcontactdialog.h"
-#include "whatsnewwindow.h"
+#include "Gui/aboutdialog.h"
+#include "Gui/accountinfowindow.h"
+#include "Gui/changestatusdialog.h"
+#include "Gui/statuswindow.h"
+#include "Gui/chatdisplaydelegate.h"
+#include "Gui/contactdisplayitem.h"
+#include "Gui/globalsettingsdialog.h"
+#include "Gui/groupwindow.h"
+#include "Gui/chatwindow.h"
+#include "Gui/selectcontactdialog.h"
+#include "Gui/profilewindow.h"
+#include "Gui/networkusagewindow.h"
+#include "Gui/whatsnewwindow.h"
 
 #include "globalconstants.h"
 
+#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 #include "Whatsapp/util/utilities.h"
@@ -80,13 +83,17 @@ MainWindow::MainWindow(ContactRoster *roster, bool showWhatsNew, QWidget *parent
 
     connect(ui->createChatButton,SIGNAL(pressed()),this,SLOT(createChatWindow()));
     connect(ui->actionSettings,SIGNAL(triggered()),this,SLOT(showGlobalSettingsDialog()));
-    connect(ui->actionStatus,SIGNAL(triggered()),this,SLOT(showChangeStatusDialog()));
+    connect(ui->actionStatus,SIGNAL(triggered()),this,SLOT(showStatusWindow()));
     connect(ui->actionQuit,SIGNAL(triggered()),this,SLOT(quit()));
     connect(ui->actionAbout,SIGNAL(triggered()),this,SLOT(showAboutDialog()));
     connect(ui->actionDonate,SIGNAL(triggered()),this,SLOT(showDonate()));
     connect(ui->actionSync,SIGNAL(triggered()),this,SLOT(requestSync()));
-    connect(ui->actionChangeUserName,SIGNAL(triggered()),
-            this,SLOT(showChangeUserNameDialog()));
+    connect(ui->actionProfile,SIGNAL(triggered()),
+            this,SLOT(showProfileWindow()));
+    connect(ui->actionAccountInfo,SIGNAL(triggered()),
+            this,SLOT(showAccountInfoWindow()));
+    connect(ui->actionNetworkUsage,SIGNAL(triggered()),
+            this,SLOT(showNetworkUsageWindow()));
 
     connect(ui->listView,SIGNAL(clicked(QModelIndex)),
             this,SLOT(contactSelected(QModelIndex)));
@@ -123,6 +130,8 @@ MainWindow::MainWindow(ContactRoster *roster, bool showWhatsNew, QWidget *parent
         window->setWindowFlags(window->windowFlags() | Qt::Window);
         window->show();
     }
+
+    contactInfoJid.clear();
 }
 
 MainWindow::~MainWindow()
@@ -163,6 +172,8 @@ void MainWindow::loadOpenChats()
         else
         {
             // Database is corrupted.  Delete that chat
+
+            Utilities::logData("ERROR: Jid " + entry.jid + " not found in roster");
             chatsDB.removeChat(entry.jid);
         }
     }
@@ -181,6 +192,9 @@ void MainWindow::createChatWindow()
     else
     {
         SelectContactDialog selectContactDialog(roster,this);
+
+        connect(&selectContactDialog,SIGNAL(showContactInfo(Contact*)),
+                this,SLOT(viewContact(Contact*)));
 
         if (selectContactDialog.exec() == QDialog::Accepted)
         {
@@ -269,6 +283,12 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
 
         connect(chat,SIGNAL(mute(QString,bool,qint64)),
                 this,SLOT(mute(QString,bool,qint64)));
+
+        connect(chat,SIGNAL(photoRefresh(QString,QString,bool)),
+                this,SLOT(requestPhotoRefresh(QString,QString,bool)));
+
+        connect(chat,SIGNAL(requestStatus(QString)),
+                this,SLOT(requestContactStatus(QString)));
 
         if (contact.type == Contact::TypeGroup)
         {
@@ -378,9 +398,8 @@ void MainWindow::updateGroup(Group &group,bool notify)
     {
         // New subject.
         item = lastContactsList.value(group.jid);
+        item->updateData();
     }
-
-    item->updateData();
 
     /*
 
@@ -447,6 +466,11 @@ void MainWindow::messageReceived(FMessage message)
                             ? contact.alias
                             : contact.name;
 
+    // Try to retrieve a new photo for this contact only
+    // if there's no entry in the last contact list
+    if (!lastContactsList.contains(contact.jid))
+        emit photoRequest(contact.jid, contact.photoId, false);
+
     // Check if a window for this chat is already open
     if (!chatWindowList.contains(message.key.remote_jid))
     {
@@ -489,13 +513,15 @@ void MainWindow::mediaUploadAccepted(FMessage message)
 
 void MainWindow::sendMessageFromChat(FMessage message)
 {
-    ChatDisplayItem *item = lastContactsList.value
-            (message.type == FMessage::RequestMediaMessage ?
-                message.remote_resource :
-                message.key.remote_jid);
-
-    item->updateData(message);
-    model->sort(0,Qt::DescendingOrder);
+    // Update the open conversations list only on text
+    // and multimedia messages
+    if (message.type == FMessage::BodyMessage ||
+        message.type == FMessage::MediaMessage)
+    {
+        ChatDisplayItem *item = lastContactsList.value(message.key.remote_jid);
+        item->updateData(message);
+        model->sort(0,Qt::DescendingOrder);
+    }
     emit sendMessage(message);
 }
 
@@ -616,6 +642,9 @@ void MainWindow::available(QString jid, bool online)
 
         roster->updateLastSeen(&c);
     }
+
+    if (contactInfoJid == jid)
+        contactInfoWindow->setContactName();
 }
 
 void MainWindow::available(QString jid, qint64 lastSeen)
@@ -633,6 +662,9 @@ void MainWindow::available(QString jid, qint64 lastSeen)
 
         roster->updateLastSeen(&c);
     }
+
+    if (contactInfoJid == jid)
+        contactInfoWindow->setContactName();
 }
 
 
@@ -707,6 +739,8 @@ void MainWindow::showGlobalSettingsDialog()
         Client::popupOnFirstMessage = dialog.getPopupOnFirstMessage();
         Client::automaticDownloadBytes = dialog.getAutomaticDownloadBytes();
         Client::importMediaToGallery = dialog.getImportMediaToGallery();
+        Client::syncFreq = dialog.getSyncFrequency();
+        Client::startOnBoot = dialog.getStartOnBoot();
 
         emit settingsUpdated();
     }
@@ -721,18 +755,6 @@ void MainWindow::showChangeStatusDialog()
         QString newStatus = dialog.getStatus();
         Utilities::logData("Status change request to: " + newStatus);
         emit changeStatus(newStatus);
-    }
-}
-
-void MainWindow::showChangeUserNameDialog()
-{
-    ChangeUserNameDialog dialog(this);
-
-    if (dialog.exec() == QDialog::Accepted)
-    {
-        QString newUserName = dialog.getUserName();
-        Utilities::logData("Username change request to: " + newUserName);
-        emit changeUserName(newUserName);
     }
 }
 
@@ -775,14 +797,28 @@ void MainWindow::contextMenu(QPoint p)
         QString jid = index.data(Qt::UserRole + 1).toString();
         Utilities::logData("Index jid: " + jid);
 
+        Contact& c = roster->getContact(jid);
+
         QMenu *menu = new QMenu(this);
-        //QAction *viewContact = new QAction("View Contact",this);
+        QAction *viewContactAction = new QAction("View Contact",this);
+        if (c.type  == Contact::TypeContact)
+        {
+            menu->addAction(viewContactAction);
+        }
+        else if (c.type == Contact::TypeGroup)
+        {
+            // change name to View Group
+        }
         QAction *deleteChat = new QAction("Delete Chat",this);
-        //menu->addAction(viewContact);
         menu->addAction(deleteChat);
 
         QAction *action = menu->exec(p);
-        if (action == deleteChat)
+        if (action == viewContactAction)
+        {
+            Contact& c = roster->getContact(jid);
+            viewContact(&c);
+        }
+        else if (action == deleteChat)
         {
             QMessageBox msg(this);
 
@@ -864,3 +900,131 @@ void MainWindow::resetNewDayTimer()
     Utilities::logData("Next run in " + QString::number(nextRunTime));
 }
 
+void MainWindow::updatePhoto(Contact& c)
+{
+    if (lastContactsList.contains(c.jid))
+    {
+        ChatDisplayItem *item = lastContactsList.value(c.jid);
+        item->updatePhoto(&c);
+    }
+}
+
+void MainWindow::showAccountInfoWindow()
+{
+    AccountInfoWindow *window = new AccountInfoWindow(this);
+    showWindow(window);
+}
+
+void MainWindow::showNetworkUsageWindow()
+{
+    NetworkUsageWindow *window = new NetworkUsageWindow(this);
+    showWindow(window);
+}
+
+void MainWindow::showProfileWindow()
+{
+    ProfileWindow *window = new ProfileWindow(this);
+
+    connect(window,SIGNAL(photoSelected(QImage)),
+            this,SLOT(requestSetPhoto(QImage)));
+
+    connect(window,SIGNAL(changeUserName(QString)),
+            this,SLOT(requestChangeUserName(QString)));
+
+    showWindow(window);
+}
+
+void MainWindow::showStatusWindow()
+{
+    StatusWindow *window = new StatusWindow(this);
+
+    connect(window,SIGNAL(changeStatus(QString)),
+            this,SLOT(requestChangeStatus(QString)));
+
+    showWindow(window);
+}
+
+
+void MainWindow::showWindow(QWidget *window)
+{
+    window->setAttribute(Qt::WA_Maemo5StackedWindow);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->setWindowFlags(window->windowFlags() | Qt::Window);
+    window->show();
+}
+
+void MainWindow::requestChangeUserName(QString newUserName)
+{
+    emit changeUserName(newUserName);
+}
+
+void MainWindow::requestChangeStatus(QString status)
+{
+    emit changeStatus(status);
+}
+
+void MainWindow::requestPhotoRefresh(QString jid, QString photoId,bool largeFormat)
+{
+    emit photoRequest(jid, photoId, largeFormat);
+}
+
+void MainWindow::requestContactStatus(QString jid)
+{
+    emit requestStatus(jid);
+}
+
+void MainWindow::photoReceived(Contact &c, QImage photo, QString photoId)
+{
+    if (chatWindowList.contains(c.jid))
+    {
+        ChatWindow *chat = (ChatWindow *) chatWindowList.value(c.jid);
+        chat->photoReceivedHandler(photo, photoId);
+    }
+
+    if (contactInfoJid == c.jid)
+        contactInfoWindow->photoReceived(photo, photoId);
+
+}
+
+void MainWindow::statusChanged(FMessage message)
+{
+    if (chatWindowList.contains(message.key.remote_jid))
+    {
+        ChatWindow *chat = chatWindowList.value(message.key.remote_jid);
+        chat->statusChanged(QString::fromUtf8(message.data.constData()));
+    }
+
+    if (contactInfoJid == message.key.remote_jid)
+        contactInfoWindow->setContactStatus();
+}
+
+void MainWindow::viewContact(Contact *c)
+{
+    contactInfoJid = c->jid;
+
+    contactInfoWindow = new ContactInfoWindow(c,this);
+
+    connect(contactInfoWindow,SIGNAL(photoRefresh(QString,QString,bool)),
+            this,SLOT(requestPhotoRefresh(QString,QString,bool)));
+
+    connect(contactInfoWindow,SIGNAL(destroyed()),
+            this,SLOT(contactInfoWindowClosed()));
+
+    emit requestStatus(c->jid);
+    emit queryLastOnline(c->jid);
+
+    contactInfoWindow->setAttribute(Qt::WA_Maemo5StackedWindow);
+    contactInfoWindow->setAttribute(Qt::WA_DeleteOnClose);
+    contactInfoWindow->setWindowFlags(contactInfoWindow->windowFlags() | Qt::Window);
+    contactInfoWindow->show();
+}
+
+void MainWindow::contactInfoWindowClosed()
+{
+    contactInfoJid.clear();
+}
+
+void MainWindow::requestSetPhoto(QImage photo)
+{
+    emit setPhoto(photo);
+}

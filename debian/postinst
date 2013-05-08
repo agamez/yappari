@@ -31,3 +31,7 @@ EOF
     echo ""
     echo "**********************************************************" 
 fi
+PID=`ps | grep /usr/bin/Yappari | grep -v grep | awk ' { print $1 } '`
+if [ ! -z $PID ]; then 
+    kill $PID
+fi

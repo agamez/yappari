@@ -66,11 +66,16 @@ signals:
     void sslError(MediaUpload *obj);
     void progress(FMessage msg, float p);
     void httpError(MediaUpload *obj);
+    void requestSent(qint64 bytes);
+    void headersReceived(qint64 bytes);
+
 
 public slots:
     void finished(MultiPartUploader *uploader, QVariantMap dictionary);
     void errorHandler(QAbstractSocket::SocketError error);
     void updateProgress(float p);
+    void requestSentHandler(qint64 bytes);
+    void headersReceivedHandler(qint64 bytes);
 
 private:
     FMessage msg;

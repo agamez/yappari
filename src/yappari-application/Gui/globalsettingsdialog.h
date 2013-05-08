@@ -51,12 +51,15 @@ public:
     bool getPopupOnFirstMessage();
     bool getImportMediaToGallery();
     int getAutomaticDownloadBytes();
+    int getSyncFrequency();
+    bool getStartOnBoot();
 
 private:
     Ui::GlobalSettingsDialog *ui;
 
     QMaemo5ListPickSelector *portSelector;
     QMaemo5ListPickSelector *syncSelector;
+    QMaemo5ListPickSelector *syncFreqSelector;
 };
 
 #endif // GLOBALSETTINGSDIALOG_H

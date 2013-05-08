@@ -40,6 +40,7 @@ class ChatDisplayItem : public QStandardItem
 public:
     explicit ChatDisplayItem(Contact *c);
     Contact *getContact();
+    void updatePhoto(Contact *c);
     void updateData(FMessage& message);
     void updateData();
 

@@ -42,10 +42,10 @@ ContactDisplayItem::ContactDisplayItem(Contact *c) :
 
     QString name = (c->fromAddressBook) ? c->name : c->alias;
 
-    name = name.replace("<","&lt;").replace(">","&gt;");
     QString status = c->status.replace("<","&lt;").replace(">","&gt;");
 
-    QString html = "<table width=\"100%\"><tr><td>" + name + "</td>"
+    QString html = "<table width=\"100%\"><tr><td>" +
+                   Utilities::WATextToHtml(name,32) + "</td>"
                    "<td align=\"right\">";
 
     if (Client::showNumbers)
@@ -57,7 +57,7 @@ ContactDisplayItem::ContactDisplayItem(Contact *c) :
 
     html.append("</td></tr>"
                 "<tr><td colspan=\"2\"><div style=\"font-size:18px;color:gray\">" +
-                Utilities::formatMessage(status,line.documentLayout()->documentSize().height() - 8)
+                Utilities::WATextToHtml(status,line.documentLayout()->documentSize().height() - 8)
                 + "</div></td></tr></table>");
 
     setEditable(false);
@@ -65,8 +65,11 @@ ContactDisplayItem::ContactDisplayItem(Contact *c) :
     setData(html,Qt::DisplayRole);
     setData(c->jid,Qt::UserRole + 1);
 
-    if (!c->photo.isNull())
-        setData(c->photo.scaled(64,64), Qt::UserRole);
+    if (c->photoId.isEmpty())
+        setData(QImage("/usr/share/icons/hicolor/64x64/hildon/general_default_avatar.png"), Qt::UserRole);
+    else
+        setData(c->photo, Qt::UserRole);
+
 }
 
 Contact* ContactDisplayItem::getContact()

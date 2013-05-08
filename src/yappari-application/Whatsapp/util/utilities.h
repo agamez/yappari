@@ -41,10 +41,13 @@ public:
     static QString decodeString(const char data[]);
     static QString getChatPassword();
     static QString getToken(QString phoneNumber);
-    static QString formatMessage(QString data,int iconSize);
+    static QString WATextToHtml(QString data, int iconSize = 32);
+    static QString htmlToWAText(QString html);
     static QString shortURL(QString url);
     static QString guessMimeType(QString extension);
     static QString getExtension(QString filename);
+    static QString getPathFor(int media_wa_type, bool gallery);
+    static QString formatBytes(qint64 bytes);
 };
 
 #endif // UTILITIES_H

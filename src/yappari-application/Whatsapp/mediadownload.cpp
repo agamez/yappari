@@ -83,7 +83,7 @@ void MediaDownload::writeToFile()
 
 QString MediaDownload::getFileNameForMessage(FMessage message)
 {
-    QString path = Client::getPathFor(message.media_wa_type, false);
+    QString path = Utilities::getPathFor(message.media_wa_type, false);
 
     // Let's try to be organized here with the downloads
     if (Client::importMediaToGallery)

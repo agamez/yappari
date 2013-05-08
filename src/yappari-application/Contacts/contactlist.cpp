@@ -32,3 +32,16 @@ ContactList::ContactList() :
     QHash<QString,Contact *>()
 {
 }
+
+QStringList ContactList::toJidList()
+{
+    QList<Contact *> contactList = values();
+
+    QStringList jidList;
+
+    foreach (Contact *c, contactList)
+        jidList.append(c->jid);
+
+    return jidList;
+}
+

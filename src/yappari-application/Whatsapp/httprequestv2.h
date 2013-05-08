@@ -52,16 +52,21 @@ public:
     void setHeader(QString header, QString value);
     QByteArray readAll();
     QString getHeader(QString header);
+    void clearHeaders();
 
 signals:
     void finished();
     void socketError(QAbstractSocket::SocketError);
     void progress(float p);
+    void requestSent(qint64 bytes);
+    void headersReceived(qint64 bytes);
 
 public slots:
     void sendRequest();
     void readResponse();
     void socketErrorHandler(QAbstractSocket::SocketError err);
+    void workerFinished();
+    void encryptedBytesWritten(qint64 bytesWritten);
 
 private:
     QUrl url;
@@ -69,6 +74,7 @@ private:
     QHash<QString,QString> headers;
     const char *data;
     qint64 length;
+    qint64 bytesWritten;
 
     void connectToHost();
 

@@ -27,7 +27,10 @@
  */
 
 #include <QApplication>
+#include <QClipboard>
+#include <QMouseEvent>
 #include <QTimer>
+#include <QMenu>
 
 #include "globalconstants.h"
 #include "chatimageitem.h"
@@ -59,6 +62,9 @@ void ChatArea::init()
 
     connect(verticalScrollBar(),SIGNAL(valueChanged(int)),
             this,SLOT(sliderMoved(int)));
+
+    connect(this,SIGNAL(contextMenuRequested(QPoint, QObject *)),
+            this,SLOT(contextMenu(QPoint, QObject*)));
 
     loadingMessages = false;
 }
@@ -102,6 +108,8 @@ void ChatArea::insertMessage(FMessage message, bool atTop)
 void ChatArea::insertBodyMessage(FMessage message, bool atTop)
 {
     ChatTextItem *textItem = new ChatTextItem(message,container);
+    textItem->installEventFilter(this);
+    textItem->setObjectName("ChatTextItem");
     connect(this,SIGNAL(updateTimestamps()),textItem,SLOT(updateTimestamp()));
     QWidget *label = textItem;
 
@@ -262,7 +270,7 @@ QString ChatArea::createHTML(FMessage message)
                 "<tr><td valign=\"center\"><div style=\"color:"
                 + nickcolor + "\">" +
                 from + ":</div>&nbsp;" +
-                Utilities::formatMessage(QString::fromUtf8(message.data),32) +
+                Utilities::WATextToHtml(QString::fromUtf8(message.data),32) +
                 "</td><td align=\"right\" valign=\"bottom\">");
 
     if (!day.isEmpty())
@@ -365,3 +373,37 @@ bool ChatArea::event(QEvent *e)
 }
 
 */
+bool ChatArea::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj != container && event->type() == QEvent::ContextMenu)
+    {
+        if (obj->objectName() == "ChatTextItem")
+        {
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent*> (event);
+            emit contextMenuRequested(mouseEvent->globalPos(), obj);
+            return true;
+        }
+    }
+
+    return QObject::eventFilter(obj, event);
+}
+
+
+void ChatArea::contextMenu(QPoint p, QObject *obj)
+{
+    Utilities::logData("Context Menu requested");
+
+    QMenu *menu = new QMenu(this);
+    QAction *copy = new QAction("Copy",this);
+    menu->addAction(copy);
+
+    QAction *action = menu->exec(p);
+    if (action == copy)
+    {
+        QClipboard *clipboard = QApplication::clipboard();
+        ChatTextItem *item = (ChatTextItem *) obj;
+        FMessage msg = item->getMessage();
+        clipboard->setText(QString::fromUtf8(msg.data.constData()));
+    }
+    Utilities::logData("Exit Menu");
+}

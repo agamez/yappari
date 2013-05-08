@@ -26,7 +26,7 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
-#include <QMapIterator>
+#include <QSortFilterProxyModel>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QMenu>
@@ -51,41 +51,44 @@ SelectContactDialog::SelectContactDialog(ContactRoster *roster,QWidget *parent) 
 {
     ui->setupUi(this);
 
+    /*
+    QFont font = ui->searchLabel->font();
+    font.setBold(true);
+    ui->searchLabel->setFont(font);
+    */
+
     this->mw = (MainWindow *)parent;
 
     this->roster = roster;
     model = new ContactSelectionModel(ui->listView);
-    ui->listView->setModel(model);
+    QSortFilterProxyModel *proxy = new QSortFilterProxyModel(this);
+    proxy->setSourceModel(model);
+    ui->listView->setModel(proxy);
     ui->listView->installEventFilter(this);
+
+    proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
     ContactDisplayDelegate *delegate = new ContactDisplayDelegate(ui->listView);
 
     ui->listView->setItemDelegate(delegate);
 
-    QMultiMap<QString,Contact *> orderedList;
     ContactList contactList = roster->getContactList();
-    ContactListIterator i(contactList);
-
-    while (i.hasNext())
+    foreach(Contact *contact, contactList)
     {
-        i.next();
-
-        Contact *c = i.value();
-        if (c->type == Contact::TypeContact /*&& c->fromAddressBook*/)
-            orderedList.insert(c->name,c);
+        if (contact->type == Contact::TypeContact)
+            model->appendRow(new ContactDisplayItem(contact));
     }
 
-    QMapIterator<QString,Contact *> j(orderedList);
-    while (j.hasNext())
-    {
-        j.next();
-        ContactDisplayItem *item = new ContactDisplayItem(j.value());
-        model->appendRow(item);
-
-    }
+    model->sort(0);
 
     connect(this,SIGNAL(sendRightButtonClicked(QPoint)),
             this,SLOT(contextMenu(QPoint)));
+
+    connect(ui->lineEdit,SIGNAL(textChanged(QString)),
+            proxy,SLOT(setFilterFixedString(QString)));
+
+    ui->lineEdit->hide();
+
 }
 
 SelectContactDialog::~SelectContactDialog()
@@ -95,8 +98,17 @@ SelectContactDialog::~SelectContactDialog()
 
 Contact& SelectContactDialog::getSelectedContact()
 {
-    ContactDisplayItem *item = (ContactDisplayItem *)
-            model->item(ui->listView->currentIndex().row());
+    //ContactDisplayItem *item = (ContactDisplayItem *)
+    //        model->item(ui->listView->currentIndex().row());
+
+
+    QModelIndex index = ui->listView->currentIndex();
+    QSortFilterProxyModel *proxy = (QSortFilterProxyModel *) ui->listView->model();
+
+    Utilities::logData("INDEX DATA " + index.data(Qt::UserRole + 1).toString());
+
+    ContactDisplayItem *item =
+            (ContactDisplayItem *) model->itemFromIndex(proxy->mapToSource(index));
 
     return (*item->getContact());
 }
@@ -112,6 +124,14 @@ bool SelectContactDialog::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::ContextMenu) {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*> (event);
         sendRightButtonClicked(mouseEvent->globalPos());
+        return true;
+    }
+    else if (obj != ui->lineEdit && event->type() == QEvent::KeyPress)
+    {
+        ui->lineEdit->show();
+        ui->lineEdit->setFocus();
+        ui->lineEdit->event(event);
+
         return true;
     }
     else
@@ -130,13 +150,19 @@ void SelectContactDialog::contextMenu(QPoint p)
         Utilities::logData("Index jid: " + jid);
 
         QMenu *menu = new QMenu(this);
-        //QAction *viewContact = new QAction("View Contact",this);
+        QAction *viewContact = new QAction("View Contact",this);
         QAction *removeContact = new QAction("Remove Contact",this);
-        //menu->addAction(viewContact);
+        menu->addAction(viewContact);
         menu->addAction(removeContact);
 
         QAction *action = menu->exec(p);
-        if (action == removeContact)
+        if (action == viewContact)
+        {
+            Contact& c = roster->getContact(jid);
+            emit showContactInfo(&c);
+            close();
+        }
+        else if (action == removeContact)
         {
             QMessageBox msg(this);
 

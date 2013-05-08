@@ -8,8 +8,8 @@
  * Do not edit! All changes made to it will be lost.
  */
 
-#ifndef DBUSNOKIAMEDIAPLAYERIF_H_1366609200
-#define DBUSNOKIAMEDIAPLAYERIF_H_1366609200
+#ifndef DBUSNOKIAMEDIAPLAYERIF_H_1368489962
+#define DBUSNOKIAMEDIAPLAYERIF_H_1368489962
 
 #include <QtCore/QObject>
 #include <QtCore/QByteArray>

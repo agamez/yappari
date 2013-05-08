@@ -31,6 +31,8 @@
 
 #include <QDialog>
 
+#include "selectemojiwidget.h"
+
 namespace Ui {
     class ChangeUserNameDialog;
 }
@@ -47,12 +49,19 @@ public:
 
 private:
     Ui::ChangeUserNameDialog *ui;
+    bool isEmojiWidgetOpen;
+    SelectEmojiWidget *emojiWidget;
+    QWidget *parent;
+
+    void openEmojiWidget();
+    void closeEmojiWidget();
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event);
+    // bool eventFilter(QObject *obj, QEvent *event);
 
 public slots:
     void accept();
+    void selectEmojiButtonClicked();
 };
 
 #endif // CHANGEUSERNAMEDIALOG_H

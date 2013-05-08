@@ -112,7 +112,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTextEdit" name="textEdit">
+       <widget class="ChatTextEdit" name="textEdit">
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -151,6 +151,7 @@
     <property name="title">
      <string>Chat</string>
     </property>
+    <addaction name="actionViewContact"/>
     <addaction name="actionDeleteAll"/>
     <addaction name="actionSendMultimedia"/>
     <addaction name="actionMute"/>
@@ -172,6 +173,11 @@
     <string>Mute</string>
    </property>
   </action>
+  <action name="actionViewContact">
+   <property name="text">
+    <string>View Contact</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -179,6 +185,11 @@
    <extends>QScrollArea</extends>
    <header>Gui/chatarea.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ChatTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>Gui/chattextedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,3 +1,31 @@
+yappari (0.0.32) unstable; urgency=low
+
+  * Now the post install script kills Yappari if it's running to allow
+    "smoother" upgrades while Yappari is running.
+  * Fixed URLs starting in https:// that weren't being recognized as such.
+  * Fixed URLs not recognizing the percent sign (%) character.
+  * Contact synchronization now uses HttpRequestv2.
+  * Contact roster DB migrated to version 3 including a new photo_id column.
+  * Added Synchronization frequency in settings.
+  * Added an option to start Yappari when the phone is turned on.
+  * Added Account Info window with a button to go the payment site.
+  * Added Network Usage window with info about data consumption.
+  * Fixed emoji in nicknames not being shown in chats.
+  * Emoji is now supported in user names and statuses.
+  * Changed the status dialog to a window.
+  * Created class ChatTextEdit that represents a QTextEdit that handles
+    emoji correctly.
+  * Copy/Paste implemented.
+  * Contacts search through keyboard implented.
+  * Added Contact Info Window.
+  * Fixed upload progress bar bug. It was showing writes to the buffer
+    and not to the remote server.
+  * Fixed bug where ChatTextEdit grew more than 5 lines and the cursor
+    was not visible.
+  * Changed icons of the Select Multimedia dialog.
+
+ -- Scorpius <naikel@gmail.com>  Wed,  8 May 2013 12:56:18 -0430
+
 yappari (0.0.31) unstable; urgency=low
 
   * Fixed bug about timestamps not being updated each day.

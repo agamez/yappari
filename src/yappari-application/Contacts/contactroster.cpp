@@ -28,8 +28,6 @@
 
 #include "contactroster.h"
 
-#include <QContactPhoneNumber>
-#include <QContactDetailFilter>
 #include <QMessageBox>
 #include <QDateTime>
 
@@ -47,12 +45,13 @@
 
 ContactRoster::ContactRoster(QObject *parent) : QObject(parent)
 {
-    connect(this,SIGNAL(updateContact(Contact *)),&rosterDb,SLOT(updateContact(Contact *)));
+    connect(this,SIGNAL(updateWholeContact(Contact *)),&rosterDb,SLOT(updateContact(Contact *)));
     connect(this,SIGNAL(updateAliasContact(Contact *)),&rosterDb,SLOT(updateAlias(Contact *)));
     connect(this,SIGNAL(updateNameContact(Contact *)),&rosterDb,SLOT(updateName(Contact *)));
     connect(this,SIGNAL(updateLastSeenContact(Contact *)),&rosterDb,SLOT(updateLastSeen(Contact *)));
+    connect(this,SIGNAL(updatePhotoContact(Contact *)),&rosterDb,SLOT(updatePhoto(Contact *)));
+    connect(this,SIGNAL(updateStatusContact(Contact *)),&rosterDb,SLOT(updateStatus(Contact *)));
     connect(this,SIGNAL(removeContact(QString)),&rosterDb,SLOT(removeContact(QString)));
-
 
     ContactList *list = rosterDb.getAllContacts();
 
@@ -97,6 +96,7 @@ Contact* ContactRoster::createContact(QString jid)
     c->phone = "+" + jid.left(jid.indexOf("@"));
     c->jid = jid;
     c->type = Contact::TypeContact;
+    c->photoId = QString();
     roster.insert(jid,c);
     emit updateContact(c);
     return c;
@@ -190,16 +190,9 @@ void ContactRoster::insertContact(Contact *contact)
 
     if (c == 0)
     {
-        c = new Contact();
-        copy(contact,c);
-        roster.insert(c->jid,c);
+        roster.insert(contact->jid,contact);
+        emit updateWholeContact(contact);
     }
-    else
-    {
-        copy(contact,c);
-    }
-
-    emit updateContact(c);
 }
 
 int ContactRoster::size()
@@ -236,8 +229,85 @@ Contact *ContactRoster::cloneContact(Contact *c)
     return newc;
 }
 
+void ContactRoster::updateContact(Contact *c)
+{
+    emit updateWholeContact(c);
+}
 
+void ContactRoster::updatePhoto(Contact *c)
+{
+    emit updatePhotoContact(c);
+}
 
+void ContactRoster::getPhotoFromAddressBook(Contact *c)
+{
+    bool hadPreviousPhoto = !c->photoId.isEmpty();
 
+    GError *error = NULL;
 
+    OssoABookRoster *o_roster = osso_abook_aggregator_get_default (&error);
+    if (error)
+    {
+        QString errorStr = error->message;
+        Utilities::logData("getPhotoFromAddressBook(): " + errorStr);
+        g_error_free(error);
+    }
 
+    OssoABookAggregator *aggregator = OSSO_ABOOK_AGGREGATOR(o_roster);
+    osso_abook_waitable_run(OSSO_ABOOK_WAITABLE(aggregator),
+                            g_main_context_default(), &error);
+    if (error)
+    {
+        QString errorStr = error->message;
+        Utilities::logData("getPhotoFromAddressBook(): " + errorStr);
+        g_error_free(error);
+    }
+
+    GList *list =
+            osso_abook_aggregator_find_contacts_for_phone_number(aggregator,
+                                                                 c->phone.toUtf8().constData(),
+                                                                 FALSE);
+    if (list)
+    {
+        OssoABookContact *contact = OSSO_ABOOK_CONTACT(list->data);
+        GdkPixbuf *pixbuf = osso_abook_contact_get_photo(contact);
+
+        if (pixbuf)
+        {
+            gchar *buffer;
+            gsize buffer_size;
+            gdk_pixbuf_save_to_bufferv(pixbuf,&buffer,&buffer_size,"png",NULL,NULL,&error);
+
+            c->photo.loadFromData((const uchar*)buffer, buffer_size);
+            c->photoId = "abook";
+
+            // Force update in DB
+            hadPreviousPhoto = true;
+
+            g_free(buffer);
+
+            gdk_pixbuf_unref(pixbuf);
+
+        }
+        else if (hadPreviousPhoto)
+        {
+            c->photo = QImage();
+            c->photoId.clear();
+        }
+
+        g_list_free(list);
+    }
+    else if (hadPreviousPhoto)
+    {
+        c->photo = QImage();
+        c->photoId.clear();
+    }
+
+    if (hadPreviousPhoto)
+        emit updatePhotoContact(c);
+}
+
+void ContactRoster::updateStatus(Contact *contact)
+{
+    emit updateStatusContact(contact);
+}

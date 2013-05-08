@@ -46,8 +46,10 @@
     </property>
     <addaction name="actionSettings"/>
     <addaction name="actionStatus"/>
-    <addaction name="actionChangeUserName"/>
+    <addaction name="actionProfile"/>
     <addaction name="actionSync"/>
+    <addaction name="actionAccountInfo"/>
+    <addaction name="actionNetworkUsage"/>
     <addaction name="actionDonate"/>
     <addaction name="actionAbout"/>
     <addaction name="actionQuit"/>
@@ -99,6 +101,21 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionAccountInfo">
+   <property name="text">
+    <string>Account Info</string>
+   </property>
+  </action>
+  <action name="actionNetworkUsage">
+   <property name="text">
+    <string>Network Usage</string>
+   </property>
+  </action>
+  <action name="actionProfile">
+   <property name="text">
+    <string>Profile</string>
    </property>
   </action>
  </widget>

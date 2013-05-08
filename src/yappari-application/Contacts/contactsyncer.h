@@ -32,12 +32,12 @@
 #include <QByteArray>
 #include <QMap>
 
-#include "Whatsapp/httprequest.h"
+#include "Whatsapp/httprequestv2.h"
 #include "contactlist.h"
 #include "contactroster.h"
 #include "contactlistiterator.h"
 
-class ContactSyncer : public HttpRequest
+class ContactSyncer : public HttpRequestv2
 {
     Q_OBJECT
 
@@ -49,10 +49,14 @@ public:
 
 public slots:
     void sync();
-    void onResponse(QNetworkReply *reply);
-    void authResponse(QNetworkReply *reply);
-    void error(QNetworkReply::NetworkError error);
+    void onResponse();
+    void fillBuffer();
+    void parseResponse();
+    void authResponse();
+    void errorHandler(QAbstractSocket::SocketError error);
     void syncNextPhone();
+    void increaseUploadCounter(qint64 bytes);
+    void increaseDownloadCounter(qint64 bytes);
 
 private:
     ContactRoster *roster;
@@ -63,6 +67,10 @@ private:
     int totalPhones, nextSignal;
     bool isSyncing;
 
+    QByteArray readBuffer;
+    QByteArray writeBuffer;
+    qint64 totalLength;
+
     QByteArray encode(QByteArray bytes);
     int encodeByte(int c);
     QString getAuthResponse(QString nonce);
@@ -72,8 +80,11 @@ private:
     void addParam(QString name, QString value);
 
 signals:
+    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
     void syncFinished();
     void progress(int);
+    void httpError(QAbstractSocket::SocketError);
+    void sslError();
 };
 
 #endif // CONTACTSYNCER_H

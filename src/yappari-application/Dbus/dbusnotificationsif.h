@@ -8,8 +8,8 @@
  * Do not edit! All changes made to it will be lost.
  */
 
-#ifndef DBUSNOTIFICATIONSIF_H_1366609200
-#define DBUSNOTIFICATIONSIF_H_1366609200
+#ifndef DBUSNOTIFICATIONSIF_H_1368489962
+#define DBUSNOTIFICATIONSIF_H_1368489962
 
 #include <QtCore/QObject>
 #include <QtCore/QByteArray>

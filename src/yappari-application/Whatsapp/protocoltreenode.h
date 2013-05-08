@@ -49,7 +49,9 @@ public:
     void setTag(QString tag);
     void setData(QByteArray data);
     void setAttributes(AttributeList attribs);
+    void setSize(int size);
 
+    int getSize();
     int getAttributesCount();
     int getChildrenCount();
     const QByteArray& getData() const;
@@ -66,6 +68,7 @@ private:
     QByteArray data;
     AttributeList attributes;
     ProtocolTreeNodeList children;
+    int size;
 
 };
 

@@ -27,8 +27,6 @@
  */
 
 #include <QSslConfiguration>
-#include <QDomDocument>
-#include <QDomElement>
 
 #include "protocolexception.h"
 #include "warequest.h"

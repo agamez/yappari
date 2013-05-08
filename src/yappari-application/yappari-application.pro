@@ -33,7 +33,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network xml sql maemo5
+QT       += core gui network sql maemo5
 
 TARGET = Yappari
 TEMPLATE = app
@@ -80,7 +80,6 @@ SOURCES += main.cpp \
     Dbus/dbusnokiahildonsvndif.cpp \
     Contacts/contact.cpp \
     Contacts/contactlist.cpp \
-    Contacts/contactlistiterator.cpp \
     Whatsapp/util/datetimeutilities.cpp \
     Dbus/dbusnotificationsif.cpp \
     Dbus/dbusnokiamcesignalif.cpp \
@@ -122,7 +121,17 @@ SOURCES += main.cpp \
     Whatsapp/mediadownload.cpp \
     Dbus/dbusnokiaimageviewerif.cpp \
     Dbus/dbusnokiamediaplayerif.cpp \
-    Gui/mediaselectdialog.cpp
+    Gui/mediaselectdialog.cpp \
+    Gui/accountinfowindow.cpp \
+    Whatsapp/util/datacounters.cpp \
+    Gui/networkusagewindow.cpp \
+    Gui/profilewindow.cpp \
+    Gui/chattextedit.cpp \
+    Gui/statuswindow.cpp \
+    Contacts/contactlistiterator.cpp \
+    Gui/contactinfowindow.cpp \
+    Dbus/dbusnokiacsdcallif.cpp \
+    Gui/profilepicturewindow.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -175,7 +184,6 @@ HEADERS += \
     Dbus/dbusnokiahildonsvndif.h \
     Contacts/contact.h \
     Contacts/contactlist.h \
-    Contacts/contactlistiterator.h \
     Whatsapp/util/datetimeutilities.h \
     Dbus/dbusnotificationsif.h \
     Dbus/dbusnokiamcesignalif.h \
@@ -218,10 +226,20 @@ HEADERS += \
     Whatsapp/mediadownload.h \
     Dbus/dbusnokiaimageviewerif.h \
     Dbus/dbusnokiamediaplayerif.h \
-    Gui/mediaselectdialog.h
+    Gui/mediaselectdialog.h \
+    Gui/accountinfowindow.h \
+    Whatsapp/util/datacounters.h \
+    Gui/networkusagewindow.h \
+    Gui/profilewindow.h \
+    Gui/chattextedit.h \
+    Gui/statuswindow.h \
+    Contacts/contactlistiterator.h \
+    Gui/contactinfowindow.h \
+    Dbus/dbusnokiacsdcallif.h \
+    Gui/profilepicturewindow.h
 
 CONFIG += mobility qtdbus network link_pkgconfig
-MOBILITY = contacts systeminfo messaging
+MOBILITY = systeminfo messaging
 PKGCONFIG += libosso-abook-1.0 libebook-1.2 gtk+-2.0
 INCLUDEPATH += /usr/include/libosso-abook-1.0 /usr/include/evolution-data-server-1.4/ /usr/include/gtk-2.0
 
@@ -241,7 +259,13 @@ FORMS += \
     Gui/ui/globalsettingsdialog.ui \
     Gui/ui/voiceregistrationwidget.ui \
     Gui/ui/whatsnewwindow.ui \
-    Gui/ui/mediaselectdialog.ui
+    Gui/ui/mediaselectdialog.ui \
+    Gui/ui/accountinfowindow.ui \
+    Gui/ui/networkusagewindow.ui \
+    Gui/ui/profilewindow.ui \
+    Gui/ui/statuswindow.ui \
+    Gui/ui/contactinfowindow.ui \
+    Gui/ui/profilepicturewindow.ui
 
 maemo5 {
   #VARIABLES
@@ -259,9 +283,9 @@ maemo5 {
 
   #MAKE INSTALL
 
-  INSTALLS += target desktop service icon64 icon48 icon16 sharedicons countries
+  INSTALLS += target desktop service icon64 icon48 icon16 sharedicons countries script
 
-  target.path =$$BINDIR
+  target.path = $$BINDIR
 
   desktop.path = $$DATADIR/applications/hildon
   desktop.files += $${TARGET}.desktop
@@ -279,17 +303,46 @@ maemo5 {
   icon64.path = $$DATADIR/icons/hicolor/64x64/apps
   icon64.files += icons/64x64/yappari.png
 
-  #icon17.path = $$DATADIR/icons/hicolor/17x13/apps
-  #icon17.files += icons/17x13/yappari-graycheck.png \
-  #                icons/17x13/yappari-greencheck.png  \
-  #                icons/17x13/yappari-greendoublecheck.png
-
   sharedicons.path = $$SHAREDIR/yappari/icons
   sharedicons.files += icons/*
 
   countries.path = $$SHAREDIR/yappari
   countries.files += countries.tab mime-types.tab
+
+  script.path = /etc/event.d
+  script.files += event.d/yappari
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

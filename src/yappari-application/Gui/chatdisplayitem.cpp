@@ -49,10 +49,22 @@ ChatDisplayItem::ChatDisplayItem(Contact *c) :
     setData(c->jid,Qt::UserRole + 1);
     setData(QDateTime::currentMSecsSinceEpoch(), Qt::UserRole + 2);
 
-    if (!c->photo.isNull())
-        setData(c->photo.scaled(64,64), Qt::UserRole);
+    updatePhoto(contact);
 
     updateData();
+}
+
+void ChatDisplayItem::updatePhoto(Contact *c)
+{
+    if (c->photoId.isEmpty())
+    {
+        if (c->type == Contact::TypeGroup)
+            setData(QImage("/usr/share/yappari/icons/64x64/general_conference_avatar.png"), Qt::UserRole);
+        else
+            setData(QImage("/usr/share/icons/hicolor/64x64/hildon/general_default_avatar.png"), Qt::UserRole);
+    }
+    else
+        setData(c->photo, Qt::UserRole);
 }
 
 void ChatDisplayItem::updateData(FMessage& msg)
@@ -64,8 +76,6 @@ void ChatDisplayItem::updateData(FMessage& msg)
 void ChatDisplayItem::updateData()
 {
     setData(lastMessage.timestamp,Qt::UserRole + 2);
-
-    QString name = contact->name.replace("<","&lt;").replace(">","&gt;");
 
     QString htmlLastLine;
     QTextDocument doc,line;
@@ -102,11 +112,12 @@ void ChatDisplayItem::updateData()
 
     htmlLastLine = "<div style=\"font-size:18px;color:gray\">" +
                    ((lastMessage.type == FMessage::BodyMessage) ?
-                        Utilities::formatMessage(lastLine,lineHeight - 8) :
+                        Utilities::WATextToHtml(lastLine,lineHeight - 8) :
                         lastLine)
                    + "</div>";
 
-    QString html = "<table width=\"100%\"><tr><td>" + name +
+    QString html = "<table width=\"100%\"><tr><td>" +
+                   Utilities::WATextToHtml(contact->name, 32) +
                    "</td><td align=\"right\"><div style=\"font-size:18px;color:gray\">" +
                    timeString +
                    "&nbsp;&nbsp;</td></tr></table>"

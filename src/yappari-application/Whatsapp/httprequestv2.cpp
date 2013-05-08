@@ -28,6 +28,7 @@
 
 
 #include <QStringList>
+#include <QThread>
 
 #include "httprequestv2.h"
 
@@ -43,6 +44,7 @@ HttpRequestv2::HttpRequestv2(QObject *parent) :
     // Add default headers
     setHeader("User-Agent", QString(USER_AGENT).toUtf8());
     setHeader("Connection", "closed");
+
 }
 
 void HttpRequestv2::setHeader(QString header, QString value)
@@ -102,46 +104,71 @@ void HttpRequestv2::sendRequest() {
     Utilities::logData("HttpRequest(): Sending request...");
 
     // Send the request
-    QByteArray request;
+    QByteArray *request = new QByteArray();
 
-    request.append((method == GET) ? "GET" : "POST");
-    request.append(' ');
-    request.append(url.encodedPath());
-    request.append(" HTTP/1.1\r\n");
-    request.append("Host: " + url.encodedHost() + "\r\n");
+    request->append((method == GET) ? "GET" : "POST");
+    request->append(' ');
+    request->append(url.encodedPath());
+    request->append(" HTTP/1.1\r\n");
+    request->append("Host: " + url.encodedHost() + "\r\n");
 
     // Add all the headers
     QList<QString> keys = headers.keys();
 
     foreach (QString key, keys)
-        request.append(key.toUtf8() + ": " + headers.value(key).toUtf8() + "\r\n");
+        request->append(key.toUtf8() + ": " + headers.value(key).toUtf8() + "\r\n");
 
     if (method == POST)
-        request.append("Content-Length: " + QString::number(length) + "\r\n");
+        request->append("Content-Length: " + QString::number(length) + "\r\n");
 
-    request.append("\r\n");
+    request->append("\r\n");
 
     if (method == POST)
-        request.append(data,length);
+        request->append(data,length);
 
     // Utilities::logData("REQUEST: \n" + QString::fromUtf8(request.constData()));
 
     // Write data
-    qint64 length = request.size();
+    connect(socket, SIGNAL(encryptedBytesWritten(qint64)),
+            this, SLOT(encryptedBytesWritten(qint64)));
+
+    bytesWritten = 0;
+    qint64 length = request->size();
     qint64 pos = 0;
-    const char *constData = request.constData();
+    const char *constData = request->constData();
     while (pos < length)
     {
         int size = ((pos + MAX_BUFFER) < length ? MAX_BUFFER : length-pos);
         socket->write(constData, size);
         constData += size;
         pos += size;
-        float p = ((float) pos * 100.0) / ((float)length);
-        emit progress(p);
+        // float p = ((float) pos * 100.0) / ((float)length);
+        // emit progress(p);
     }
+
+    delete request;
+    /*
+
+    HttpWorker *worker = new HttpWorker(request,socket);
+    QThread *workerThread = new QThread(this);
+
+    connect(workerThread,SIGNAL(started()), worker, SLOT(doWork()));
+    connect(workerThread,SIGNAL(finished()), this, SLOT(workerFinished()));
+    connect(workerThread,SIGNAL(finished()), worker, SLOT(deleteLater()));
+
+    worker->moveToThread(workerThread);
+    workerThread->start();
+
+    */
+    emit requestSent(length);
 
     Utilities::logData("HttpRequest(): Waiting for response...");
     connect(socket,SIGNAL(readyRead()),this,SLOT(readResponse()));
+}
+
+void HttpRequestv2::workerFinished()
+{
+    emit requestSent(length);
 }
 
 void HttpRequestv2::readResponse() {
@@ -157,22 +184,30 @@ void HttpRequestv2::readResponse() {
 
     // Read response
     qint64 length = socket->readLine(buffer.data(), MAX_BUFFER);
+    qint64 totalLength = length;
     QString response = QString::fromUtf8(buffer.data());
     Utilities::logData(response.trimmed());
+
+    errorCode = 0;
     if (response.left(8) != "HTTP/1.1")
     {
-        // garbled response
+        emit headersReceived(totalLength);
+        emit finished();
+        return;
     }
 
     int space = response.indexOf(' ', 9);
     if (space < 0)
     {
-        // garbled response
+        emit headersReceived(totalLength);
+        emit finished();
+        return;
     }
 
     errorCode = response.mid(9,(space-9)).toInt();
     if (errorCode != 200)
     {
+        emit headersReceived(totalLength);
         emit finished();
         return;
     }
@@ -188,6 +223,7 @@ void HttpRequestv2::readResponse() {
         if (socket->bytesAvailable() > 0)
         {
             length = socket->readLine(buffer.data(), MAX_BUFFER);
+            totalLength += length;
             QString header = QString::fromUtf8(buffer.data());
 
             // Utilities::logData(header.trimmed());
@@ -205,6 +241,7 @@ void HttpRequestv2::readResponse() {
 
     if (end)
     {
+        emit headersReceived(totalLength);
         emit finished();
     }
 }
@@ -216,3 +253,17 @@ void HttpRequestv2::socketErrorHandler(QAbstractSocket::SocketError err)
 
     emit socketError(err);
 }
+
+void HttpRequestv2::clearHeaders()
+{
+    headers.clear();
+}
+
+void HttpRequestv2::encryptedBytesWritten(qint64 written)
+{
+    bytesWritten += written;
+    float p = ((float) bytesWritten * 100.0) / ((float)length);
+
+    emit progress(p);
+}
+

@@ -52,7 +52,7 @@ BinTreeNodeWriter::BinTreeNodeWriter(QTcpSocket *socket, QStringList& dictionary
  *************************************************************************************
  */
 
-void BinTreeNodeWriter::streamStart(QString& domain, QString& resource)
+int BinTreeNodeWriter::streamStart(QString& domain, QString& resource)
 {
     startBuffer();
     QDataStream out(&writeBuffer,QIODevice::WriteOnly);
@@ -71,7 +71,11 @@ void BinTreeNodeWriter::streamStart(QString& domain, QString& resource)
     writeInt8(1, out);
     writeAttributes(streamOpenAttributes, out);
 
+    int bytes = writeBuffer.size();
+
     flushBuffer(false);
+
+    return bytes;
 }
 
 void BinTreeNodeWriter::writeDummyHeader(QDataStream& out)
@@ -155,7 +159,7 @@ void BinTreeNodeWriter::realWrite16(quint16 data)
  * High level write methods
  */
 
-void BinTreeNodeWriter::write(ProtocolTreeNode& node, bool needsFlush)
+int BinTreeNodeWriter::write(ProtocolTreeNode& node, bool needsFlush)
 {
     writeMutex.lock();
     startBuffer();
@@ -175,8 +179,12 @@ void BinTreeNodeWriter::write(ProtocolTreeNode& node, bool needsFlush)
         writeInternal(node, out);
     }
 
+    int bytes = writeBuffer.size();
+
     flushBuffer(needsFlush);
     writeMutex.unlock();
+
+    return bytes;
 }
 
 void BinTreeNodeWriter::writeInternal(ProtocolTreeNode& node, QDataStream& out)

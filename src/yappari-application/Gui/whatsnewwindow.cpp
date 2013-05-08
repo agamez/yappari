@@ -39,8 +39,18 @@
 #define TEXT "<b>Thank you for installing Yappari!</b><br><br>"\
     "If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>"\
     "<b>New in this version:</b><br>"\
-    "<li>&bull; Fixed timestamps refresh in conversations list.</li>"\
-    "<li>&bull; Fixed registration once again.</li>"\
+    "<li>&bull; Profile pictures are now supported.</li>"\
+    "<li>&bull; You can now see your contacts information. Long press on any contact or select \"Contact Info\" from the conversation window to see that contact's information.</li>"\
+    "<li>&bull; You can also view your account information.  Select \"Account Info\" from the menu.</li>"\
+    "<li>&bull; You can pay for an additional year to WhatsApp Inc. in the new \"Account Info\".</li>"\
+    "<li>&bull; Copy/Paste.  Long press and select \"Copy\".  In input fields select and press Ctrl-C to copy.  Paste with Ctrl-V</li>"\
+    "<li>&bull; You can now search contacts when you press \"Create Chat\". Just start typing the name or the number or even the status!.</li>"\
+    "<li>&bull; Fixed bugs in URL detections where https:// and the percent sign were not being recognized as valid URLs.</li>"\
+    "<li>&bull; Added an option to configure the synchronization frequency.  Look for it under \"Settings\".</li>"\
+    "<li>&bull; There's also an option to start Yappari on boot.</li>"\
+    "<li>&bull; You can now include emoji in your user name and status.</li>"\
+    "<li>&bull; Fixed a bug in the upload progress bar.  Now it really shows progress.</li>"\
+    "<li>&bull; Fixed bug when typing more than 5 lines in a conversation and losing the cursor.</li>"
 
 WhatsNewWindow::WhatsNewWindow(QWidget *parent) :
     QMainWindow(parent),

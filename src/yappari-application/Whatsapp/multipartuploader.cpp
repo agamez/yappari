@@ -27,7 +27,6 @@
  */
 
 #include <QDateTime>
-#include <QDomDocument>
 #include "multipartuploader.h"
 #include "client.h"
 
@@ -38,8 +37,6 @@
 MultiPartUploader::MultiPartUploader(QObject *parent)
     : HttpRequestv2(parent)
 {
-    //connect(&manager,SIGNAL(finished(QNetworkReply*)),
-    //        this,SLOT(onResponse(QNetworkReply*)));
 }
 
 QString MultiPartUploader::generateBoundary()
@@ -58,21 +55,6 @@ void MultiPartUploader::error(QNetworkReply::NetworkError error)
     map.insert("error",errorStr);
     emit finished(this, map);
 }
-
-/*
-void MultiPartUploader::onResponse(QNetworkReply *reply)
-{
-    QString jsonStr = QString::fromUtf8(reply->readAll().constData());
-    disconnect(reply, 0, 0, 0);
-    reply->deleteLater();
-    Utilities::logData("Reply: " + jsonStr);
-
-    bool ok;
-    QVariantMap mapResult = QtJson::parse(jsonStr, ok).toMap();
-
-    emit finished(this, mapResult);
-}
-*/
 
 void MultiPartUploader::onResponse()
 {
@@ -103,24 +85,6 @@ void MultiPartUploader::open(QString url, QList<FormData*>& formData)
 
     post(QUrl(url),writeBuffer.constData(),writeBuffer.length());
 }
-
-/*
-void MultiPartUploader::get(QUrl url, bool post, QString boundary)
-{
-    QNetworkRequest req;
-    // configureRequest(req,url);
-
-    req.setRawHeader("Content-Type",
-                     QString("multipart/form-data; boundary="+boundary).toUtf8());
-
-    QNetworkReply *reply;
-
-    // reply = (post) ? manager.post(req,writeBuffer) : manager.get(req);
-
-    //connect(reply,SIGNAL(error(QNetworkReply::NetworkError)),
-    //        this,SLOT(error(QNetworkReply::NetworkError)));
-}
-*/
 
 void MultiPartUploader::postData(QString boundary, QList<FormData*> &formData)
 {

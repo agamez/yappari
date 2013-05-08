@@ -49,7 +49,7 @@ public:
                       QObject *parent = 0);
 
     // Reader methods
-    void readStreamStart();
+    int readStreamStart();
     bool nextTree(ProtocolTreeNode& node);
     QString lastStanza();
 
@@ -62,7 +62,7 @@ private:
     KeyStream *inputKey;
 
     // Reader methods
-    void getOneToplevelStream();
+    int getOneToplevelStream();
     void decodeStream(qint8 flags, qint32 offset, qint32 length);
     bool nextTreeInternal(ProtocolTreeNode& node, QDataStream &in);
     quint32 readListSize(qint32 token, QDataStream& in);

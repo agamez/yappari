@@ -139,8 +139,9 @@ QString ProtocolTreeNode::toString()
                  tag == "response" ||
                  tag == "success" ||
                  tag == "auth" ||
+                 tag == "picture" ||
                  tag == "media" )
-                    ? data.toHex() : data)
+                 ? data.toHex() : data)
             << "\n";
 
     if (children.size() > 0)
@@ -154,6 +155,16 @@ QString ProtocolTreeNode::toString()
     }
 
     return result;
+}
+
+void ProtocolTreeNode::setSize(int size)
+{
+    this->size = size;
+}
+
+int ProtocolTreeNode::getSize()
+{
+    return size;
 }
 
 

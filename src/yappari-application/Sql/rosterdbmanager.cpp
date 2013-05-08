@@ -40,7 +40,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define DB_FILENAME "roster.db"
-#define DB_VERSION  2
+#define DB_VERSION  3
 
 RosterDBManager::RosterDBManager(QObject *parent) :
     QObject(parent)
@@ -82,7 +82,8 @@ void RosterDBManager::init()
                    "author varchar(256),"
                    "subject_timestamp integer,"
                    "subject_owner varchar(256),"
-                   "subject_owner_name varchar(256)"
+                   "subject_owner_name varchar(256),"
+                   "photo_id varchar(256)"
                    ")");
 
         query.exec("create table settings ("
@@ -91,6 +92,44 @@ void RosterDBManager::init()
 
         query.exec("insert into settings (version) values (" +
                    QString::number(DB_VERSION) + ")");
+    }
+    else
+    {
+        // Check the DB is the current version
+        QSqlQuery query(db);
+
+        query.prepare("select version from settings");
+        query.exec();
+
+        if (query.next())
+        {
+            if (query.value(0).toInt() == 2)
+            {
+                // Upgrade it to version 3
+
+                Utilities::logData("Upgrading roster db to version " +
+                                   QString::number(DB_VERSION));
+
+                query.prepare("alter table roster add column photo_id varchar(256)");
+                query.exec();
+                query.prepare("update settings set version="+
+                              QString::number(DB_VERSION));
+                query.exec();
+            }
+            else if (query.value(0).toInt() == 1)
+            {
+                Utilities::logData("Removing old v1 roster database...");
+                db.close();
+                QSqlDatabase::removeDatabase(DB_FILENAME);
+
+                QDir home = QDir::home();
+                QFile file(home.path() + HOME_DIR + DB_FILENAME);
+
+                file.remove();
+
+                init();
+            }
+        }
     }
 }
 
@@ -116,7 +155,7 @@ void RosterDBManager::updateContact(Contact *c)
         query.prepare("update roster set name=:name, type=:type, alias=:alias,"
                       "phone=:phone, status=:status, "
                       "status_timestamp=:status_timestamp, last_seen=:last_seen,"
-                      "from_abook=:from_abook, photo=:photo where jid=:jid");
+                      "from_abook=:from_abook where jid=:jid");
     }
     else
     {
@@ -124,10 +163,10 @@ void RosterDBManager::updateContact(Contact *c)
 
         query.prepare("insert into roster "
                       "(jid, name, alias, type, phone, status, status_timestamp, "
-                      "last_seen, from_abook, photo) "
+                      "last_seen, from_abook) "
                       "values "
                       "(:jid, :name, :alias, :type, :phone, :status, :status_timestamp, "
-                      ":last_seen, :from_abook, :photo)");
+                      ":last_seen, :from_abook)");
     }
 
     query.bindValue(":jid",c->jid);
@@ -142,12 +181,14 @@ void RosterDBManager::updateContact(Contact *c)
     query.bindValue(":status_timestamp",c->statusTimestamp);
     query.bindValue(":last_seen",c->lastSeen);
 
+    /*
     QByteArray bytes;
     QBuffer buffer(&bytes);
     buffer.open(QIODevice::WriteOnly);
     c->photo.save(&buffer, "PNG");
 
     query.bindValue(":photo",bytes);
+    */
 
     query.exec();
 
@@ -178,70 +219,48 @@ ContactList *RosterDBManager::getAllContacts()
 
     QSqlQuery query(db);
 
-    // Check the DB is the current version
+    qint64 startTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    Utilities::logData("Reading roster DB...");
 
-    query.prepare("select version from settings");
+    query.prepare("select * from roster");
     query.exec();
 
-    if (query.next())
-    {
-        if (query.value(0).toInt() == 2)
+    while (query.next()) {
+
+        Contact *c;
+
+        int type = query.value(1).toInt();
+        c = ((type == Contact::TypeContact) ? new Contact() : new Group());
+        c->type = (Contact::ContactType) type;
+        c->jid = query.value(0).toString();
+        c->alias = query.value(2).toString();
+        c->fromAddressBook = query.value(3).toBool();
+        c->name = query.value(4).toString();
+        c->phone = query.value(5).toString();
+        c->status = query.value(6).toString();
+        c->statusTimestamp = query.value(7).toLongLong();
+        c->lastSeen = query.value(8).toLongLong();
+
+        QByteArray bytes = query.value(9).toByteArray();
+        c->photo = QImage::fromData(bytes);
+
+        if (c->type == Contact::TypeGroup)
         {
-            qint64 startTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
-            Utilities::logData("Reading roster DB...");
-
-            query.prepare("select * from roster");
-            query.exec();
-
-            while (query.next()) {
-
-                Contact *c;
-
-                int type = query.value(1).toInt();
-                c = ((type == Contact::TypeContact) ? new Contact() : new Group());
-                c->type = (Contact::ContactType) type;
-                c->jid = query.value(0).toString();
-                c->alias = query.value(2).toString();
-                c->fromAddressBook = query.value(3).toBool();
-                c->name = query.value(4).toString();
-                c->phone = query.value(5).toString();
-                c->status = query.value(6).toString();
-                c->statusTimestamp = query.value(7).toLongLong();
-                c->lastSeen = query.value(8).toLongLong();
-
-                QByteArray bytes = query.value(9).toByteArray();
-                c->photo = QImage::fromData(bytes);
-
-                if (c->type == Contact::TypeGroup)
-                {
-                    Group *g = (Group *)c;
-                    g->creationTimestamp = query.value(10).toLongLong();
-                    g->author = query.value(11).toString();
-                    g->subjectTimestamp = query.value(12).toLongLong();
-                    g->subjectOwner = query.value(13).toString();
-                    g->subjectOwnerName = query.value(14).toString();
-                }
-
-                list->insert(c->jid,c);
-            }
-            qint64 endTime = QDateTime::currentDateTime().toMSecsSinceEpoch() - startTime;
-            Utilities::logData("Roster retrieved in " + QString::number(endTime) +
-                               " milliseconds.");
+            Group *g = (Group *)c;
+            g->creationTimestamp = query.value(10).toLongLong();
+            g->author = query.value(11).toString();
+            g->subjectTimestamp = query.value(12).toLongLong();
+            g->subjectOwner = query.value(13).toString();
+            g->subjectOwnerName = query.value(14).toString();
         }
-        else if (query.value(0).toInt() == 1)
-        {
-            Utilities::logData("Removing old v1 roster database...");
-            db.close();
-            QSqlDatabase::removeDatabase(DB_FILENAME);
 
-            QDir home = QDir::home();
-            QFile file(home.path() + HOME_DIR + DB_FILENAME);
+        c->photoId = query.value(15).toString();
 
-            file.remove();
-
-            init();
-        }
+        list->insert(c->jid,c);
     }
+    qint64 endTime = QDateTime::currentDateTime().toMSecsSinceEpoch() - startTime;
+    Utilities::logData("Roster retrieved in " + QString::number(endTime) +
+                       " milliseconds.");
 
     return list;
 }
@@ -295,6 +314,45 @@ void RosterDBManager::updateLastSeen(Contact *c)
                   "where jid=:jid");
     query.bindValue(":jid",c->jid);
     query.bindValue(":last_seen",c->lastSeen);
+
+    query.exec();
+}
+
+void RosterDBManager::updateStatus(Contact *c)
+{
+    QSqlQuery query(db);
+
+    Utilities::logData("Updating contact " + c->jid);
+
+    // Update contact
+    query.prepare("update roster set status=:status, status_timestamp=:status_timestamp "
+                  "where jid=:jid");
+
+    query.bindValue(":jid",c->jid);
+    query.bindValue(":status",c->status);
+    query.bindValue(":status_timestamp",c->statusTimestamp);
+
+    query.exec();
+}
+
+void RosterDBManager::updatePhoto(Contact *c)
+{
+    QSqlQuery query(db);
+
+    Utilities::logData("Updating photo of contact " + c->jid);
+
+    // Update contact
+    query.prepare("update roster set photo=:photo, photo_id=:photo_id "
+                  "where jid=:jid");
+    query.bindValue(":jid",c->jid);
+
+    QByteArray bytes;
+    QBuffer buffer(&bytes);
+    buffer.open(QIODevice::WriteOnly);
+    c->photo.save(&buffer, "PNG");
+
+    query.bindValue(":photo",bytes);
+    query.bindValue(":photo_id", c->photoId);
 
     query.exec();
 }

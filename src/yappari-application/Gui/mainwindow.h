@@ -45,6 +45,7 @@
 #include "Sql/conversationsdb.h"
 
 #include "Gui/chatdisplayitem.h"
+#include "Gui/contactinfowindow.h"
 #include "Gui/contactselectionmodel.h"
 #include "Gui/chatwindow.h"
 
@@ -62,6 +63,7 @@ public:
 
     void setActiveChat(QString jid);
     bool hasChatOpen(Contact& c);
+    void statusChanged(FMessage message);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -85,7 +87,9 @@ public slots:
     void showAboutDialog();
     void showGlobalSettingsDialog();
     void showChangeStatusDialog();
-    void showChangeUserNameDialog();
+    void showAccountInfoWindow();
+    void showProfileWindow();
+    void showNetworkUsageWindow();
     void lockModeChanged(QString lockMode);
     void available(QString jid, bool online);
     void available(QString jid, qint64 lastSeen);
@@ -97,6 +101,16 @@ public slots:
     void contextMenu(QPoint p);
     void mute(QString jid, bool muted, qint64 muteExpireTimestamp);
     void updateTimestamps();
+    void updatePhoto(Contact& c);
+    void requestChangeUserName(QString newUserName);
+    void requestSetPhoto(QImage photo);
+    void requestChangeStatus(QString status);
+    void requestPhotoRefresh(QString jid, QString photoId, bool largeFormat);
+    void requestContactStatus(QString jid);
+    void showStatusWindow();
+    void photoReceived(Contact& c, QImage photo, QString photoId);
+    void viewContact(Contact *c);
+    void contactInfoWindowClosed();
 
 private:
     Ui::MainWindow *ui;
@@ -109,11 +123,14 @@ private:
     ConversationsDB chatsDB;
     ContactSelectionModel *model;
     QTimer *newDayTimer;
+    ContactInfoWindow *contactInfoWindow;
+    QString contactInfoJid;
 
     void loadOpenChats();
     ChatWindow *createChatWindow(Contact& contact, bool show);
     void updateGroup(Group& group,bool notify);
     void notify(const Contact& contact,FMessage& message);
+    void showWindow(QWidget *window);
     void resetNewDayTimer();
 
 signals:
@@ -128,7 +145,9 @@ signals:
     void sendRightButtonClicked(const QPoint& p);
     void settingsUpdated();
     void queryLastOnline(QString jid);
-
+    void photoRequest(QString jid, QString expectedPhotoId, bool largeFormat);
+    void requestStatus(QString jid);
+    void setPhoto(QImage photo);
 };
 
 #endif // MAINWINDOW_H

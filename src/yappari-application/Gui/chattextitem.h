@@ -39,6 +39,7 @@ class ChatTextItem : public QLabel
 public:
     explicit ChatTextItem(FMessage message, QWidget *parent = 0);
     void setMessage(FMessage message);
+    FMessage getMessage();
 
 private:
     FMessage message;

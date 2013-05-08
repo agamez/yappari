@@ -50,18 +50,18 @@
 
 ContactSyncer::ContactSyncer(ContactRoster* roster,
                              QObject *parent)
-    : HttpRequest(parent)
+    : HttpRequestv2(parent)
 {
     isSyncing = false;
 
     this->roster = roster;
 
-    osso_context_t *osso_context = osso_initialize(YAPPARI_APPLICATION_NAME,
-                                                   VERSION,
-                                                   FALSE, NULL);
-    int argc = 0;
-    char **argv;
-    osso_abook_init(&argc,&argv,osso_context);
+    connect(this,SIGNAL(headersReceived(qint64)),
+            this,SLOT(increaseDownloadCounter(qint64)));
+
+    connect(this,SIGNAL(requestSent(qint64)),
+            this,SLOT(increaseUploadCounter(qint64)));
+
 }
 
 QString ContactSyncer::getAuthResponse(QString nonce)
@@ -166,6 +166,9 @@ void ContactSyncer::freeAddressBook()
 
 void ContactSyncer::getAddressBook()
 {
+    Utilities::logData("Retrieving address book...");
+    qint64 startTime = QDateTime::currentMSecsSinceEpoch();
+
     GError *error = NULL;
 
     OssoABookRoster *o_roster = osso_abook_aggregator_get_default (&error);
@@ -192,11 +195,12 @@ void ContactSyncer::getAddressBook()
     for (GList *l = contacts;l ; l = l->next)
     {
         OssoABookContact *contact = OSSO_ABOOK_CONTACT(l->data);
-        QImage image;
-
         QString displayName = QString::fromUtf8(osso_abook_contact_get_display_name(contact));
 
+        /*
         GdkPixbuf *pixbuf = osso_abook_contact_get_photo(contact);
+
+        QImage image;
 
         if (pixbuf)
         {
@@ -211,6 +215,7 @@ void ContactSyncer::getAddressBook()
 
             gdk_pixbuf_unref(pixbuf);
         }
+        */
 
         EContactField field = e_contact_field_id("mobile-phone");
         GList *attrs = e_contact_get_attributes(E_CONTACT(contact),field);
@@ -231,7 +236,7 @@ void ContactSyncer::getAddressBook()
                 c->name = displayName;
                 c->phone = phoneNumber;
                 c->type = Contact::TypeContact;
-                c->photo = image;
+                // c->photo = image;
                 c->fromAddressBook = true;
                 abook.insert(c->phone,c);
             }
@@ -242,6 +247,10 @@ void ContactSyncer::getAddressBook()
     }
 
     g_list_free(contacts);
+
+    qint64 endTime = QDateTime::currentMSecsSinceEpoch() - startTime;
+    Utilities::logData("Address book retrieved in " + QString::number(endTime) +
+                       " milliseconds.");
 }
 
 void ContactSyncer::sync()
@@ -286,32 +295,33 @@ void ContactSyncer::sync()
 
         QString response = getAuthResponse("0");
 
-        connect(&manager,SIGNAL(finished(QNetworkReply*)),
-                this,SLOT(authResponse(QNetworkReply*)));
+        connect(this,SIGNAL(finished()),this,SLOT(authResponse()));
+        connect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
+                this,SLOT(socketErrorHandler(QAbstractSocket::SocketError)));
 
-        addHeader("Authorization", response);
+        setHeader("Authorization", response);
 
         Utilities::logData("syncer: Authenticating...");
-        get(QUrl(URL_CONTACTS_AUTH),true);
+        post(QUrl(URL_CONTACTS_AUTH), writeBuffer.constData(), writeBuffer.length());
     }
 }
 
-void ContactSyncer::authResponse(QNetworkReply *reply)
+void ContactSyncer::authResponse()
 {
     Utilities::logData("syncer: authResponse()");
-    QString result = QString::fromUtf8(reply->readAll().constData());
-    disconnect(reply, 0, 0, 0);
-    disconnect(&manager,SIGNAL(finished(QNetworkReply*)),
-               this,SLOT(authResponse(QNetworkReply*)));
+    QString result = QString::fromUtf8(socket->readAll().constData());
+    disconnect(this, SIGNAL(finished()), this, SLOT(authResponse()));
+
     // Utilities::logData("Reply: " + result);
 
-    QString authData = reply->rawHeader("www-authenticate");
+    QString authData = getHeader("WWW-Authenticate");
+    // Utilities::logData("authData: " + authData);
     QString nonce;
+
+    clearHeaders();
 
     bool ok;
     QVariantMap mapResult = QtJson::parse(result, ok).toMap();
-
-    reply->deleteLater();
 
     QString message = mapResult.value("message").toString();
 
@@ -332,10 +342,9 @@ void ContactSyncer::authResponse(QNetworkReply *reply)
 
         QString response = getAuthResponse(nonce);
 
-        connect(&manager,SIGNAL(finished(QNetworkReply*)),
-                this,SLOT(onResponse(QNetworkReply*)));
+        connect(this,SIGNAL(finished()),this,SLOT(onResponse()));
 
-        addHeader("Authorization", response);
+        setHeader("Authorization", response);
 
         Utilities::logData("syncer: Sending contacts info...");
 
@@ -358,7 +367,7 @@ void ContactSyncer::authResponse(QNetworkReply *reply)
                     addParam("u[]",c->phone);
             }
 
-            get(QUrl(URL_CONTACTS_SYNC),true);
+            post(QUrl(URL_CONTACTS_SYNC),writeBuffer.constData(), writeBuffer.length());
         }
     }
     else
@@ -372,14 +381,42 @@ void ContactSyncer::authResponse(QNetworkReply *reply)
     }
 }
 
-
-void ContactSyncer::onResponse(QNetworkReply *reply)
+void ContactSyncer::onResponse()
 {
-    QString jsonStr = QString::fromUtf8(reply->readAll().constData());
-    disconnect(reply, 0, 0, 0);
-    reply->deleteLater();
-    // Utilities::logData("Reply: " + jsonStr);
+    if (errorCode != 200)
+    {
+        // emit httpError(this, message, errorCode);
+        return;
+    }
+
+    totalLength = getHeader("Content-Length").toLongLong();
+
+    connect(socket,SIGNAL(readyRead()),this,SLOT(fillBuffer()));
+}
+
+void ContactSyncer::fillBuffer()
+{
+    qint64 bytesToRead = socket->bytesAvailable();
+
+    readBuffer.append(socket->read(bytesToRead));
+
+    if (readBuffer.size() == totalLength)
+    {
+        Utilities::logData("syncer: Read " + QString::number(totalLength) + " bytes.");
+
+        increaseDownloadCounter(totalLength);
+
+        parseResponse();
+    }
+}
+
+
+void ContactSyncer::parseResponse()
+{
+    QString jsonStr = QString::fromUtf8(readBuffer.constData());
     Utilities::logData("syncer: Response received");
+
+    // Utilities::logData("Reply: " + jsonStr);
 
     bool ok;
     QVariantMap mapResult = QtJson::parse(jsonStr, ok).toMap();
@@ -416,22 +453,50 @@ void ContactSyncer::syncNextPhone()
 
             Contact *c = abook.value(phone);
 
+            Contact *contact;
+
             if (c)
             {
-                if (roster->isContactInRoster(jid))
+                bool exists = roster->isContactInRoster(jid);
+                bool updated = false;
+
+                if (exists)
                 {
                     Contact &d = roster->getContact(jid);
-                    c->alias = d.alias;
-                    c->typingStatus = d.typingStatus;
-                    c->isOnline = d.isOnline;
-                    c->lastSeen = d.lastSeen;
+                    contact = &d;
+
+                    if (contact->name != c->name)
+                    {
+                        updated = true;
+                        contact->name = c->name;
+                    }
+                }
+                else
+                {
+                    contact = new Contact();
+                    contact->fromAddressBook = true;
+                    contact->name = c->name;
+                    contact->phone = c->phone;
+                    contact->jid = jid;
+                    contact->photoId = QString();
                 }
 
-                c->jid = jid;
-                c->statusTimestamp = e.value("t").toLongLong();
-                c->status = e.value("s").toString();
-                roster->insertContact(c);
-                abookJids.remove(c->jid);
+                qint64 statusTimestamp = e.value("t").toLongLong();
+                if (contact->statusTimestamp != statusTimestamp)
+                {
+                    updated = true;
+                    contact->statusTimestamp = statusTimestamp;
+                    contact->status = e.value("s").toString();
+                }
+
+                if (exists && updated)
+                    roster->updateContact(contact);
+                else if (!exists)
+                    roster->insertContact(contact);
+
+                abookJids.remove(jid);
+
+                emit photoRefresh(jid, contact->photoId, false);
 
                 /*
                 Utilities::logData("Synchronized contact:\n"
@@ -440,7 +505,6 @@ void ContactSyncer::syncNextPhone()
                                    "\njid: " + c->jid +
                                    "\nStatus: " + c->status);
                 */
-
             }
         }
 
@@ -482,14 +546,27 @@ bool ContactSyncer::isSynchronizing()
     return isSyncing;
 }
 
-void ContactSyncer::error(QNetworkReply::NetworkError error)
+void ContactSyncer::errorHandler(QAbstractSocket::SocketError error)
 {
-    Utilities::logData("syncer: Contact Syncer Error: " + QString::number(error));
+    if (error == QAbstractSocket::SslHandshakeFailedError)
+    {
+        // SSL error is a fatal error
+        emit sslError();
+    }
+    else
+    {
+        // ToDo: Retry here
+        Utilities::logData("Upload failed: Socket error " + QString::number(error));
+        emit httpError(error);
+    }
+}
 
-    // Free everything
-    /*
-    freeAddressBook();
-    isSyncing = false;
-    emit syncFinished();
-    */
+void ContactSyncer::increaseUploadCounter(qint64 bytes)
+{
+    Client::dataCounters.increaseCounter(DataCounters::SyncBytes, 0, bytes);
+}
+
+void ContactSyncer::increaseDownloadCounter(qint64 bytes)
+{
+    Client::dataCounters.increaseCounter(DataCounters::SyncBytes, bytes, 0);
 }

@@ -71,11 +71,6 @@ public slots:
     void myselfComposing();
     void myselfPaused();
     void sendButtonClicked();
-    void selectEmojiButtonClicked();
-    void closeKB();
-    void verifyPaused();
-    void textChanged();
-    void addEmoji(QString path);
     void sendMultimediaMessage();
     void mediaUploadAccepted(FMessage msg);
     void mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg);
@@ -88,6 +83,12 @@ public slots:
     void deleteAllMessages();
     void mute();
     void unmute();
+    void increaseUploadCounter(qint64 bytes);
+    void increaseDownloadCounter(qint64 bytes);
+    void requestPhotoRefresh(QString jid, QString photoId, bool largeFormat);
+    void viewContact();
+    void photoReceivedHandler(QImage photo, QString photoId);
+    void statusChanged(QString status);
 
 signals:
     void logMessage(FMessage message);
@@ -96,27 +97,24 @@ signals:
     void updateDuration(FMessage message);
     void sendMessage(FMessage message);
     void mute(QString jid,bool muted,qint64 muteExpireTimestamp);
+    void photoRefresh(QString jid, QString photoId, bool largeFormat);
+    void photoReceived(QImage photo, QString photoId);
+    void lastSeenUpdated();
+    void requestStatus(QString jid);
+    void userStatusChanged();
 
 private:
-    Ui::ChatWindow *ui;
     bool isPeerComposing;
     bool isMyselfComposing;
-    bool isEmojiWidgetOpen;
-    QTimer composingTimer;
-    quint64 lastKeyPressed;
     ChatLogger logger;
-    int fontHeight;
-    SelectEmojiWidget *emojiWidget;
 
     bool muted;
     qint64 muteExpireTimestamp;
 
     void showMessageInUI(FMessage& message);
-    void openEmojiWidget();
-    void closeEmojiWidget();
-    QString getText();
 
 protected:
+    Ui::ChatWindow *ui;
     Contact contact;
     bool eventFilter(QObject *obj, QEvent *event);
     void setOnlineText(QString text);

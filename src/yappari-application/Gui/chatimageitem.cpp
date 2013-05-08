@@ -153,11 +153,12 @@ void ChatImageItem::setNickname(FMessage message)
     ui->groupBox->setStyleSheet("QGroupBox { border-color: "
                                 + mycolor +
                                 "; border-width: 1px; "
-                                "border-style: solid; }");
+                                "border-style: solid; }"
+                                ".nick { color:" + nickcolor + "; }");
 
-    QString html = "<div style=\"color:"
-                   + nickcolor + "\">" +
-                   from + ":</div>";
+    QString html = "<span class=\"nick\">" +
+                   Utilities::WATextToHtml(from + ":",32) +
+                   "</span>&nbsp;";
 
     ui->nickname->setTextFormat(Qt::RichText);
     ui->nickname->setAlignment(Qt::AlignCenter|Qt::AlignLeft);
@@ -293,6 +294,9 @@ void ChatImageItem::updateTimestamp()
 
 void ChatImageItem::updateProgress(float p)
 {
+    if (p >= 100.0)
+        p = 100;
+
     ui->progressBar->show();
     ui->progressBar->setValue((int)p);
 

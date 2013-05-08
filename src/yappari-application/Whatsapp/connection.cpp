@@ -44,7 +44,7 @@ FunStore Connection::store;
 
 Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
                        QString user, QString push_name, QByteArray password,
-                       QObject *parent) : QObject(parent)
+                       DataCounters *counters, QObject *parent) : QObject(parent)
 {
 
     /*
@@ -62,6 +62,7 @@ Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
     this->push_name = push_name;
     this->password = password;
     this->iqid = 0;
+    this->counters = counters;
     this->myJid = user + "@" + JID_DOMAIN;
 
     this->out = new BinTreeNodeWriter(socket,dictionary,this);
@@ -78,17 +79,21 @@ void Connection::login(QByteArray nextChallenge)
 {
     this->nextChallenge = nextChallenge;
 
-    out->streamStart(domain,resource);
+    int outBytes, inBytes;
 
-    sendFeatures();
-    sendAuth();
-    in->readStreamStart();
-    QByteArray challengeData = readFeaturesUntilChallengeOrSuccess();
+    outBytes = inBytes = 0;
+    outBytes = out->streamStart(domain,resource);
+    outBytes += sendFeatures();
+    outBytes += sendAuth();
+    inBytes += in->readStreamStart();
+    QByteArray challengeData = readFeaturesUntilChallengeOrSuccess(&inBytes);
     if (challengeData.size() > 0)
     {
-        sendResponse(challengeData);
-        readSuccess();
+        outBytes += sendResponse(challengeData);
+        inBytes += readSuccess();
     }
+
+    counters->increaseCounter(DataCounters::ProtocolBytes, inBytes, outBytes);
 
     // Successful login at this point
 
@@ -98,8 +103,6 @@ void Connection::login(QByteArray nextChallenge)
 
 void Connection::sendMessage(FMessage& message)
 {
-    Utilities::logData("Connection::sendMessage()");
-
     switch (message.type)
     {
         case FMessage::ComposingMessage:
@@ -138,7 +141,9 @@ void Connection::sendMessageWithBody(FMessage& message)
 
     messageNode = getMessageNode(message, bodyNode);
 
-    out->write(messageNode);
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::Messages, 0, 1);
+    counters->increaseCounter(DataCounters::MessageBytes, 0, bytes);
 
 }
 
@@ -168,7 +173,9 @@ void Connection::requestMessageWithMedia(FMessage &message)
     iqNode.setAttributes(attrs);
     iqNode.addChild(mediaNode);
 
-    out->write(iqNode);
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+
 
 }
 
@@ -208,7 +215,9 @@ void Connection::sendMessageWithMedia(FMessage& message)
 
         ProtocolTreeNode messageNode = getMessageNode(message, mediaNode);
 
-        out->write(messageNode);
+        int bytes = out->write(messageNode);
+        counters->increaseCounter(DataCounters::Messages, 0, 1);
+        counters->increaseCounter(DataCounters::MessageBytes, 0, bytes);
     }
 }
 
@@ -237,7 +246,7 @@ ProtocolTreeNode Connection::getMessageNode(FMessage& message, ProtocolTreeNode&
     return messageNode;
 }
 
-void Connection::sendFeatures()
+int Connection::sendFeatures()
 {
     ProtocolTreeNode child("receipt_acks");
 
@@ -251,16 +260,16 @@ void Connection::sendFeatures()
 
     ProtocolTreeNode child3("status");
 
-
     ProtocolTreeNode node("stream:features");
     node.addChild(child);
     node.addChild(child2);
     node.addChild(child3);
 
-    out->write(node,false);
+    int bytes = out->write(node,false);
+    return bytes;
 }
 
-void Connection::sendAuth()
+int Connection::sendAuth()
 {
     QByteArray data;
     if (nextChallenge.size() > 0)
@@ -274,9 +283,11 @@ void Connection::sendAuth()
 
     ProtocolTreeNode node("auth", data);
     node.setAttributes(attrs);
-    out->write(node, false);
+    int bytes = out->write(node, false);
     if (nextChallenge.size() > 0)
         out->setCrypto(true);
+
+    return bytes;
 }
 
 QByteArray Connection::getAuthBlob(QByteArray nonce)
@@ -304,7 +315,7 @@ QByteArray Connection::getAuthBlob(QByteArray nonce)
 }
 
 
-QByteArray Connection::readFeaturesUntilChallengeOrSuccess()
+QByteArray Connection::readFeaturesUntilChallengeOrSuccess(int *bytes)
 {
     ProtocolTreeNode node;
 
@@ -315,6 +326,8 @@ QByteArray Connection::readFeaturesUntilChallengeOrSuccess()
 
     while ((moreNodes = in->nextTree(node)))
     {
+        *bytes += node.getSize();
+
         if (node.getTag() == "stream:features")
         {
             ProtocolTreeNode receiptAcksNode = node.getChild("receipt_acks");
@@ -349,7 +362,7 @@ QByteArray Connection::readFeaturesUntilChallengeOrSuccess()
     return data;
 }
 
-void Connection::sendResponse(QByteArray challengeData)
+int Connection::sendResponse(QByteArray challengeData)
 {
     QByteArray authBlob = getAuthBlob(challengeData);
 
@@ -358,8 +371,10 @@ void Connection::sendResponse(QByteArray challengeData)
     attrs.insert("xmlns","urn:ietf:params:xml:ns:xmpp-sasl");
     ProtocolTreeNode node("response", authBlob);
     node.setAttributes(attrs);
-    out->write(node, false);
+    int bytes = out->write(node, false);
     out->setCrypto(true);
+
+    return bytes;
 }
 
 void Connection::parseSuccessNode(ProtocolTreeNode& node)
@@ -379,12 +394,14 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
     nextChallenge = node.getData();
 }
 
-void Connection::readSuccess()
+int Connection::readSuccess()
 {
     ProtocolTreeNode node;
 
     in->nextTree(node);
     parseSuccessNode(node);
+
+    return node.getSize();
 }
 
 void Connection::sendAvailableForChat()
@@ -395,12 +412,14 @@ void Connection::sendAvailableForChat()
     attrs.insert("name",push_name);
     presenceNode.setAttributes(attrs);
 
-    out->write(presenceNode);
+    int bytes = out->write(presenceNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 bool Connection::read()
 {
     ProtocolTreeNode node;
+    bool pictureReceived = false;
 
     if (in->nextTree(node))
     {
@@ -441,7 +460,7 @@ bool Connection::read()
                                                subject_o, subject_t);
                     }
 
-                    if (child.getTag() == "leave")
+                    else if (child.getTag() == "leave")
                     {
                         ProtocolTreeNodeListIterator j(child.getChildren());
                         while (j.hasNext())
@@ -456,7 +475,7 @@ bool Connection::read()
                         }
                     }
 
-                    if (child.getTag() == "query")
+                    else if (child.getTag() == "query")
                     {
                         QString xmlns = child.getAttributeValue("xmlns");
 
@@ -469,7 +488,7 @@ bool Connection::read()
                         }
                     }
 
-                    if (child.getTag() == "media" || child.getTag() == "duplicate")
+                    else if (child.getTag() == "media" || child.getTag() == "duplicate")
                     {
                         Key k(JID_DOMAIN,true,id);
                         FMessage message = store.value(k);
@@ -495,12 +514,47 @@ bool Connection::read()
 
                         }
                     }
+
+                    else if (child.getTag() == "list")
+                    {
+                        ProtocolTreeNodeListIterator j(child.getChildren());
+                        while (j.hasNext())
+                        {
+                            ProtocolTreeNode user = j.next().value();
+                            if (user.getTag() == "user")
+                            {
+                                QString jid = user.getAttributeValue("jid");
+                                QString pictureId = user.getAttributeValue("id");
+
+                                emit photoIdReceived(jid,pictureId);
+
+                            }
+                        }
+                    }
+
+                    else if (child.getTag() == "picture")
+                    {
+                        QString type = child.getAttributeValue("type");
+                        QString photoId = child.getAttributeValue("id");
+
+                        if (from != myJid)
+                            emit photoReceived(from, child.getData(),
+                                               photoId, (type == "image"));
+
+                        pictureReceived = true;
+                        counters->increaseCounter(DataCounters::ProfileBytes, node.getSize(), 0);
+                    }
                 }
             }
-
+            else if (type == "error")
+            {
+               QString id = node.getAttributeValue("id");
+               if (id.left(10) == "get_photo_")
+                   emit photoDeleted(from);
+            }
         }
 
-        if (tag == "presence")
+        else if (tag == "presence")
         {
             QString xmlns = node.getAttributeValue("xmlns");
             QString from = node.getAttributeValue("from");
@@ -525,8 +579,12 @@ bool Connection::read()
             }
         }
 
-        if (tag == "message")
+        else if (tag == "message")
             parseMessageInitialTagAlreadyChecked(node);
+
+        // Update counters
+        if (tag != "message" && !pictureReceived)
+            counters->increaseCounter(DataCounters::ProtocolBytes, node.getSize(), 0);
 
         return true;
     }
@@ -566,12 +624,12 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 if (!attribute_t.isEmpty())
                     message.timestamp = attribute_t.toLongLong() * 1000;
 
-                msgType = MessageReceived;
+                msgType = (from.right(5) == "@s.us")
+                        ? UserStatusUpdate : MessageReceived;
                 sendMessageReceived(message);
 
             }
-
-            if (child.getTag() == "media")
+            else if (child.getTag() == "media")
             {
                 // New mms received
 
@@ -597,8 +655,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 msgType = MessageReceived;
                 sendMessageReceived(message);
             }
-
-            if (child.getTag() == "notify")
+            else if (child.getTag() == "notify")
             {
                 QString xmlns = child.getAttributeValue("xmlns");
                 if (xmlns == "urn:xmpp:whatsapp")
@@ -607,8 +664,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     message.notify_name = notify_name;
                 }
             }
-
-            if (child.getTag() == "x")
+            else if (child.getTag() == "x")
             {
                 QString xmlns = child.getAttributeValue("xmlns");
                 if (xmlns == "jabber:x:event" && !id.isEmpty())
@@ -625,8 +681,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     message.timestamp = DateTimeUtilities::stampParser(stamp);
                 }
             }
-
-            if (child.getTag() == "received")
+            else if (child.getTag() == "received")
             {
                 QString receipt_type = child.getAttributeValue("type");
                 Key k(from,true,id);
@@ -643,15 +698,13 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     sendDeliveredReceiptAck(from,id);
                 }
             }
-
-            if (child.getTag() == "composing")
+            else if (child.getTag() == "composing")
             {
                 QString xmlns = child.getAttributeValue("xmlns");
                 if (xmlns == "http://jabber.org/protocol/chatstates")
                     msgType = Composing;
             }
-
-            if (child.getTag() == "paused")
+            else if (child.getTag() == "paused")
             {
                 QString xmlns = child.getAttributeValue("xmlns");
                 if (xmlns == "http://jabber.org/protocol/chatstates")
@@ -677,12 +730,21 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 break;
 
             case UserStatusUpdate:
-                emit userStatusUpdated(message.data);
+                emit userStatusUpdated(message);
                 break;
 
             default:
                 break;
         }
+
+        // Increase data counters
+        if (msgType == MessageReceived)
+        {
+            counters->increaseCounter(DataCounters::Messages, 1, 0);
+            counters->increaseCounter(DataCounters::MessageBytes, messageNode.getSize(), 0);
+        }
+        else
+            counters->increaseCounter(DataCounters::ProtocolBytes, messageNode.getSize(), 0);
     }
     else if (typeAttribute == "subject")
     {
@@ -716,18 +778,17 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 if (child.getTag() == "set")
                 {
                     QString photoId = child.getAttributeValue("id");
-                    if (!id.isEmpty())
+                    if (!photoId.isEmpty())
                     {
-                        QString author = child.getAttributeValue("author");
-
-                        // emit photoChanged(author, photoId);
+                        emit photoIdReceived(from, photoId);
 
                         notificationReceived = true;
                     }
                 }
-
-                if (child.getTag() == "delete")
+                else if (child.getTag() == "delete")
                 {
+                    emit photoDeleted(from);
+
                     notificationReceived = true;
                 }
 
@@ -737,6 +798,10 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
         if (notificationReceived)
             sendNotificationReceived(from, id);
     }
+
+    // Increase data counters for everything that was not a chat message
+    if (typeAttribute != "chat")
+        counters->increaseCounter(DataCounters::ProtocolBytes, messageNode.getSize(), 0);
 
 }
 
@@ -757,7 +822,8 @@ void Connection::sendMessageReceived(FMessage& message)
     messageNode.setAttributes(attrs);
     messageNode.addChild(receivedNode);
 
-    out->write(messageNode);
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::sendSubjectReceived(QString to, QString id)
@@ -776,7 +842,8 @@ void Connection::sendSubjectReceived(QString to, QString id)
     messageNode.setAttributes(attrs);
     messageNode.addChild(receivedNode);
 
-    out->write(messageNode);
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 
@@ -796,7 +863,8 @@ void Connection::sendNotificationReceived(QString to, QString id)
     messageNode.setAttributes(attrs);
     messageNode.addChild(receivedNode);
 
-    out->write(messageNode);
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::getReceiptAck(ProtocolTreeNode& node, QString to, QString id,
@@ -822,14 +890,16 @@ void Connection::sendDeliveredReceiptAck(QString to, QString id)
     ProtocolTreeNode node;
     getReceiptAck(node,to,id,"delivered");
 
-    out->write(node);
+    int bytes = out->write(node);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::sendNop()
 {
     ProtocolTreeNode empty;
 
-    out->write(empty);
+    int bytes = out->write(empty);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::sendPong(QString id)
@@ -842,13 +912,14 @@ void Connection::sendPong(QString id)
     attrs.insert("to",domain);
     iqNode.setAttributes(attrs);
 
-    out->write(iqNode);
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 
-QString Connection::makeId()
+QString Connection::makeId(QString prefix)
 {
-    return QString::number(++iqid,16);
+    return prefix + QString::number(++iqid,16);
 }
 
 qint64 Connection::getLastTreeReadTimestamp()
@@ -871,7 +942,8 @@ void Connection::sendComposing(QString to)
     messageNode.setAttributes(attrs);
     messageNode.addChild(composingNode);
 
-    out->write(messageNode);
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::sendPaused(QString to)
@@ -889,12 +961,13 @@ void Connection::sendPaused(QString to)
     messageNode.setAttributes(attrs);
     messageNode.addChild(pausedNode);
 
-    out->write(messageNode);
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::updateGroupChats()
 {
-    QString id = makeId();
+    QString id = makeId("get_groups_");
     sendGetGroups(id,"participating");
 }
 
@@ -916,12 +989,13 @@ void Connection::sendGetGroups(QString id, QString type)
     iqNode.setAttributes(attrs);
     iqNode.addChild(listNode);
 
-    out->write(iqNode);
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::sendSetGroupSubject(QString gjid, QString subject)
 {
-    QString id = makeId();
+    QString id = makeId("set_group_subject_");
 
     AttributeList attrs;
 
@@ -939,12 +1013,13 @@ void Connection::sendSetGroupSubject(QString gjid, QString subject)
     iqNode.setAttributes(attrs);
     iqNode.addChild(subjectNode);
 
-    out->write(iqNode);
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::sendLeaveGroup(QString gjid)
 {
-    QString id = makeId();
+    QString id = makeId("leave_group_");
 
     AttributeList attrs;
 
@@ -966,7 +1041,8 @@ void Connection::sendLeaveGroup(QString gjid)
     iqNode.setAttributes(attrs);
     iqNode.addChild(leaveNode);
 
-    out->write(iqNode);
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 void Connection::setNewUserName(QString push_name)
@@ -987,7 +1063,7 @@ void Connection::sendClientConfig(QString platform)
     QString country = systemInfo.currentCountryCode();
 #endif
 
-    QString id = makeId();
+    QString id = makeId("config_");
 
     AttributeList attrs;
 
@@ -1006,7 +1082,9 @@ void Connection::sendClientConfig(QString platform)
     iqNode.setAttributes(attrs);
     iqNode.addChild(configNode);
 
-    out->write(iqNode);
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+
 }
 
 
@@ -1014,7 +1092,7 @@ void Connection::sendQueryLastOnline(QString jid)
 {
     AttributeList attrs;
 
-    QString id = makeId();
+    QString id = makeId("last_");
 
     ProtocolTreeNode queryNode("query");
     attrs.insert("xmlns","jabber:iq:last");
@@ -1029,7 +1107,128 @@ void Connection::sendQueryLastOnline(QString jid)
     iqNode.setAttributes(attrs);
     iqNode.addChild(queryNode);
 
-    out->write(iqNode);
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendGetPhotoIds(QStringList jids)
+{
+    AttributeList attrs;
+
+    QString id = makeId("get_photo_id_");
+
+    ProtocolTreeNode listNode("list");
+    attrs.insert("xmlns","w:profile:picture");
+    listNode.setAttributes(attrs);
+
+    foreach (QString jid, jids)
+    {
+        ProtocolTreeNode userNode("user");
+        attrs.insert("jid", jid);
+        userNode.setAttributes(attrs);
+        listNode.addChild(userNode);
+    }
+
+    ProtocolTreeNode iqNode("iq");
+    attrs.clear();
+    attrs.insert("id",id);
+    attrs.insert("type","get");
+    attrs.insert("to",myJid);
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(listNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendGetPhoto(QString jid, QString expectedPhotoId, bool largeFormat)
+{
+    AttributeList attrs;
+
+    QString id = makeId("get_photo_");
+
+    ProtocolTreeNode pictureNode("picture");
+    attrs.insert("xmlns", "w:profile:picture");
+
+    if (!largeFormat)
+        attrs.insert("type", "preview");
+
+    if (!expectedPhotoId.isEmpty() && expectedPhotoId != "abook")
+        attrs.insert("id", expectedPhotoId);
+
+    pictureNode.setAttributes(attrs);
+
+    ProtocolTreeNode iqNode("iq");
+
+    attrs.clear();
+    attrs.insert("id",id);
+    attrs.insert("type","get");
+    attrs.insert("to",jid);
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(pictureNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendGetStatus(QString jid)
+{
+    int index = jid.indexOf('@');
+    if (index > 0)
+    {
+        jid = jid.left(index + 1) + "s.us";
+        QString id = makeId(QString::number(QDateTime::currentMSecsSinceEpoch() / 1000) + "-");
+
+        AttributeList attrs;
+
+        ProtocolTreeNode actionNode("action");
+        attrs.insert("type","get");
+        actionNode.setAttributes(attrs);
+
+        ProtocolTreeNode node("message");
+        attrs.clear();
+        attrs.insert("to",jid);
+        attrs.insert("type","action");
+        attrs.insert("id",id);
+        node.setAttributes(attrs);
+
+        int bytes = out->write(node);
+        counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+    }
+}
+
+void Connection::sendSetPhoto(QByteArray imageBytes, QByteArray thumbBytes)
+{
+    AttributeList attrs;
+
+    QString id = makeId("set_photo_");
+
+    ProtocolTreeNode pictureNode("picture");
+    attrs.insert("xmlns", "w:profile:picture");
+    // attrs.insert("type", "image");
+    pictureNode.setData(imageBytes);
+    pictureNode.setAttributes(attrs);
+
+    /*
+    attrs.clear();
+    ProtocolTreeNode thumbNode("picture");
+    attrs.insert("type","preview");
+    thumbNode.setData(thumbBytes);
+    thumbNode.setAttributes(attrs);
+    */
+
+    ProtocolTreeNode iqNode("iq");
+
+    attrs.clear();
+    attrs.insert("id",id);
+    attrs.insert("type","set");
+    attrs.insert("to",myJid);
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(pictureNode);
+    // iqNode.addChild(thumbNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProfileBytes, 0, bytes);
 }
 
 

@@ -33,18 +33,30 @@
 #include "changeusernamedialog.h"
 #include "ui_changeusernamedialog.h"
 #include "globalconstants.h"
+
+#include "Whatsapp/util/utilities.h"
+
 #include "client.h"
 
 ChangeUserNameDialog::ChangeUserNameDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ChangeUserNameDialog)
 {
-    ui->setupUi(this);
-    ui->selectEmojiButton->hide();
-    ui->textEdit->installEventFilter(this);
+    this->parent = parent;
 
-    ui->textEdit->setText(Client::userName.isEmpty() ? DEFAULT_USERNAME : Client::userName);
+    isEmojiWidgetOpen = false;
+
+    ui->setupUi(this);
+
+    ui->textEdit->setText(
+                Utilities::WATextToHtml(
+                    (Client::userName.isEmpty() ? DEFAULT_USERNAME : Client::userName),
+                    32));
     ui->textEdit->setFocus();
+
+    connect(ui->textEdit,SIGNAL(returnPressed()),this,SLOT(accept()));
+    connect(ui->selectEmojiButton,SIGNAL(clicked()),this,SLOT(selectEmojiButtonClicked()));
+
 }
 
 ChangeUserNameDialog::~ChangeUserNameDialog()
@@ -56,6 +68,8 @@ QString ChangeUserNameDialog::getUserName()
 {
     return ui->textEdit->toPlainText();
 }
+
+/*
 
 bool ChangeUserNameDialog::eventFilter(QObject *obj, QEvent *event)
 {
@@ -71,7 +85,7 @@ bool ChangeUserNameDialog::eventFilter(QObject *obj, QEvent *event)
                 return true;
             }
         }
-        /*
+
         else if (event->type() == QEvent::InputMethod)
         {
             QInputMethodEvent *inputEvent = (QInputMethodEvent *) event;
@@ -85,11 +99,12 @@ bool ChangeUserNameDialog::eventFilter(QObject *obj, QEvent *event)
                 return true;
             }
         }
-        */
+
     }
 
     return QDialog::eventFilter(obj,event);
 }
+*/
 
 void ChangeUserNameDialog::accept()
 {
@@ -111,4 +126,30 @@ void ChangeUserNameDialog::accept()
     }
     else
         QDialog::accept();
+}
+
+void ChangeUserNameDialog::selectEmojiButtonClicked()
+{
+    if (!isEmojiWidgetOpen)
+        openEmojiWidget();
+    else
+        closeEmojiWidget();
+}
+
+void ChangeUserNameDialog::openEmojiWidget()
+{
+    emojiWidget = new SelectEmojiWidget(parent);
+
+    connect(emojiWidget,SIGNAL(emojiSelected(QString)),ui->textEdit,SLOT(addEmoji(QString)));
+
+    isEmojiWidgetOpen = true;
+
+    emojiWidget->show();
+}
+
+void ChangeUserNameDialog::closeEmojiWidget()
+{
+    emojiWidget->hide();
+    emojiWidget->deleteLater();
+    isEmojiWidgetOpen = false;
 }

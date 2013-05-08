@@ -81,12 +81,32 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
         syncSelector->setCurrentIndex(0);
     ui->syncButton->setPickSelector(syncSelector);
 
+    // Configure the Sync Frequency picker
+
+    QStandardItemModel *syncFreqModel = new QStandardItemModel(0,0,this);
+    item = new QStandardItem("Every successful connection");
+    syncFreqModel->appendRow(item);
+    item = new QStandardItem("Once a day");
+    syncFreqModel->appendRow(item);
+    item = new QStandardItem("Once a week");
+    syncFreqModel->appendRow(item);
+    item = new QStandardItem("Once a month");
+    syncFreqModel->appendRow(item);
+
+    ui->syncFreqButton->setValueLayout(QMaemo5ValueButton::ValueUnderText);
+    syncFreqSelector = new QMaemo5ListPickSelector(ui->syncFreqButton);
+    syncFreqSelector->setModel(syncFreqModel);
+
+    syncFreqSelector->setCurrentIndex(Client::syncFreq);
+    ui->syncFreqButton->setPickSelector(syncFreqSelector);
+
     // Configure the checkboxes
 
     ui->nicknamesCheckBox->setChecked(Client::showNicknames);
     ui->shownumbersCheckBox->setChecked(Client::showNumbers);
     ui->popupCheckbox->setChecked(Client::popupOnFirstMessage);
     ui->importCheckbox->setChecked(Client::importMediaToGallery);
+    ui->startOnBootCheckBox->setChecked(Client::startOnBoot);
 
     // Configure automatic download bytes
 
@@ -136,6 +156,16 @@ bool GlobalSettingsDialog::getPopupOnFirstMessage()
 bool GlobalSettingsDialog::getImportMediaToGallery()
 {
     return ui->importCheckbox->isChecked();
+}
+
+int GlobalSettingsDialog::getSyncFrequency()
+{
+    return syncFreqSelector->currentIndex();
+}
+
+bool GlobalSettingsDialog::getStartOnBoot()
+{
+    return ui->startOnBootCheckBox->isChecked();
 }
 
 int GlobalSettingsDialog::getAutomaticDownloadBytes()

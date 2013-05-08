@@ -10,3 +10,4 @@ qdbusxml2cpp -v -c DBusNotificationsIf -p dbusnotificationsif.h:dbusnotification
 qdbusxml2cpp -v -c DBusNokiaMCESignalIf -p dbusnokiamcesignalif.h:dbusnokiamcesignalif.cpp com.nokia.mce.signal.xml
 qdbusxml2cpp -v -c DBusNokiaMediaPlayerIf -p dbusnokiamediaplayerif.h:dbusnokiamediaplayerif.cpp com.nokia.mediaplayer.xml
 qdbusxml2cpp -v -c DBusNokiaImageViewerIf -p dbusnokiaimageviewerif.h:dbusnokiaimageviewerif.cpp com.nokia.image_viewer.xml
+qdbusxml2cpp -v -c DBusNokiaCsdCallIf -p dbusnokiacsdcallif.h:dbusnokiacsdcallif.cpp com.nokia.csd.Call.xml

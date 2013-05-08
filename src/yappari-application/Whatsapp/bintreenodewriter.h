@@ -49,8 +49,8 @@ public:
                       QObject *parent = 0);
 
     // Writer methods
-    void write(ProtocolTreeNode& node, bool needsFlush = true);
-    void streamStart(QString& domain, QString& resource);
+    int write(ProtocolTreeNode& node, bool needsFlush = true);
+    int streamStart(QString& domain, QString& resource);
 
     void setOutputKey(KeyStream *outputKey);
     void setCrypto(bool crypto);

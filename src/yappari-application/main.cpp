@@ -82,7 +82,11 @@ int main(int argc, char *argv[])
 
         if (!reply.isValid())
         {
-            client = new Client(&a);
+            bool minimized = false;
+            foreach (QString arg, a.arguments())
+                if (arg == "-m")
+                    minimized = true;
+            client = new Client(minimized,&a);
             retval = a.exec();
             delete client;
         }

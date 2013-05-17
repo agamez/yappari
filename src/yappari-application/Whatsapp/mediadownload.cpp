@@ -41,6 +41,9 @@ void MediaDownload::onResponse()
         socket->close();
     }
 
+    if (socket->bytesAvailable())
+        writeToFile();
+
     connect(socket,SIGNAL(readyRead()),this,SLOT(writeToFile()));
 }
 

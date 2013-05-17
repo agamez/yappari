@@ -9,7 +9,7 @@ Homepage: http://talk.maemo.org/showthread.php?t=84605
 Package: yappari
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: WhatsApp client written in Qt for Nokia N900
+Description: WhatsApp client written in Qt for the Nokia N900
  Yappari is a WhatsApp client for the Nokia N900.
  .
  You have to reboot your phone after installation.

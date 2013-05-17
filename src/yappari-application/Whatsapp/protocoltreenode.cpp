@@ -141,7 +141,8 @@ QString ProtocolTreeNode::toString()
                  tag == "auth" ||
                  tag == "picture" ||
                  tag == "media" )
-                 ? data.toHex() : data)
+                ? "Content of type " + tag + " length: " + QString::number(data.length())
+                : data)
             << "\n";
 
     if (children.size() > 0)

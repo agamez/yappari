@@ -197,26 +197,6 @@ void ContactSyncer::getAddressBook()
         OssoABookContact *contact = OSSO_ABOOK_CONTACT(l->data);
         QString displayName = QString::fromUtf8(osso_abook_contact_get_display_name(contact));
 
-        /*
-        GdkPixbuf *pixbuf = osso_abook_contact_get_photo(contact);
-
-        QImage image;
-
-        if (pixbuf)
-        {
-            gchar *buffer;
-            gsize buffer_size;
-            GError *error = 0;
-            gdk_pixbuf_save_to_bufferv(pixbuf,&buffer,&buffer_size,"png",NULL,NULL,&error);
-
-            QByteArray data = QByteArray::fromRawData(buffer,buffer_size);
-            image.loadFromData(data);
-            g_free(buffer);
-
-            gdk_pixbuf_unref(pixbuf);
-        }
-        */
-
         EContactField field = e_contact_field_id("mobile-phone");
         GList *attrs = e_contact_get_attributes(E_CONTACT(contact),field);
         for (GList *la = attrs; la; la = la->next)
@@ -260,6 +240,8 @@ void ContactSyncer::sync()
         Utilities::logData("syncer: Synchronizing contacts...");
 
         isSyncing = true;
+        syncDataReceived = false;
+        emit progress(0);
 
         abookJids.clear();
         ContactList list = roster->getContactList();
@@ -297,7 +279,7 @@ void ContactSyncer::sync()
 
         connect(this,SIGNAL(finished()),this,SLOT(authResponse()));
         connect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
-                this,SLOT(socketErrorHandler(QAbstractSocket::SocketError)));
+                this,SLOT(errorHandler(QAbstractSocket::SocketError)));
 
         setHeader("Authorization", response);
 
@@ -385,26 +367,43 @@ void ContactSyncer::onResponse()
 {
     if (errorCode != 200)
     {
-        // emit httpError(this, message, errorCode);
+        emit httpError(errorCode);
         return;
     }
 
     totalLength = getHeader("Content-Length").toLongLong();
+
+    Utilities::logData("syncer: Content-Length: " + QString::number(totalLength));
+
+    if (socket->bytesAvailable())
+        fillBuffer();
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(fillBuffer()));
 }
 
 void ContactSyncer::fillBuffer()
 {
+    Utilities::logData("syncer: fillBuffer()");
+
     qint64 bytesToRead = socket->bytesAvailable();
 
+    Utilities::logData("syncer: bytesAvailable(): " + QString::number(bytesToRead));
+
     readBuffer.append(socket->read(bytesToRead));
+
+    Utilities::logData("syncer: readBuffer.size(): " + QString::number(readBuffer.size()));
 
     if (readBuffer.size() == totalLength)
     {
         Utilities::logData("syncer: Read " + QString::number(totalLength) + " bytes.");
 
         increaseDownloadCounter(totalLength);
+
+        disconnect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
+                   this,SLOT(errorHandler(QAbstractSocket::SocketError)));
+
+        syncDataReceived = true;
+        socket->close();
 
         parseResponse();
     }
@@ -426,7 +425,8 @@ void ContactSyncer::parseResponse()
         phoneList = mapResult.value("c").toList();
         totalPhones = phoneList.length();
         nextSignal = totalPhones * 10 / 100;
-        QTimer::singleShot(0,this,SLOT(syncNextPhone()));
+        emit progress(5);
+        QTimer::singleShot(100,this,SLOT(syncNextPhone()));
     }
     else
     {
@@ -446,6 +446,7 @@ void ContactSyncer::syncNextPhone()
         QVariant element = phoneList.takeFirst();
         QVariantMap e = element.toMap();
         int w = e.value("w").toInt();
+
         if (w)
         {
             QString phone = e.value("p").toString();
@@ -522,7 +523,6 @@ void ContactSyncer::syncNextPhone()
         QList<QString> deleted = abookJids.keys();
         foreach (QString jid, deleted)
             roster->deleteContact(jid);
-
         Utilities::logData("syncer: Contacts synchronization successful");
 
         // Free everything
@@ -548,16 +548,23 @@ bool ContactSyncer::isSynchronizing()
 
 void ContactSyncer::errorHandler(QAbstractSocket::SocketError error)
 {
-    if (error == QAbstractSocket::SslHandshakeFailedError)
+    // If all the synchronization data has been received ignore
+    // the socket errors.  It looks like QSslSocket will still send
+    // socket errors even if the socket has been closed.
+    // Not sure if a bug or a feature but this way we avoid false positives
+    if (!syncDataReceived)
     {
-        // SSL error is a fatal error
-        emit sslError();
-    }
-    else
-    {
-        // ToDo: Retry here
-        Utilities::logData("Upload failed: Socket error " + QString::number(error));
-        emit httpError(error);
+        if (error == QAbstractSocket::SslHandshakeFailedError)
+        {
+            // SSL error is a fatal error
+            emit sslError();
+        }
+        else
+        {
+            // ToDo: Retry here
+            Utilities::logData("syncer: Socket error while trying to get synchronization data.  Error: " + QString::number(error));
+            emit httpError((int)error);
+        }
     }
 }
 

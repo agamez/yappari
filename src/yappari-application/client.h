@@ -225,6 +225,8 @@ public slots:
     void changeStatus(QString newStatus);
     void changeUserName(QString newUserName);
     void synchronizeContacts();
+    void syncHttpError(int error);
+    void syncSslError();
     void syncFinished();
     void syncProgress(int progress);
     void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);

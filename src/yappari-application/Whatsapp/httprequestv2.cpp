@@ -126,8 +126,6 @@ void HttpRequestv2::sendRequest() {
     if (method == POST)
         request->append(data,length);
 
-    // Utilities::logData("REQUEST: \n" + QString::fromUtf8(request.constData()));
-
     // Write data
     connect(socket, SIGNAL(encryptedBytesWritten(qint64)),
             this, SLOT(encryptedBytesWritten(qint64)));
@@ -142,24 +140,10 @@ void HttpRequestv2::sendRequest() {
         socket->write(constData, size);
         constData += size;
         pos += size;
-        // float p = ((float) pos * 100.0) / ((float)length);
-        // emit progress(p);
     }
 
     delete request;
-    /*
 
-    HttpWorker *worker = new HttpWorker(request,socket);
-    QThread *workerThread = new QThread(this);
-
-    connect(workerThread,SIGNAL(started()), worker, SLOT(doWork()));
-    connect(workerThread,SIGNAL(finished()), this, SLOT(workerFinished()));
-    connect(workerThread,SIGNAL(finished()), worker, SLOT(deleteLater()));
-
-    worker->moveToThread(workerThread);
-    workerThread->start();
-
-    */
     emit requestSent(length);
 
     Utilities::logData("HttpRequest(): Waiting for response...");
@@ -226,11 +210,14 @@ void HttpRequestv2::readResponse() {
             totalLength += length;
             QString header = QString::fromUtf8(buffer.data());
 
-            // Utilities::logData(header.trimmed());
+            Utilities::logData(header.trimmed());
 
             // A blank line means the end of headers and beginning of data
             if (header == "\r\n")
+            {
+                Utilities::logData("HttpRequest(): All headers read.  Available: " + QString::number(socket->bytesAvailable()));
                 end = true;
+            }
             else
             {
                 QStringList list = header.trimmed().split(": ");
@@ -248,8 +235,10 @@ void HttpRequestv2::readResponse() {
 
 void HttpRequestv2::socketErrorHandler(QAbstractSocket::SocketError err)
 {
-    // Close the socket
-    socket->close();
+    Utilities::logData("HttpRequestv2() Socket Error " + QString::number(err));
+
+    if (socket->isOpen())
+        socket->close();
 
     emit socketError(err);
 }

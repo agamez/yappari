@@ -66,6 +66,7 @@ private:
     QVariantList phoneList;
     int totalPhones, nextSignal;
     bool isSyncing;
+    bool syncDataReceived;
 
     QByteArray readBuffer;
     QByteArray writeBuffer;
@@ -83,7 +84,7 @@ signals:
     void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
     void syncFinished();
     void progress(int);
-    void httpError(QAbstractSocket::SocketError);
+    void httpError(int);
     void sslError();
 };
 

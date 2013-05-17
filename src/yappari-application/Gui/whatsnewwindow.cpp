@@ -39,6 +39,9 @@
 #define TEXT "<b>Thank you for installing Yappari!</b><br><br>"\
     "If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>"\
     "<b>New in this version:</b><br>"\
+    "<li>&bull; Fixed crashes that some people were experiencing during synchronization.</li>"\
+    "<br>"\
+    "<b>New in 0.0.32:</b><br>"\
     "<li>&bull; Profile pictures are now supported.</li>"\
     "<li>&bull; You can now see your contacts information. Long press on any contact or select \"Contact Info\" from the conversation window to see that contact's information.</li>"\
     "<li>&bull; You can also view your account information.  Select \"Account Info\" from the menu.</li>"\

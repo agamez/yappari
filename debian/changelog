@@ -1,3 +1,15 @@
+yappari (0.0.33) unstable; urgency=low
+
+  * Fixed handling of the fact that the signal readyRead() is not emitted if
+    there are still bytes in the buffer available to read.
+  * Proper handling of HTTP and SSL errors in ContactSyncer.
+  * Fixed a bug where the httpError signal was being called infinitely in a
+    loop when the remote server closed the connection.
+  * Fixed bug where ContactSyncer wasn't closing the socket before start to
+    parsing the synchronization data.
+
+ -- Scorpius <naikel@gmail.com>  Thu, 16 May 2013 23:34:20 -0430
+
 yappari (0.0.32) unstable; urgency=low
 
   * Now the post install script kills Yappari if it's running to allow

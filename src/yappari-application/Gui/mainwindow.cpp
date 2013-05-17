@@ -184,10 +184,8 @@ void MainWindow::createChatWindow()
 {
     if (!roster->size())
     {
-        QMessageBox msg(this);
-
-        msg.setText("Contacts haven't been synchronized yet.");
-        msg.exec();
+        QMaemo5InformationBox::information(this,"Contacts haven't been synchronized yet.",
+                                           QMaemo5InformationBox::NoTimeout);
     }
     else
     {
@@ -391,8 +389,7 @@ void MainWindow::updateGroup(Group &group,bool notify)
         entry.muteExpireTimestamp = 0;
         chatsDB.createChat(entry);
 
-        QMaemo5InformationBox::information(this,"You've been added to group " +
-                                           group.name);
+
     }
     else
     {
@@ -760,18 +757,20 @@ void MainWindow::showChangeStatusDialog()
 
 void MainWindow::requestSync()
 {
-    QMessageBox msg;
-
     if (Client::connectionStatus == Client::LoggedIn)
     {
-        msg.setText("Contacts will be synchronized in the background.");
-        msg.exec();
-        emit sync();
+        if (Client::isSynchronizing)
+            QMaemo5InformationBox::information(this,"Contacts are already being synchronized.");
+        else
+        {
+            QMaemo5InformationBox::information(this,"Contacts will be synchronized in the background.");
+            emit sync();
+        }
     }
     else
     {
-        msg.setText("You need to be logged in to synchronize your contacts");
-        msg.exec();
+        QMaemo5InformationBox::information(this,"You need to be logged in to synchronize your contacts",
+                                           QMaemo5InformationBox::NoTimeout);
     }
 }
 

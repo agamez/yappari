@@ -34,6 +34,7 @@
 #include <QStatusBar>
 #include <QSystemInfo>
 #include <QMessageBox>
+#include <QMaemo5InformationBox>
 
 #include "version.h"
 #include "client.h"
@@ -709,10 +710,34 @@ void Client::synchronizeContacts()
     connect(syncer,SIGNAL(photoRefresh(QString,QString,bool)),
             this,SLOT(photoRefresh(QString,QString,bool)));
 
+    connect(syncer,SIGNAL(httpError(int)),
+            this,SLOT(syncHttpError(int)));
+
+    connect(syncer,SIGNAL(sslError()),
+            this,SLOT(synSslError()));
+
     isSynchronizing = true;
     QTimer::singleShot(0,syncer,SLOT(sync()));
 
 }
+
+void Client::syncHttpError(int error)
+{
+    QMaemo5InformationBox::information(mainWin,"There has been a fatal error synchronizing contacts.\nWhatsApp Servers down? Error = " +
+                                       QString::number(error),
+                                       QMaemo5InformationBox::NoTimeout);
+
+    syncFinished();
+}
+
+void Client::syncSslError()
+{
+    QMaemo5InformationBox::information(mainWin,"SSL error while trying to synchronize contacts.\nMaybe bad time & date settings on the phone?",
+                                       QMaemo5InformationBox::NoTimeout);
+
+    syncFinished();
+}
+
 
 void Client::syncProgress(int progress)
 {
@@ -1041,7 +1066,7 @@ void Client::photoReceived(QString from, QByteArray data,
     if (!largeFormat)
     {
         c.photo = QImage::fromData(data).scaled(64, 64, Qt::KeepAspectRatio,
-                                                Qt::SmoothTransformation);
+                                               Qt::SmoothTransformation);
         c.photoId = photoId;
 
         roster->updatePhoto(&c);

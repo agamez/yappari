@@ -47,6 +47,7 @@ public:
 
 signals:
     void finished(PhoneRegReply *);
+    void expired(QVariantMap result);
 
 public slots:
     void onExistRequestDone(WARequest *req, bool ok, QVariantMap result);

@@ -35,6 +35,7 @@
 #include <QList>
 #include <QObject>
 
+#include "Contacts/group.h"
 #include "Contacts/contact.h"
 #include "Contacts/contactlist.h"
 
@@ -44,6 +45,8 @@ class RosterDBManager : public QObject
 public:
     explicit RosterDBManager(QObject *parent = 0);
     ~RosterDBManager();
+
+    ContactList *getAllContacts();
 
 signals:
 
@@ -55,7 +58,11 @@ public slots:
     void updatePhoto(Contact *c);
     void updateStatus(Contact *c);
     void removeContact(QString jid);
-    ContactList *getAllContacts();
+    void removeGroup(QString gjid);
+    void addParticipant(Group *g, Contact *c);
+    void removeParticipant(Group *g, Contact *c);
+    void updateGroupSubject(Group *g);
+
 
 
 private:

@@ -47,7 +47,8 @@ class SelectContactDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SelectContactDialog(ContactRoster *roster, QWidget *parent = 0);
+    explicit SelectContactDialog(ContactRoster *roster, QWidget *parent = 0,
+                                 bool contextMenuEnabled = true);
     ~SelectContactDialog();
     Contact& getSelectedContact();
 

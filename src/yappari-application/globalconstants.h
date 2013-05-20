@@ -130,6 +130,7 @@
 #define SETTINGS_CC                         "cc"
 #define SETTINGS_NUMBER                     "number"
 #define SETTINGS_IMEI                       "imei"
+#define SETTINGS_IMSI                       "imsi"
 #define SETTINGS_REGISTERED                 "registered"
 #define SETTINGS_NICKCOLOR                  "nickcolor"
 #define SETTINGS_MYCOLOR                    "mycolor"
@@ -211,9 +212,18 @@
 #define EXTENSIONS_IMAGE   "Images (*.png *.jpg *.jpeg *.gif *.PNG *.JPG *.JPEG *.GIF)"
 #define EXTENSIONS_AUDIO   "Audio Files (*.aac *.mp3 *.m4a *.wma *.wav *.ogg *.AAC *.MP3 *.M4A *.WMA *.WAV *.OGG)"
 
-// Donate URL
+// Image sizes
 
-#define DONATE_URL      "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER    999815428
+#define PREVIEW_WIDTH      224
+#define PREVIEW_HEIGHT     224
+
+// Yappari URL
+
+#define YAPPARI_URL_BASE    "https://dl.dropboxusercontent.com/u/3392337/Yappari/"
+#define VERSION_CHECK_URL   "version.txt"
+#define WHATS_NEW_URL       "changelog.txt"
+#define DONATE_URL          "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
+#define MAGIC_NUMBER        929614368
+
 
 #endif // GLOBALCONSTANTS_H

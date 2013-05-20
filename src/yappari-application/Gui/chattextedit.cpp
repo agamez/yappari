@@ -26,6 +26,8 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#include <QTextDocumentFragment>
+#include <QMaemo5InformationBox>
 #include <QApplication>
 #include <QClipboard>
 #include <QInputMethodEvent>
@@ -81,9 +83,16 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
                  keyEvent->modifiers() == Qt::ControlModifier)
         {
             // Copy
-            QClipboard *clipboard = QApplication::clipboard();
-            clipboard->setText(Utilities::htmlToWAText(toHtml()));
-            return true;
+            QTextCursor cursor = textCursor();
+            if (cursor.hasSelection())
+            {
+                QTextDocumentFragment selection = cursor.selection();
+                QClipboard *clipboard = QApplication::clipboard();
+                clipboard->setText(Utilities::htmlToWAText(selection.toHtml()));
+
+                QMaemo5InformationBox::information(this,"Copied");
+                return true;
+            }
         }
         else if (keyEvent->nativeScanCode() == 55 &&
                  keyEvent->modifiers() == Qt::ControlModifier)
@@ -92,7 +101,7 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
             QTextCursor cursor = textCursor();
             QClipboard *clipboard = QApplication::clipboard();
 
-            cursor.insertHtml(Utilities::WATextToHtml(clipboard->text(),32));
+            cursor.insertHtml(Utilities::WATextToHtml(clipboard->text(),32,false));
 
             return true;
         }

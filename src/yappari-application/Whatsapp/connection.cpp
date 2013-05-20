@@ -456,7 +456,8 @@ bool Connection::read()
                         QString creation = child.getAttributeValue("creation");
                         QString subject_o = child.getAttributeValue("s_o");
                         QString subject_t = child.getAttributeValue("s_t");
-                        emit groupInfoFromList(childId + "@g.us", author, subject, creation,
+                        emit groupInfoFromList(id, childId + "@g.us", author,
+                                               subject, creation,
                                                subject_o, subject_t);
                     }
 
@@ -536,14 +537,35 @@ bool Connection::read()
                     {
                         QString type = child.getAttributeValue("type");
                         QString photoId = child.getAttributeValue("id");
+                        QByteArray bytes = child.getData();
 
-                        if (from != myJid)
-                            emit photoReceived(from, child.getData(),
-                                               photoId, (type == "image"));
+                        emit photoReceived(from, bytes,
+                                           photoId, (type == "image"));
 
                         pictureReceived = true;
                         counters->increaseCounter(DataCounters::ProfileBytes, node.getSize(), 0);
                     }
+
+                    else if (child.getTag() == "add")
+                    {
+                        QString participant = child.getAttributeValue("participant");
+
+                        if (child.getAttributeValue("type") == "success")
+                            emit addParticipant(from,participant);
+                    }
+
+                    else if (child.getTag() == "participant")
+                    {
+                        QString participant = child.getAttributeValue("jid");
+
+                        emit groupParticipant(from,participant);
+                    }
+
+                }
+
+                if (id.left(10) == "set_photo_" && from == myJid)
+                {
+                    emit photoDeleted(myJid);
                 }
             }
             else if (type == "error")
@@ -674,6 +696,11 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     message.status = FMessage::ReceivedByServer;
 
                     msgType = (from == "s.us") ? UserStatusUpdate : MessageStatusUpdate;
+
+                    // If this a receipt from a group message
+                    // delete it from the FunStore
+                    if (from.right(5) == "@g.us")
+                        store.remove(k);
                 }
                 else if (xmlns == "jabber:x:delay")
                 {
@@ -798,6 +825,14 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
         if (notificationReceived)
             sendNotificationReceived(from, id);
     }
+
+
+    else if (typeAttribute == "error")
+    {
+        if (from.right(5) == "@g.us")
+            emit groupError(from);
+    }
+
 
     // Increase data counters for everything that was not a chat message
     if (typeAttribute != "chat")
@@ -1197,8 +1232,10 @@ void Connection::sendGetStatus(QString jid)
     }
 }
 
-void Connection::sendSetPhoto(QByteArray imageBytes, QByteArray thumbBytes)
+void Connection::sendSetPhoto(QString jid, QByteArray imageBytes, QByteArray thumbBytes)
 {
+    Q_UNUSED(thumbBytes);
+
     AttributeList attrs;
 
     QString id = makeId("set_photo_");
@@ -1222,7 +1259,7 @@ void Connection::sendSetPhoto(QByteArray imageBytes, QByteArray thumbBytes)
     attrs.clear();
     attrs.insert("id",id);
     attrs.insert("type","set");
-    attrs.insert("to",myJid);
+    attrs.insert("to",jid);
     iqNode.setAttributes(attrs);
     iqNode.addChild(pictureNode);
     // iqNode.addChild(thumbNode);
@@ -1230,5 +1267,124 @@ void Connection::sendSetPhoto(QByteArray imageBytes, QByteArray thumbBytes)
     int bytes = out->write(iqNode);
     counters->increaseCounter(DataCounters::ProfileBytes, 0, bytes);
 }
+
+void Connection::sendPresenceSubscriptionRequest(QString jid)
+{
+    ProtocolTreeNode presenceNode("presence");
+
+    AttributeList attrs;
+    attrs.insert("to", jid);
+    attrs.insert("type", "subscribe");
+    presenceNode.setAttributes(attrs);
+
+    int bytes = out->write(presenceNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendUnsubscribeHim(QString jid)
+{
+    ProtocolTreeNode presenceNode("presence");
+
+    AttributeList attrs;
+    attrs.insert("to", jid);
+    attrs.insert("type", "unsubscribed");
+    presenceNode.setAttributes(attrs);
+
+    int bytes = out->write(presenceNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendCreateGroupChat(QString subject, QString id)
+{
+    ProtocolTreeNode groupNode("group");
+
+    AttributeList attrs;
+    attrs.insert("xmlns", "w:g");
+    attrs.insert("action", "create");
+    attrs.insert("subject", subject);
+    groupNode.setAttributes(attrs);
+
+    ProtocolTreeNode iqNode("iq");
+
+    attrs.clear();
+    attrs.insert("id",id);
+    attrs.insert("type","set");
+    attrs.insert("to","g.us");
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(groupNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendAddParticipants(QString gjid, QStringList participants)
+{
+    QString id = makeId("add_group_participants_");
+
+    sendVerbParticipants(gjid, participants, id, "add");
+}
+
+void Connection::sendRemoveParticipants(QString gjid, QStringList participants)
+{
+    QString id = makeId("remove_group_participants_");
+
+    sendVerbParticipants(gjid, participants, id, "remove");
+}
+
+void Connection::sendVerbParticipants(QString gjid, QStringList participants,
+                                      QString id, QString innerTag)
+{
+    ProtocolTreeNode innerNode(innerTag);
+
+
+    foreach (QString jid, participants)
+    {
+        ProtocolTreeNode participantNode("participant");
+        AttributeList attrs;
+        attrs.insert("jid", jid);
+        participantNode.setAttributes(attrs);
+        innerNode.addChild(participantNode);
+    }
+
+    AttributeList attrs;
+    attrs.insert("xmlns", "w:g");
+    innerNode.setAttributes(attrs);
+
+    ProtocolTreeNode iqNode("iq");
+
+    attrs.clear();
+    attrs.insert("id",id);
+    attrs.insert("type","set");
+    attrs.insert("to",gjid);
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(innerNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendGetParticipants(QString gjid)
+{
+    ProtocolTreeNode listNode("list");
+
+    QString id = makeId("get_participants_");
+
+    AttributeList attrs;
+    attrs.insert("xmlns", "w:g");
+    listNode.setAttributes(attrs);
+
+    ProtocolTreeNode iqNode("iq");
+
+    attrs.clear();
+    attrs.insert("id",id);
+    attrs.insert("type","get");
+    attrs.insert("to",gjid);
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(listNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
 
 

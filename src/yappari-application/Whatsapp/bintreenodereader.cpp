@@ -26,6 +26,7 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#include <QApplication>
 #include <QDataStream>
 #include <QDateTime>
 
@@ -35,7 +36,7 @@
 #include "util/utilities.h"
 #include "bintreenodereader.h"
 
-#define READ_TIMEOUT 1000
+#define READ_TIMEOUT 30000
 
 BinTreeNodeReader::BinTreeNodeReader(QTcpSocket *socket, QStringList& dictionary,
                                      QObject *parent) : QObject(parent)
@@ -210,22 +211,32 @@ void BinTreeNodeReader::fillArray(QByteArray& buffer, quint32 len)
 
     buffer.clear();
 
-    bool ready = true;
+    // bool ready = true;
 
+    /*
     if (socket->bytesAvailable() < 1)
+    {
+        Utilities::logData("fillArray() waiting for bytes");
         ready = socket->waitForReadyRead(READ_TIMEOUT);
+    }
 
     if (!ready)
+    {
+        Utilities::logData("fillArray() not ready / timed out");
         throw IOException(socket->error());
+    }
+    */
 
     int needToRead = len;
     while (needToRead > 0)
     {
         int bytesRead = socket->read(data,(needToRead > 1024) ? 1024 : needToRead);
+
         if (bytesRead < 0)
             throw IOException(socket->error());
         if (bytesRead == 0)
-            socket->waitForReadyRead(READ_TIMEOUT);
+            // socket->waitForReadyRead(READ_TIMEOUT);
+            qApp->processEvents();
         else
         {
             needToRead -= bytesRead;
@@ -313,10 +324,11 @@ quint8 BinTreeNodeReader::readInt8(QDataStream& in)
 
 qint32 BinTreeNodeReader::readInt16()
 {
-    bool ready = true;
-    char buffer[3];
+    // bool ready = true;
+    char buffer[2];
 
-    if (socket->bytesAvailable() < 1)
+    /*
+    if (socket->bytesAvailable() < 2)
         ready = socket->waitForReadyRead(READ_TIMEOUT);
 
     if (!ready)
@@ -326,6 +338,11 @@ qint32 BinTreeNodeReader::readInt16()
     int bytesRead = socket->read(buffer,2);
 
     QByteArray readBytes(buffer,bytesRead);
+    */
+
+    QByteArray readBytes(buffer,2);
+
+    fillArray(readBytes,2);
 
     qint32 result = (((quint8)readBytes.at(0)) << 8) + (quint8)readBytes.at(1);
 
@@ -336,10 +353,11 @@ qint32 BinTreeNodeReader::readInt16()
 
 qint32 BinTreeNodeReader::readInt24()
 {
-    bool ready = true;
-    char buffer[4];
+    // bool ready = true;
+    char buffer[3];
 
-    if (socket->bytesAvailable() < 1)
+    /*
+    if (socket->bytesAvailable() < 3)
         ready = socket->waitForReadyRead(READ_TIMEOUT);
 
     if (!ready)
@@ -349,6 +367,12 @@ qint32 BinTreeNodeReader::readInt24()
     int bytesRead = socket->read(buffer,3);
 
     QByteArray readBytes(buffer,bytesRead);
+
+    */
+
+    QByteArray readBytes(buffer,3);
+
+    fillArray(readBytes,3);
 
     qint32 result = ((((quint8)readBytes.at(0)) << 16) + ((quint8)readBytes.at(1) << 8) +
                      ((quint8)readBytes.at(2)));

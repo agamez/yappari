@@ -27,6 +27,7 @@
  */
 
 #include <QAbstractTextDocumentLayout>
+#include <QMaemo5InformationBox>
 #include <QCryptographicHash>
 #include <QListWidgetItem>
 #include <QTextBrowser>
@@ -66,10 +67,12 @@
 #define TEXTEDIT_HEIGHT     70
 #define MAX_FILE_SIZE       12582912
 
-ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
+ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ChatWindow)
 {
+    this->contact = contact;
+
     ui->setupUi(this);
     ui->scrollArea->init();
 
@@ -84,12 +87,12 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
 
     ui->centralwidget->installEventFilter(this);
 
-    if (contact.type == Contact::TypeContact)
-        available(contact.isOnline,contact.lastSeen);
+    if (contact->type == Contact::TypeContact)
+        available(contact->isOnline,contact->lastSeen);
 
     isPeerComposing = false;
     isMyselfComposing = false;
-    setWindowTitle(contact.name);
+    // setWindowTitle(Utilities::removeEmoji(contact.name));
 
     setAttribute(Qt::WA_QuitOnClose,false);
 
@@ -106,12 +109,12 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
                          XA_STRING,
                          8,
                          PropModeReplace,
-                         (unsigned char *)contact.jid.toUtf8().constData(),
-                         contact.jid.toUtf8().length()
+                         (unsigned char *)contact->jid.toUtf8().constData(),
+                         contact->jid.toUtf8().length()
                          );
     }
 
-    logger.init(contact.jid);
+    logger.init(contact->jid);
 
     connect(this,SIGNAL(logMessage(FMessage)),
             &logger,SLOT(logMessage(FMessage)));
@@ -154,7 +157,7 @@ ChatWindow::ChatWindow(Contact contact, QWidget *parent) :
     connect(ui->textEdit,SIGNAL(returnPressed()),
             this,SLOT(sendButtonClicked()));
 
-    Utilities::logData("Created chat window for " + contact.jid + " ID: " +
+    Utilities::logData("Created chat window for " + contact->jid + " ID: " +
                        QString::number(this->winId()));
 }
 
@@ -188,7 +191,7 @@ void ChatWindow::sendButtonClicked()
 
     if (!text.isEmpty())
     {
-        FMessage message(contact.jid,true);
+        FMessage message(contact->jid,true);
         message.type = FMessage::BodyMessage;
         message.setData(text);
 
@@ -210,15 +213,15 @@ void ChatWindow::showMessageInUI(FMessage& message)
     ui->scrollArea->insertMessageAtBottom(message);
 }
 
-void ChatWindow::setContact(Contact& contact)
+void ChatWindow::setContact(Contact *contact)
 {
     this->contact = contact;
-    setWindowTitle(contact.name);
+    setWindowTitle(Utilities::removeEmoji(contact->name));
 }
 
 const Contact& ChatWindow::getContact() const
 {
-    return this->contact;
+    return *(this->contact);
 }
 
 void ChatWindow::messageStatusUpdate(FMessage& message)
@@ -231,8 +234,8 @@ void ChatWindow::available(bool online, qint64 lastSeen)
 {
     QString text;
 
-    contact.isOnline = online;
-    contact.lastSeen = lastSeen;
+    contact->isOnline = online;
+    contact->lastSeen = lastSeen;
 
     if (!online)
     {
@@ -245,8 +248,6 @@ void ChatWindow::available(bool online, qint64 lastSeen)
         text = "Online";
 
     setOnlineText(text);
-
-    emit lastSeenUpdated();
 }
 
 void ChatWindow::setOnlineText(QString text)
@@ -256,11 +257,11 @@ void ChatWindow::setOnlineText(QString text)
 
 void ChatWindow::myselfComposing()
 {
-    if (contact.type == Contact::TypeContact)
+    if (contact->type == Contact::TypeContact)
     {
         isMyselfComposing = true;
 
-        FMessage message(contact.jid,true);
+        FMessage message(contact->jid,true);
         message.type = FMessage::ComposingMessage;
 
         emit sendMessage(message);
@@ -269,11 +270,11 @@ void ChatWindow::myselfComposing()
 
 void ChatWindow::myselfPaused()
 {
-    if (contact.type == Contact::TypeContact)
+    if (contact->type == Contact::TypeContact)
     {
         isMyselfComposing = false;
 
-        FMessage message(contact.jid,true);
+        FMessage message(contact->jid,true);
         message.type = FMessage::PausedMessage;
 
         emit sendMessage(message);
@@ -284,13 +285,13 @@ void ChatWindow::myselfPaused()
 void ChatWindow::composing()
 {
     isPeerComposing = true;
-    ui->typingStatusLabel->setText(contact.name + " is typing...");
+    ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + " is typing...");
 }
 
 void ChatWindow::paused()
 {
     if (isPeerComposing)
-        ui->typingStatusLabel->setText(contact.name + " stopped typing.");
+        ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + " stopped typing.");
 }
 
 bool ChatWindow::eventFilter(QObject *obj, QEvent *event)
@@ -352,10 +353,8 @@ void ChatWindow::sendMultimediaMessage()
 
             if (file.size() > MAX_FILE_SIZE)
             {
-                QMessageBox msg(this);
-
-                msg.setText("You can't send files bigger than 12 MB");
-                msg.exec();
+                QMaemo5InformationBox::information(this,"You can't send files bigger than 12 MB",
+                                                   QMaemo5InformationBox::NoTimeout);
             }
             else
             {
@@ -376,7 +375,7 @@ void ChatWindow::sendMultimediaMessage()
                     msg.status = FMessage::Unsent;
                     msg.type = FMessage::RequestMediaMessage;
                     msg.media_size = file.size();
-                    msg.remote_resource = contact.jid;
+                    msg.remote_resource = contact->jid;
                     msg.media_wa_type = waType;
                     msg.media_name = fileName;
 
@@ -433,7 +432,7 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
             this,SLOT(increaseUploadCounter(qint64)));
     */
 
-    mediaUpload->sendMedia(contact.jid,msg);
+    mediaUpload->sendMedia(contact->jid,msg);
 
 }
 
@@ -491,10 +490,8 @@ void ChatWindow::sslErrorHandler(MediaUpload *mediaUpload)
 
     Utilities::logData("SSL error while trying to upload a picture. Maybe bad time & date settings on the phone?");
 
-    QMessageBox msg(this);
-
-    msg.setText("There has been an SSL error while trying to upload a multimedia message.\nPlease check your phone has the correct date & time settings.");
-    msg.exec();
+    QMaemo5InformationBox::information(this,"There has been an SSL error while trying to upload a multimedia message.\nPlease check your phone has the correct date & time settings.",
+                                       QMaemo5InformationBox::NoTimeout);
 }
 
 void ChatWindow::httpErrorHandler(MediaUpload *mediaUpload)
@@ -504,10 +501,8 @@ void ChatWindow::httpErrorHandler(MediaUpload *mediaUpload)
 
     Utilities::logData("HTTP error while trying to upload a picture.");
 
-    QMessageBox msg(this);
-
-    msg.setText("There has been an HTTP error while trying to upload a multimedia message.\nPlease check your log for more details.");
-    msg.exec();
+    QMaemo5InformationBox::information(this,"There has been an HTTP error while trying to upload a multimedia message.\nPlease check your log for more details.",
+                                       QMaemo5InformationBox::NoTimeout);
 }
 
 void ChatWindow::mediaDownloadRequested(FMessage msg)
@@ -577,10 +572,8 @@ void ChatWindow::mediaDownloadError(MediaDownload *mediaDownload, FMessage msg, 
     Utilities::logData("There has been an error while trying to download media. Maybe the file is not available in the servers anymore.  Error = " +
                        QString::number(errorCode));
 
-    QMessageBox message(this);
-
-    message.setText("There has been an error while trying to download media.\nMaybe the file is not available in the servers anymore.");
-    message.exec();
+    QMaemo5InformationBox::information(this,"There has been an error while trying to download media.\nMaybe the file is not available in the servers anymore.",
+                                       QMaemo5InformationBox::NoTimeout);
 
     ui->scrollArea->resetButton(msg);
 }
@@ -621,7 +614,7 @@ void ChatWindow::mute()
             //emit changeSubject(contact.jid,newSubject);
 
             ui->actionMute->setText("Unmute");
-            emit mute(contact.jid,muted,muteExpireTimestamp);
+            emit mute(contact->jid,muted,muteExpireTimestamp);
         }
     }
     else
@@ -633,7 +626,7 @@ void ChatWindow::unmute()
     muted = false;
     muteExpireTimestamp = 0;
     ui->actionMute->setText("Mute");
-    emit mute(contact.jid,muted,muteExpireTimestamp);
+    emit mute(contact->jid,muted,muteExpireTimestamp);
 }
 
 FMessage ChatWindow::lastMessage()
@@ -643,7 +636,7 @@ FMessage ChatWindow::lastMessage()
 
 void ChatWindow::updateTimestamps()
 {
-    Utilities::logData("ChatWindow " + contact.jid + " updateTimeStamps()");
+    Utilities::logData("ChatWindow " + contact->jid + " updateTimeStamps()");
     ui->scrollArea->requestUpdateTimestamps();
 }
 
@@ -664,21 +657,12 @@ void ChatWindow::requestPhotoRefresh(QString jid, QString photoId, bool largeFor
 
 void ChatWindow::viewContact()
 {
-    ContactInfoWindow *window = new ContactInfoWindow(&contact,this);
+    ContactInfoWindow *window = new ContactInfoWindow(contact,this);
 
     connect(window,SIGNAL(photoRefresh(QString,QString,bool)),
             this,SLOT(requestPhotoRefresh(QString,QString,bool)));
 
-    connect(this,SIGNAL(photoReceived(QImage,QString)),
-            window,SLOT(photoReceived(QImage,QString)));
-
-    connect(this,SIGNAL(lastSeenUpdated()),
-            window,SLOT(setContactName()));
-
-    connect(this,SIGNAL(userStatusChanged()),
-            window,SLOT(setContactStatus()));
-
-    emit requestStatus(contact.jid);
+    emit requestStatus(contact->jid);
 
     window->setAttribute(Qt::WA_Maemo5StackedWindow);
     window->setAttribute(Qt::WA_DeleteOnClose);
@@ -693,6 +677,6 @@ void ChatWindow::photoReceivedHandler(QImage photo, QString photoId)
 
 void ChatWindow::statusChanged(QString status)
 {
-    contact.status = status;
+    contact->status = status;
     emit userStatusChanged();
 }

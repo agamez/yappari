@@ -45,7 +45,8 @@
 #include "globalconstants.h"
 #include "client.h"
 
-SelectContactDialog::SelectContactDialog(ContactRoster *roster,QWidget *parent) :
+SelectContactDialog::SelectContactDialog(ContactRoster *roster, QWidget *parent,
+                                         bool contextMenuEnabled) :
     QDialog(parent),
     ui(new Ui::SelectContactDialog)
 {
@@ -57,7 +58,7 @@ SelectContactDialog::SelectContactDialog(ContactRoster *roster,QWidget *parent) 
     ui->searchLabel->setFont(font);
     */
 
-    this->mw = (MainWindow *)parent;
+    this->mw = (contextMenuEnabled) ? (MainWindow *)parent : 0;
 
     this->roster = roster;
     model = new ContactSelectionModel(ui->listView);
@@ -75,7 +76,7 @@ SelectContactDialog::SelectContactDialog(ContactRoster *roster,QWidget *parent) 
     ContactList contactList = roster->getContactList();
     foreach(Contact *contact, contactList)
     {
-        if (contact->type == Contact::TypeContact)
+        if (contact->type == Contact::TypeContact && contact->jid != Client::myJid)
             model->appendRow(new ContactDisplayItem(contact));
     }
 
@@ -121,7 +122,7 @@ void SelectContactDialog::accept()
 
 bool SelectContactDialog::eventFilter(QObject *obj, QEvent *event)
 {
-    if (event->type() == QEvent::ContextMenu) {
+    if (event->type() == QEvent::ContextMenu && mw != 0) {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*> (event);
         sendRightButtonClicked(mouseEvent->globalPos());
         return true;

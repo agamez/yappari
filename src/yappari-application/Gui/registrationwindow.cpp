@@ -26,14 +26,18 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#include <QMaemo5InformationBox>
 #include <QMessageBox>
 
 #include "registrationwindow.h"
 
 #include "Whatsapp/util/utilities.h"
 
+#include "Gui/accountinfowindow.h"
 #include "Gui/phonenumberwidget.h"
 #include "Gui/voiceregistrationwidget.h"
+
+#include "client.h"
 
 RegistrationWindow::RegistrationWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -75,6 +79,9 @@ void RegistrationWindow::phoneNumberEntered(QString cc, QString number)
 
     connect(reg,SIGNAL(finished(PhoneRegReply*)),
             this,SLOT(registrationFinished(PhoneRegReply *)));
+
+    connect(reg,SIGNAL(expired(QVariantMap)),
+            this,SLOT(expired(QVariantMap)));
 
 
     // Show progress dialog
@@ -137,4 +144,29 @@ void RegistrationWindow::requestCall()
     msg.exec();
 
     reg->startVoiceRequest();
+}
+
+void RegistrationWindow::expired(QVariantMap result)
+{
+    registrationTimeoutTimer.stop();
+
+    QMaemo5InformationBox::information(this,
+                                       "Your account has expired.\n\n"\
+                                       "You have to pay to WhatsApp Inc. to renew your account",
+                                       QMaemo5InformationBox::NoTimeout);
+
+    // Refresh some values
+
+    Client::phoneNumber = result["login"].toString();
+    Client::accountstatus = result["status"].toString();
+    Client::kind = result["kind"].toString();
+    Client::expiration = result["expiration"].toString();
+
+    AccountInfoWindow *window = new AccountInfoWindow(this);
+    window->setAttribute(Qt::WA_Maemo5StackedWindow);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->setWindowFlags(window->windowFlags() | Qt::Window);
+    window->show();
+
+    connect(window,SIGNAL(destroyed()),this,SLOT(close()));
 }

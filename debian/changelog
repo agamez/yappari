@@ -1,3 +1,28 @@
+yappari (0.0.34) unstable; urgency=low
+
+  * Fixed bug in Connection::fillArray where the read() process was timing out
+    at one second.  Timeout was increased to 30 seconds.
+  * readInt24() and readInt16() now use fillArray().
+  * Fixed bug in paste where links are being processed when they shouldn't.
+  * Added an emojiMapping hash table for lookups to display non-emoji Unicode 
+    characters properly.
+  * Removed emoji from notifications and windows titles since they can't be 
+    rendered properly there.
+  * Fixed bug where copy function in ChatTextEdit results in copying the whole
+    text and not just the selection.
+  * Implemented presence subscription/unsubscription.
+  * Implemented a workaround to a Qt bug where the message of the QStatusBar 
+    was disappearing after a context menu selection.
+  * Fixed bug where Connection methods were being called on an invalid object
+    causing crashes.
+  * Implemented group creation.
+  * Implemented group info window, with adding/removing participants capabilites
+    (only if the group was created by the user).
+  * Text follows QMaemo5Style now.
+  * SIM change detection implemented.
+
+ -- Scorpius <naikel@gmail.com>  Mon, 20 May 2013 10:28:44 -0430
+
 yappari (0.0.33) unstable; urgency=low
 
   * Fixed handling of the fact that the signal readyRead() is not emitted if

@@ -136,7 +136,8 @@ signals:
     void connectionClosed();
     void messageReceived(FMessage message);
     void messageStatusUpdate(FMessage message);
-    void groupInfoFromList(QString from, QString author, QString newSubject, QString creation,
+    void groupInfoFromList(QString id, QString from, QString author,
+                           QString newSubject, QString creation,
                            QString subjectOwner, QString subjectTimestamp);
     void groupNewSubject(QString from, QString author, QString authorName,
                          QString newSubject, QString creation);
@@ -153,6 +154,9 @@ signals:
     void photoDeleted(QString jid);
     void photoReceived(QString from, QByteArray data,
                        QString photoId, bool largeFormat);
+    void addParticipant(QString gjid, QString jid);
+    void groupParticipant(QString gjid, QString jid);
+    void groupError(QString gjid);
 
 
 public slots:
@@ -164,7 +168,15 @@ public slots:
     void sendGetPhotoIds(QStringList jids);
     void sendGetPhoto(QString jid, QString expectedPhotoId, bool largeFormat);
     void sendGetStatus(QString jid);
-    void sendSetPhoto(QByteArray imageBytes, QByteArray thumbBytes);
+    void sendSetPhoto(QString jid, QByteArray imageBytes, QByteArray thumbBytes);
+    void sendPresenceSubscriptionRequest(QString jid);
+    void sendUnsubscribeHim(QString jid);
+    void sendCreateGroupChat(QString subject, QString id);
+    void sendAddParticipants(QString gjid, QStringList participants);
+    void sendRemoveParticipants(QString gjid, QStringList participants);
+    void sendVerbParticipants(QString gjid, QStringList participants,
+                              QString id, QString innerTag);
+    void sendGetParticipants(QString gjid);
 
 };
 

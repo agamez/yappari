@@ -83,7 +83,6 @@ private:
     void insertMessage(FMessage message, bool loadingMessages);
     void insertBodyMessage(FMessage message,bool loadingMessages);
     void insertMediaMessage(FMessage message,bool loadingMessages);
-    QString createHTML(FMessage message);
     QString processMessage(QString data);
 
 protected:

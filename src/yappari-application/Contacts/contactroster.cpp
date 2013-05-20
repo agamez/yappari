@@ -52,6 +52,10 @@ ContactRoster::ContactRoster(QObject *parent) : QObject(parent)
     connect(this,SIGNAL(updatePhotoContact(Contact *)),&rosterDb,SLOT(updatePhoto(Contact *)));
     connect(this,SIGNAL(updateStatusContact(Contact *)),&rosterDb,SLOT(updateStatus(Contact *)));
     connect(this,SIGNAL(removeContact(QString)),&rosterDb,SLOT(removeContact(QString)));
+    connect(this,SIGNAL(removeGroup(QString)),&rosterDb,SLOT(removeGroup(QString)));
+    connect(this,SIGNAL(addParticipant(Group*,Contact*)),&rosterDb,SLOT(addParticipant(Group*,Contact*)));
+    connect(this,SIGNAL(removeParticipant(Group*,Contact*)),&rosterDb,SLOT(removeParticipant(Group*,Contact*)));
+    connect(this,SIGNAL(updateSubjectGroup(Group*)),&rosterDb,SLOT(updateSubjectGroup(Group*)));
 
     ContactList *list = rosterDb.getAllContacts();
 
@@ -96,7 +100,7 @@ Contact* ContactRoster::createContact(QString jid)
     c->phone = "+" + jid.left(jid.indexOf("@"));
     c->jid = jid;
     c->type = Contact::TypeContact;
-    c->photoId = QString();
+    c->photoId = c->name = c->alias = QString();
     roster.insert(jid,c);
     emit updateContact(c);
     return c;
@@ -116,13 +120,6 @@ Group& ContactRoster::getGroup(QString gjid)
     }
 
     return *c;
-}
-
-Group& ContactRoster::getGroup(QString from, QString author, QString newSubject,
-                               QString creation)
-{
-    return getGroup(from,author,newSubject,creation,
-                    from,creation);
 }
 
 Group& ContactRoster::getGroup(QString from, QString author, QString newSubject,
@@ -202,8 +199,28 @@ int ContactRoster::size()
 
 void ContactRoster::deleteContact(QString jid)
 {
-    roster.remove(jid);
-    emit removeContact(jid);
+    if (roster.contains(jid))
+    {
+        Contact *c = roster.value(jid);
+
+        roster.remove(jid);
+        emit removeContact(jid);
+
+        delete c;
+    }
+}
+
+void ContactRoster::deleteGroup(QString gjid)
+{
+    if (roster.contains(gjid))
+    {
+        Group *g = (Group *) roster.value(gjid);
+
+        roster.remove(gjid);
+        emit removeGroup(gjid);
+
+        delete g;
+    }
 }
 
 void ContactRoster::updateAlias(Contact *c)
@@ -311,3 +328,27 @@ void ContactRoster::updateStatus(Contact *contact)
 {
     emit updateStatusContact(contact);
 }
+
+void ContactRoster::addGroupParticipant(Group *group, QString jid)
+{
+    if (group->addParticipant(jid))
+    {
+        Contact &c = getContact(jid);
+        emit addParticipant(group,&c);
+    }
+}
+
+void ContactRoster::updateSubject(Group *group)
+{
+    emit updateSubjectGroup(group);
+}
+
+void ContactRoster::removeGroupParticipant(Group *group, QString jid)
+{
+    if (group->removeParticipant(jid))
+    {
+        Contact &c = getContact(jid);
+        emit removeParticipant(group,&c);
+    }
+}
+

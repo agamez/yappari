@@ -46,8 +46,8 @@ IOException::IOException(QAbstractSocket::SocketError e)
             break;
 
         case QAbstractSocket::SocketTimeoutError:
-            // error = "Connection timed out.";
-            error = "Connection error.";
+            error = "Connection timed out.";
+            // error = "Connection error.";
             break;
 
         case QAbstractSocket::NetworkError:

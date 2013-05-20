@@ -74,6 +74,7 @@ QString Client::password;
 QString Client::userName;
 QString Client::number;
 QString Client::imei;
+QString Client::imsi;
 
 QString Client::creation;
 QString Client::expiration;
@@ -99,12 +100,16 @@ bool Client::android;
 
 bool Client::isSynchronizing;
 
+MainWindow *Client::mainWin;
+
+ContactRoster *Client::roster;
+
 Client::Client(bool minimized, QObject *parent) : QObject(parent)
 {
     // Debug info start
     QString version = FULL_VERSION;
     Utilities::logData("Yappari " + version);
-    Utilities::logData("Yappari console test client start");
+    Utilities::logData("Yappari console debug start");
 
     // Read Settings
     readSettings();
@@ -119,6 +124,10 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     char **argv;
     osso_abook_init(&argc,&argv,osso_context);
     roster = new ContactRoster(this);
+
+    // Create our own contact if it doesn't exist
+    // or if it's invalid
+    createMyJidContact();
 
     bool showWhatsNew = false;
 
@@ -156,14 +165,33 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(mainWin,SIGNAL(queryLastOnline(QString)),
             this,SLOT(requestQueryLastOnline(QString)));
 
+    connect(mainWin,SIGNAL(subscribe(QString)),
+            this,SLOT(requestPresenceSubscription(QString)));
+
+    connect(mainWin,SIGNAL(unsubscribe(QString)),
+            this,SLOT(requestPresenceUnsubscription(QString)));
+
     connect(mainWin,SIGNAL(photoRequest(QString,QString,bool)),
             this,SLOT(photoRefresh(QString,QString,bool)));
 
     connect(mainWin,SIGNAL(requestStatus(QString)),
             this,SLOT(requestContactStatus(QString)));
 
-    connect(mainWin,SIGNAL(setPhoto(QImage)),
-            this,SLOT(setPhoto(QImage)));
+    connect(mainWin,SIGNAL(setPhoto(QString,QImage)),
+            this,SLOT(setPhoto(QString,QImage)));
+
+    connect(mainWin,SIGNAL(createGroupChat(QImage,QString,QStringList)),
+            this,SLOT(createGroupChat(QImage,QString,QStringList)));
+
+    connect(mainWin,SIGNAL(getParticipants(QString)),
+            this,SLOT(getParticipants(QString)));
+
+    connect(mainWin, SIGNAL(addGroupParticipant(QString,QString)),
+            this,SLOT(sendAddGroupParticipant(QString,QString)));
+
+    connect(mainWin, SIGNAL(removeGroupParticipant(QString,QString)),
+            this,SLOT(sendRemoveGroupParticipant(QString,QString)));
+
 
     if (!minimized)
         mainWin->show();
@@ -308,6 +336,7 @@ void Client::readSettings()
     this->myJid = phoneNumber + "@s.whatsapp.net";
     this->userName = settings->value(SETTINGS_USERNAME).toString();
     this->imei = settings->value(SETTINGS_IMEI).toString();
+    this->imsi = settings->value(SETTINGS_IMSI).toString();
 
     this->creation = settings->value(SETTINGS_CREATION).toString();
     this->kind = settings->value(SETTINGS_KIND).toString();
@@ -501,7 +530,36 @@ void Client::registrationSuccessful(QVariantMap result)
 
 void Client::verifyAndConnect()
 {
-    // ToDo: SIM Changed? verify IMSI and force re-registration
+    QSystemDeviceInfo deviceInfo(this);
+#ifdef Q_WS_SCRATCHBOX
+    QString imsi = "000000000000000";
+#else
+    QString imsi = deviceInfo.imsi();
+#endif
+
+    if (!imsi.isEmpty())
+    {
+        if (!this->imsi.isEmpty() && this->imsi != imsi)
+        {
+            // SIM Card changed
+            QMessageBox msg(mainWin);
+
+            msg.setText("A new SIM Card was detected.\n"
+                        "Do you want to register the new number?");
+            msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+
+            if (msg.exec() == QMessageBox::Yes)
+            {
+                isRegistered = false;
+            }
+        }
+
+        if (this->imsi != imsi)
+        {
+            this->imsi = imsi;
+            settings->setValue(SETTINGS_IMSI,imsi);
+        }
+    }
 
     // Verify if the user is registered
     if (!isRegistered)
@@ -632,12 +690,12 @@ void Client::connected()
     connect(socket,SIGNAL(readyRead()),this,SLOT(read()));
 
     connect(connection,SIGNAL(groupNewSubject(QString,QString,QString,QString,QString)),
-            mainWin,SLOT(groupNewSubject(QString,QString,QString,QString,QString)));
+            this,SLOT(groupNewSubject(QString,QString,QString,QString,QString)));
 
-    connect(connection,SIGNAL(groupInfoFromList(QString,QString,QString,
+    connect(connection,SIGNAL(groupInfoFromList(QString,QString,QString,QString,
                                                 QString,QString,QString)),
-            mainWin,SLOT(groupInfoFromList(QString,QString,QString,
-                                           QString,QString,QString)));
+            this,SLOT(groupInfoFromList(QString,QString,QString,QString,
+                                        QString,QString,QString)));
 
     connect(connection,SIGNAL(messageReceived(FMessage)),
             mainWin,SLOT(messageReceived(FMessage)));
@@ -674,6 +732,22 @@ void Client::connected()
 
     connect(connection,SIGNAL(photoDeleted(QString)),
             this,SLOT(photoDeleted(QString)));
+
+    connect(connection,SIGNAL(addParticipant(QString,QString)),
+            this,SLOT(addParticipant(QString,QString)));
+
+    connect(connection,SIGNAL(groupParticipant(QString,QString)),
+            this,SLOT(groupParticipant(QString,QString)));
+
+    connect(connection,SIGNAL(groupAddUser(QString,QString)),
+            this,SLOT(groupAddUser(QString,QString)));
+
+    connect(connection,SIGNAL(groupRemoveUser(QString,QString)),
+            this,SLOT(groupRemoveUser(QString,QString)));
+
+    connect(connection,SIGNAL(groupError(QString)),
+            mainWin,SLOT(groupError(QString)));
+
 
     // Update participating groups
     connection->updateGroupChats();
@@ -927,7 +1001,13 @@ void Client::sendMessagesInQueue()
 void Client::sendSetGroupSubject(QString gjid, QString subject)
 {
     if (connectionStatus == LoggedIn)
+    {
+        Group &g = roster->getGroup(gjid);
+        roster->updateSubject(&g);
+
         connection->sendSetGroupSubject(gjid,subject);
+    }
+
 }
 
 void Client::requestLeaveGroup(QString gjid)
@@ -1024,8 +1104,14 @@ void Client::userStatusUpdated(FMessage message)
 {
     QString status = QString::fromUtf8(message.data.constData());
 
+
     if (message.key.remote_jid == "s.us")
     {
+        Contact &c = roster->getContact(myJid);
+        c.status = status;
+        roster->updateStatus(&c);
+
+        // Keep legacy status
         Utilities::logData("User status confirmed: " + status);
         settings->setValue(SETTINGS_STATUS,status);
         this->myStatus = status;
@@ -1053,7 +1139,9 @@ void Client::photoIdReceived(QString jid, QString photoId)
     if (c.photoId != photoId)
     {
         Utilities::logData("Contact " + jid + " has changed his profile photo");
-        connection->sendGetPhoto(jid, QString(), false);
+
+        if (connectionStatus == LoggedIn)
+            connection->sendGetPhoto(jid, QString(), false);
     }
 
 }
@@ -1063,29 +1151,38 @@ void Client::photoReceived(QString from, QByteArray data,
 {
     Contact &c = roster->getContact(from);
 
-    if (!largeFormat)
+    if (from == myJid)
     {
-        c.photo = QImage::fromData(data).scaled(64, 64, Qt::KeepAspectRatio,
-                                               Qt::SmoothTransformation);
         c.photoId = photoId;
-
         roster->updatePhoto(&c);
-
-        mainWin->updatePhoto(c);
-
-        Utilities::logData("Updated picture of " + from + " Size " +
-                           QString::number(c.photo.width()) + "x" +
-                           QString::number(c.photo.width()));
     }
-    else
+    else if (!data.isEmpty())
     {
-        mainWin->photoReceived(c, QImage::fromData(data), photoId);
+        if (!largeFormat)
+        {
+            c.photo = QImage::fromData(data).scaled(64, 64, Qt::KeepAspectRatio,
+                                                   Qt::SmoothTransformation);
+            c.photoId = photoId;
+
+            roster->updatePhoto(&c);
+
+            mainWin->updatePhoto(c);
+
+            Utilities::logData("Updated picture of " + from + " Size " +
+                               QString::number(c.photo.width()) + "x" +
+                               QString::number(c.photo.width()));
+        }
+        else
+        {
+            mainWin->photoReceived(c, QImage::fromData(data), photoId);
+        }
     }
 }
 
 void Client::photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat)
 {
-    connection->sendGetPhoto(jid, expectedPhotoId, largeFormat);
+    if (connectionStatus == LoggedIn)
+        connection->sendGetPhoto(jid, expectedPhotoId, largeFormat);
 }
 
 void Client::photoDeleted(QString jid)
@@ -1094,7 +1191,7 @@ void Client::photoDeleted(QString jid)
 
     if (c.photoId != "abook")
     {
-        if (c.type == Contact::TypeContact)
+        if (c.type == Contact::TypeContact && jid != myJid)
             roster->getPhotoFromAddressBook(&c);
         else
         {
@@ -1104,16 +1201,18 @@ void Client::photoDeleted(QString jid)
 
         roster->updatePhoto(&c);
 
-        mainWin->updatePhoto(c);
+        if (jid != myJid)
+            mainWin->updatePhoto(c);
     }
 }
 
 void Client::requestContactStatus(QString jid)
 {
-    connection->sendGetStatus(jid);
+    if (connectionStatus == LoggedIn)
+        connection->sendGetStatus(jid);
 }
 
-void Client::setPhoto(QImage image)
+void Client::setPhoto(QString jid, QImage image)
 {
     QByteArray data;
     QByteArray thumbnail;
@@ -1143,5 +1242,184 @@ void Client::setPhoto(QImage image)
         } while ((quality > 10) && thumbnail.size() > MAX_SIZE);
     }
 
-    connection->sendSetPhoto(data,thumbnail);
+    if (connectionStatus == LoggedIn)
+        connection->sendSetPhoto(jid, data, thumbnail);
 }
+
+void Client::requestPresenceSubscription(QString jid)
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendPresenceSubscriptionRequest(jid);
+}
+
+void Client::requestPresenceUnsubscription(QString jid)
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendUnsubscribeHim(jid);
+}
+
+void Client::createGroupChat(QImage photo, QString subject, QStringList participants)
+{
+    qint64 creation = QDateTime::currentMSecsSinceEpoch() / 1000;
+
+    QString id = "create_group_" + QString::number(seq++);
+
+    Group *group = new Group();
+
+    group->subjectOwner = group->author = myJid;
+    group->creationTimestamp = group->subjectTimestamp = creation;
+    group->name = subject;
+    group->photo = photo;
+
+    group->participants = participants;
+
+    groups.insert(id,group);
+
+    if (connectionStatus == LoggedIn)
+        connection->sendCreateGroupChat(subject,id);
+}
+
+void Client::groupInfoFromList(QString id, QString from, QString author,
+                               QString newSubject, QString creation,
+                               QString subjectOwner, QString subjectTimestamp)
+{
+    Group *g;
+
+    if (groups.contains(id))
+    {
+        Group *group = groups.value(id);
+
+        QString creationStr = QString::number(group->creationTimestamp);
+
+        g = &(roster->getGroup(from, group->author, group->name,
+                              creationStr, group->subjectOwner, creationStr));
+
+        if (connectionStatus == LoggedIn)
+        {
+            connection->sendAddParticipants(from, group->participants);
+            if (!group->photo.isNull())
+                setPhoto(from,group->photo);
+        }
+
+        groups.remove(id);
+        delete group;
+    }
+    else
+        g = &(roster->getGroup(from, author, newSubject,
+                               creation, subjectOwner, subjectTimestamp));
+
+    mainWin->updateGroup(*g, false);
+}
+
+void Client::groupNewSubject(QString from, QString author, QString authorName, QString newSubject, QString creation)
+{
+    Group &group = roster->getGroup(from);
+
+    group.name = newSubject;
+    group.subjectOwner = author;
+    group.subjectOwnerName = authorName;
+    group.subjectTimestamp = creation.toLongLong();
+
+    roster->updateSubject(&group);
+
+    mainWin->updateGroup(group, true);
+
+    if (group.author.isEmpty())
+        connection->updateGroupChats();
+}
+
+void Client::addParticipant(QString gjid, QString jid)
+{
+    Group &group = roster->getGroup(gjid);
+
+    roster->addGroupParticipant(&group,jid);
+    mainWin->groupParticipant(gjid, jid);
+}
+
+void Client::getParticipants(QString gjid)
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendGetParticipants(gjid);
+}
+
+void Client::groupParticipant(QString gjid, QString jid)
+{
+    Group &group = roster->getGroup(gjid);
+
+    if (!group.containsParticipant(jid))
+    {
+        roster->addGroupParticipant(&group,jid);
+        mainWin->groupParticipant(gjid, jid);
+    }
+}
+
+void Client::createMyJidContact()
+{
+    Contact &contact = roster->getContact(myJid);
+
+    if (contact.name != "You")
+    {
+        contact.name = "You";
+        contact.alias = userName;
+        contact.status = myStatus;
+
+        QDir home = QDir::home();
+        QString fileName = home.path() + CACHE_DIR"/profilephoto.png";
+
+        if (home.exists(fileName))
+        {
+            QImage image(fileName);
+            contact.photo = image.scaled(QSize(64,64), Qt::KeepAspectRatio,
+                                         Qt::SmoothTransformation);
+
+            // This will force a refresh in the next synchronization
+            contact.photoId = "invalid";
+            roster->updatePhoto(&contact);
+        }
+
+        roster->updateContact(&contact);
+    }
+}
+
+void Client::sendAddGroupParticipant(QString gjid, QString jid)
+{
+    if (connectionStatus == LoggedIn)
+    {
+        QStringList participants;
+        participants.append(jid);
+        connection->sendAddParticipants(gjid, participants);
+    }
+}
+
+void Client::groupAddUser(QString gjid, QString jid)
+{
+    Group &group = roster->getGroup(gjid);
+
+    if (!group.containsParticipant(jid))
+    {
+        roster->addGroupParticipant(&group,jid);
+        mainWin->groupParticipant(gjid, jid);
+    }
+}
+
+void Client::groupRemoveUser(QString gjid, QString jid)
+{
+    Group &group = roster->getGroup(gjid);
+
+    if (group.containsParticipant(jid))
+    {
+        roster->removeGroupParticipant(&group,jid);
+        mainWin->removeParticipant(gjid, jid);
+    }
+}
+
+void Client::sendRemoveGroupParticipant(QString gjid, QString jid)
+{
+    if (connectionStatus == LoggedIn)
+    {
+        QStringList participants;
+        participants.append(jid);
+        connection->sendRemoveParticipants(gjid, participants);
+    }
+}
+

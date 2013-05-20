@@ -26,35 +26,69 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
-#ifndef GROUPWINDOW_H
-#define GROUPWINDOW_H
+#ifndef GROUPINFOWINDOW_H
+#define GROUPINFOWINDOW_H
 
+#include <QMainWindow>
+
+#include "groupparticipantitem.h"
+#include "contactselectionmodel.h"
+
+#include "Contacts/contactroster.h"
 #include "Contacts/group.h"
-#include "chatwindow.h"
 
 namespace Ui {
-    class GroupWindow;
+    class GroupInfoWindow;
 }
 
-class GroupWindow : public ChatWindow
+class GroupInfoWindow : public QMainWindow
 {
     Q_OBJECT
+
 public:
-    explicit GroupWindow(Group *group, QWidget *parent = 0);
-
-    void setGroup(Group *group, bool notify);
-
-signals:
-    void changeSubject(QString gjid,QString newSubject);
-    void requestLeaveGroup(QString gjid);
-    void getParticipants(QString gjid);
+    explicit GroupInfoWindow(Group *group, ContactRoster *roster, QWidget *parent = 0);
+    ~GroupInfoWindow();
 
 public slots:
-    void changeSubjectAction();
-    void requestLeaveGroupAction();
-    void viewGroup();
-    void groupError();
+    void groupParticipantAdded(QString gjid, QString jid);
+    void groupParticipantRemoved(QString gjid, QString jid);
+    void groupIconReceived(QString gjid, QImage photo, QString photoId);
+    void showPhoto();
+    void previewPhotoReceived(QString gjid);
+    void groupSubjectUpdated(QString gjid);
+    void leaveGroup();
+    void openChangeSubjectWindow();
+    void selectPicture();
+    void removeGroupIcon();
+    void createProfilePictureWindow();
+    void finishedPhotoSelection(QImage image);
+    void addParticipant();
 
+signals:
+    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
+    void requestLeaveGroup(QString gjid);
+
+private:
+    Ui::GroupInfoWindow *ui;
+
+    Group *group;
+    ContactRoster *roster;
+    ContactSelectionModel *model;
+    QHash<QString,GroupParticipantItem *> participants;
+    QString photoFileName;
+
+    bool photoDownloaded;
+    bool isDownloading;
+
+    void setGroupIcon();
+    void setGroupName();
+    void showParticipants();
+    void addParticipantItemToModel(QString jid);
+    void removeParticipantItemFromModel(QString jid);
+    void showPhotoInImageViewer();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
 };
 
-#endif // GROUPWINDOW_H
+#endif // GROUPINFOWINDOW_H

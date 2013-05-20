@@ -1,0 +1,14 @@
+<b>Thank you for installing Yappari!</b><br><br>
+If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
+<b>New in this version:</b><br>
+<li>&bull; <b>Full group support.</b>  You can now create groups and add/remove members of the groups you have created.</li>
+<li>&bull; Group info option implemented.  Press and hold over a group and select <i>Group Info<i>.</li>
+<li>&bull; SIM card change detection. If you change your SIM card you're asked if you want to register the new number or continue using the old number.</li>
+<li>&bull; Text now follows current Maemo theme.</li>
+<li>&bull; Fixed a bug where people with slow connections were getting a lot of connection errors.</li>
+<li>&bull; Unicode text wasn't properly shown and sometimes caused crashes. That's fixed.</li>
+<li>&bull; Fixed the bug where the Copy function was copying the whole input field and not only the selection.</li>
+<li>&bull; Removed emoji from notifications bubbles and windows titles since they can't be properly rendered there.</li>
+<li>&bull; Contact and Group info windows are dynamic: If some attribute of the contact/group changes while you're viewing it you'll see the change immediately.</li>
+<li>&bull; Fixed the disappearing status bar bug where the status bar disappeared after selecting an option in the context menu.</li>
+<li>&bull; Other minor bug fixes.</li>

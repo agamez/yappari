@@ -46,7 +46,11 @@ public:
     QString subjectOwner;
     QString subjectOwnerName;
 
-    ContactList participants;
+    QStringList participants;
+
+    bool addParticipant(QString jid);
+    bool containsParticipant(QString jid);
+    bool removeParticipant(QString jid);
 
 };
 

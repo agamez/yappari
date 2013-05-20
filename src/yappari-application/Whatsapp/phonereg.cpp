@@ -71,6 +71,10 @@ void PhoneReg::onExistRequestDone(WARequest *req, bool ok, QVariantMap result)
         Utilities::logData("User " + result["login"].toString() + " is registered.");
         emit finished(new PhoneRegReply(true,result));
     }
+    else if (status == "expired")
+    {
+        emit expired(result);
+    }
     else
     {
         Utilities::logData("User " + cc + number + " is not registered.");

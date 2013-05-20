@@ -45,7 +45,7 @@ public:
 
 signals:
     void changeUserName(QString newUserName);
-    void photoSelected(QImage photo);
+    void photoSelected(QString jid, QImage photo);
 
 private:
     Ui::ProfileWindow *ui;

@@ -26,6 +26,8 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#include <QMaemo5InformationBox>
+#include <QMaemo5Style>
 #include <QApplication>
 #include <QClipboard>
 #include <QMouseEvent>
@@ -174,9 +176,6 @@ void ChatArea::updateStatus(FMessage message)
     {
         if (message.type == FMessage::BodyMessage)
         {
-            // QLabel *label = (QLabel *)widgets.value(message.key);
-            // label->setText(createHTML(message));
-
             ChatTextItem *label = (ChatTextItem *)widgets.value(message.key);
             label->setMessage(message);
         }
@@ -225,75 +224,6 @@ void ChatArea::resetButton(FMessage message)
         label->resetButton();
     }
 }
-
-
-QString ChatArea::createHTML(FMessage message)
-{
-    bool from_me = message.key.from_me;
-
-    QString day;
-
-
-    if (!DateTimeUtilities::isSameDate(message.timestamp,
-                                       QDateTime::currentMSecsSinceEpoch()))
-        day = DateTimeUtilities::shortDayFormat(message.timestamp);
-
-
-    QString time = DateTimeUtilities::shortTimeFormat(message.timestamp);
-
-    QString from = (from_me)
-            ? "You"
-            : message.notify_name.replace("<","&lt;").replace(">","&gt;");
-
-    QString nickcolor = Client::nickcolor.isEmpty() ? "cyan" : Client::nickcolor;
-    QString textcolor = Client::textcolor.isEmpty() ?
-                QString() :
-                "table { color: " + Client::textcolor + " } ";
-    QString mycolor = Client::mycolor.isEmpty() ? "#333333" : Client::mycolor;
-
-    QString html = "<style type=\"text/css\">"
-                   "table { border-style:solid; border-width:1px; border-color:"
-                   + mycolor +"; } "
-                   + textcolor +
-                   "</style>"
-                   "<table width=\"100%\" border=\"1\" cellspacing=\"-1\"";
-
-    if (from_me)
-        html.append(" bgcolor=\"" + mycolor + "\"");
-
-    //html.append("><tr><td><table width=\"100%\" border=\"0\"><tr><td valign=\"bottom\"><div style=\"color:cyan\">" +
-    //            from + ":</div> " + processMessage(message.data) +
-    //            "</td><td align=\"right\" valign=\"bottom\">");
-
-
-    html.append("><tr><td><table width=\"100%\" border=\"0\">"
-                "<tr><td valign=\"center\"><div style=\"color:"
-                + nickcolor + "\">" +
-                from + ":</div>&nbsp;" +
-                Utilities::WATextToHtml(QString::fromUtf8(message.data),32) +
-                "</td><td align=\"right\" valign=\"bottom\">");
-
-    if (!day.isEmpty())
-        html.append("<div style=\"font-size:18px;color:gray\">"
-                    + day + " </div>");
-
-    if (from_me)
-    {
-        if (message.status == FMessage::ReceivedByServer)
-            html.append(CHECK);
-        else if (message.status == FMessage::ReceivedByTarget)
-           html.append(DOUBLECHECK);
-        else
-           html.append(GRAYCHECK);
-    }
-
-    html.append("<div style=\"font-size:18px;color:gray\">" + time +
-                "</div></td></tr></table></td></tr></table>"
-                "<div style=\"font-size:5px\">&nbsp;</div>");
-
-    return html;
-}
-
 
 void ChatArea::loadLogMessages(QList<FMessage> messages)
 {
@@ -404,6 +334,8 @@ void ChatArea::contextMenu(QPoint p, QObject *obj)
         ChatTextItem *item = (ChatTextItem *) obj;
         FMessage msg = item->getMessage();
         clipboard->setText(QString::fromUtf8(msg.data.constData()));
+
+        QMaemo5InformationBox::information(this,"Copied");
     }
     Utilities::logData("Exit Menu");
 }

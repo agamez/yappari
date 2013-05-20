@@ -40,9 +40,6 @@
 
 #include "client.h"
 
-#define PREVIEW_WIDTH      224
-#define PREVIEW_HEIGHT     224
-
 ProfileWindow::ProfileWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ProfileWindow)
@@ -112,6 +109,11 @@ void ProfileWindow::verifyUserName()
     }
     else
     {
+        // Save the alias/username
+        Contact &c = Client::roster->getContact(Client::myJid);
+        c.alias = userName;
+        Client::roster->updateAlias(&c);
+
         emit changeUserName(userName);
         close();
     }
@@ -171,7 +173,12 @@ void ProfileWindow::finishedPhotoSelection(QImage image)
     // Show picture in window
     setPhoto(image);
 
-    emit photoSelected(image);
+    // Save the thumbnail
+    // It'll be updated in DB when the change is confirmed from WA Servers
+    Contact &c = Client::roster->getContact(Client::myJid);
+    c.photo = image.scaled(QSize(64,64), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    emit photoSelected(Client::myJid, image);
 }
 
 
@@ -193,5 +200,10 @@ void ProfileWindow::removePhoto()
 
     ui->selectPictureButton->setIcon(QIcon("/usr/share/icons/hicolor/216x216/hildon/general_avatar2.png"));
 
-    emit photoSelected(QImage());
+    // Clear the thumbnail
+    Contact &c = Client::roster->getContact(Client::myJid);
+    c.photo = QImage();
+    c.photoId.clear();
+
+    emit photoSelected(Client::myJid, c.photo);
 }

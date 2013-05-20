@@ -52,11 +52,11 @@ class ChatWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit ChatWindow(Contact contact, QWidget *parent = 0);
+    explicit ChatWindow(Contact *contact, QWidget *parent = 0);
     ~ChatWindow();
 
     void messageReceived(FMessage& message);
-    void setContact(Contact& contact);
+    void setContact(Contact *contact);
     const Contact& getContact() const;
     void messageStatusUpdate(FMessage& message);
     void available(bool online, qint64 lastSeen);
@@ -115,7 +115,7 @@ private:
 
 protected:
     Ui::ChatWindow *ui;
-    Contact contact;
+    Contact *contact;
     bool eventFilter(QObject *obj, QEvent *event);
     void setOnlineText(QString text);
 };

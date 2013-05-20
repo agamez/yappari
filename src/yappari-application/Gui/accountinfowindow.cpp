@@ -51,8 +51,9 @@ AccountInfoWindow::AccountInfoWindow(QWidget *parent) :
     ui->serviceType->setText(Client::kind[0].toUpper() +
                              Client::kind.mid(1));
 
-    ui->accountCreation->setText(DateTimeUtilities::simpleDayFormat(
-                                     Client::creation.toLongLong() * 1000));
+    ui->accountCreation->setText((Client::creation.isEmpty() ? "Unknown" :
+                                    DateTimeUtilities::simpleDayFormat(
+                                    Client::creation.toLongLong() * 1000)));
 
     ui->serviceExpiration->setText(DateTimeUtilities::simpleDayFormat(
                                      Client::expiration.toLongLong() * 1000));

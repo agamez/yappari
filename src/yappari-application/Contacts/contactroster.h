@@ -47,10 +47,10 @@ public:
     Group& getGroup(QString gjid);
     Group& getGroup(QString from, QString author, QString newSubject,
                     QString creation, QString subjectOwner, QString subjectTimestamp);
-    Group& getGroup(QString from, QString author, QString newSubject, QString creation);
     const ContactList& getContactList() const;
     void insertContact(Contact *contact);
     void deleteContact(QString jid);
+    void deleteGroup(QString gjid);
     Contact* cloneContact(Contact *c);
     int size();
     void updateAlias(Contact *contact);
@@ -60,6 +60,10 @@ public:
     void updatePhoto(Contact *contact);
     void updateStatus(Contact *contact);
     void getPhotoFromAddressBook(Contact *contact);
+    void addGroupParticipant(Group *group, QString jid);
+    void removeGroupParticipant(Group *group, QString jid);
+    void updateSubject(Group *group);
+
 
 private:
     ContactList roster;
@@ -78,6 +82,10 @@ signals:
     void updatePhotoContact(Contact *c);
     void updateStatusContact(Contact *c);
     void removeContact(QString jid);
+    void removeGroup(QString gjid);
+    void addParticipant(Group *g, Contact *c);
+    void removeParticipant(Group *g, Contact *c);
+    void updateSubjectGroup(Group *g);
 };
 
 #endif // CONTACTROSTER_H

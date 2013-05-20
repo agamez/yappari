@@ -87,10 +87,8 @@ SOURCES += main.cpp \
     Gui/chatarea.cpp \
     Contacts/group.cpp \
     Gui/groupwindow.cpp \
-    Gui/groupsubjectdialog.cpp \
     Whatsapp/exception.cpp \
     Whatsapp/loginexception.cpp \
-    Gui/changestatusdialog.cpp \
     Contacts/contactsyncer.cpp \
     Gui/contactselectionmodel.cpp \
     Gui/contactdisplaydelegate.cpp \
@@ -131,7 +129,13 @@ SOURCES += main.cpp \
     Contacts/contactlistiterator.cpp \
     Gui/contactinfowindow.cpp \
     Dbus/dbusnokiacsdcallif.cpp \
-    Gui/profilepicturewindow.cpp
+    Gui/profilepicturewindow.cpp \
+    Gui/creategroupwindow.cpp \
+    Gui/selectgroupparticipantswindow.cpp \
+    Gui/groupparticipantitem.cpp \
+    Gui/groupparticipantdelegate.cpp \
+    Gui/groupinfowindow.cpp \
+    Gui/groupsubjectwindow.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -191,10 +195,8 @@ HEADERS += \
     Gui/chatarea.h \
     Contacts/group.h \
     Gui/groupwindow.h \
-    Gui/groupsubjectdialog.h \
     Whatsapp/exception.h \
     Whatsapp/loginexception.h \
-    Gui/changestatusdialog.h \
     version.h \
     globalconstants.h \
     Contacts/contactsyncer.h \
@@ -236,7 +238,13 @@ HEADERS += \
     Contacts/contactlistiterator.h \
     Gui/contactinfowindow.h \
     Dbus/dbusnokiacsdcallif.h \
-    Gui/profilepicturewindow.h
+    Gui/profilepicturewindow.h \
+    Gui/creategroupwindow.h \
+    Gui/selectgroupparticipantswindow.h \
+    Gui/groupparticipantitem.h \
+    Gui/groupparticipantdelegate.h \
+    Gui/groupinfowindow.h \
+    Gui/groupsubjectwindow.h
 
 CONFIG += mobility qtdbus network link_pkgconfig
 MOBILITY = systeminfo messaging
@@ -265,7 +273,11 @@ FORMS += \
     Gui/ui/profilewindow.ui \
     Gui/ui/statuswindow.ui \
     Gui/ui/contactinfowindow.ui \
-    Gui/ui/profilepicturewindow.ui
+    Gui/ui/profilepicturewindow.ui \
+    Gui/ui/creategroupwindow.ui \
+    Gui/ui/selectgroupparticipantswindow.ui \
+    Gui/ui/groupinfowindow.ui \
+    Gui/ui/groupsubjectwindow.ui
 
 maemo5 {
   #VARIABLES
@@ -307,11 +319,43 @@ maemo5 {
   sharedicons.files += icons/*
 
   countries.path = $$SHAREDIR/yappari
-  countries.files += countries.tab mime-types.tab
+  countries.files += share/countries.tab share/mime-types.tab share/whatsnew.txt
 
   script.path = /etc/event.d
   script.files += event.d/yappari
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

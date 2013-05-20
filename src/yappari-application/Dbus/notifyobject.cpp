@@ -79,7 +79,6 @@ void NotifyObject::deleteNotify(uint id, uint)
 void NotifyObject::sendNotify(QString contact, FMessage message)
 {
     qint64 startTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    QDBusConnection dbus = QDBusConnection::sessionBus();
 
     Utilities::logData("Starting sending notification");
 
@@ -98,7 +97,9 @@ void NotifyObject::sendNotify(QString contact, FMessage message)
         text = QString::fromUtf8(message.data.constData());
 
     uint reply = notifierBus->Notify(YAPPARI_APPLICATION_NAME,0,YAPPARI_NOTIFICATION_ICON,
-                                    contact,text,QStringList(),notifyHints,-1);
+                                     Utilities::removeEmoji(contact),
+                                     Utilities::removeEmoji(text),
+                                     QStringList(),notifyHints,-1);
 
     Utilities::logData("New notification created with id " + QString::number(reply));
 

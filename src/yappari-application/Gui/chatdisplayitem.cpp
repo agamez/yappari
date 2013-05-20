@@ -26,6 +26,8 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#include <QMaemo5Style>
+
 #include <QTextDocument>
 #include <QFontMetrics>
 #include <QAbstractTextDocumentLayout>
@@ -80,7 +82,10 @@ void ChatDisplayItem::updateData()
     QString htmlLastLine;
     QTextDocument doc,line;
     qreal height, lineHeight;
-    line.setHtml("<div style=\"font-size:18px;color:gray\">O</div>");
+
+    QColor color = QMaemo5Style::standardColor("SecondaryTextColor");
+
+    line.setHtml("<div style=\"font-size:18px;color:" + color.name() + "\">O</div>");
 
     QString lastLine = (lastMessage.type == FMessage::UndefinedMessage) ? "" :
                           (
@@ -90,7 +95,7 @@ void ChatDisplayItem::updateData()
                           );
 
     do {
-        htmlLastLine = "<div style=\"font-size:18px;color:gray\">" +
+        htmlLastLine = "<div style=\"font-size:18px;color:" + color.name() + "\">" +
                        lastLine + "</div>";
 
         doc.setTextWidth(TEXT_WIDTH);
@@ -110,15 +115,18 @@ void ChatDisplayItem::updateData()
             ? DateTimeUtilities::shortTimeFormat(lastMessage.timestamp)
             : DateTimeUtilities::shortDayFormat(lastMessage.timestamp);
 
-    htmlLastLine = "<div style=\"font-size:18px;color:gray\">" +
+    htmlLastLine = "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td>"
+                   "<div style=\"font-size:18px;color:" + color.name() + "\">" +
                    ((lastMessage.type == FMessage::BodyMessage) ?
                         Utilities::WATextToHtml(lastLine,lineHeight - 8) :
                         lastLine)
-                   + "</div>";
+                   + "</div>"
+                   "</td></tr></table>";
 
-    QString html = "<table width=\"100%\"><tr><td>" +
+    QString html = "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td>" +
                    Utilities::WATextToHtml(contact->name, 32) +
-                   "</td><td align=\"right\"><div style=\"font-size:18px;color:gray\">" +
+                   "</td><td align=\"right\"><div style=\"font-size:18px;color:" +
+                   color.name() + "\">" +
                    timeString +
                    "&nbsp;&nbsp;</td></tr></table>"
                    + htmlLastLine;

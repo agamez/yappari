@@ -73,10 +73,7 @@ public slots:
     void createChatWindow();
     void messageReceived(FMessage message);
     void mediaUploadAccepted(FMessage message);
-    void groupNewSubject(QString from, QString author, QString authorName,
-                         QString newSubject, QString creation);
-    void groupInfoFromList(QString from, QString author, QString newSubject, QString creation,
-                           QString subjectOwner, QString subjectTimestamp);
+    void updateGroup(Group& group, bool notify);
     void sendMessageFromChat(FMessage message);
     void sendSetGroupSubjectFromChat(QString gjid,QString newSubject);
     void requestLeaveGroupFromChat(QString gjid);
@@ -86,10 +83,10 @@ public slots:
     void contactSelected(QModelIndex index);
     void showAboutDialog();
     void showGlobalSettingsDialog();
-    void showChangeStatusDialog();
     void showAccountInfoWindow();
     void showProfileWindow();
     void showNetworkUsageWindow();
+    void showCreateGroupWindow();
     void lockModeChanged(QString lockMode);
     void available(QString jid, bool online);
     void available(QString jid, qint64 lastSeen);
@@ -103,14 +100,21 @@ public slots:
     void updateTimestamps();
     void updatePhoto(Contact& c);
     void requestChangeUserName(QString newUserName);
-    void requestSetPhoto(QImage photo);
+    void requestSetPhoto(QString jid, QImage photo);
     void requestChangeStatus(QString status);
     void requestPhotoRefresh(QString jid, QString photoId, bool largeFormat);
     void requestContactStatus(QString jid);
     void showStatusWindow();
     void photoReceived(Contact& c, QImage photo, QString photoId);
     void viewContact(Contact *c);
-    void contactInfoWindowClosed();
+    void requestCreateGroupChat(QImage photo, QString subject,QStringList participants);
+    void viewGroup(Group *g);
+    void groupParticipant(QString gjid, QString participant);
+    void removeParticipant(QString gjid, QString participant);
+    void requestGetParticipants(QString gjid);
+    void requestAddGroupParticipant(QString gjid, QString participant);
+    void requestRemoveGroupParticipant(QString gjid, QString participant);
+    void groupError(QString gjid);
 
 private:
     Ui::MainWindow *ui;
@@ -123,12 +127,9 @@ private:
     ConversationsDB chatsDB;
     ContactSelectionModel *model;
     QTimer *newDayTimer;
-    ContactInfoWindow *contactInfoWindow;
-    QString contactInfoJid;
 
     void loadOpenChats();
     ChatWindow *createChatWindow(Contact& contact, bool show);
-    void updateGroup(Group& group,bool notify);
     void notify(const Contact& contact,FMessage& message);
     void showWindow(QWidget *window);
     void resetNewDayTimer();
@@ -145,9 +146,22 @@ signals:
     void sendRightButtonClicked(const QPoint& p);
     void settingsUpdated();
     void queryLastOnline(QString jid);
+    void subscribe(QString jid);
+    void unsubscribe(QString jid);
     void photoRequest(QString jid, QString expectedPhotoId, bool largeFormat);
     void requestStatus(QString jid);
-    void setPhoto(QImage photo);
+    void setPhoto(QString jid, QImage photo);
+    void createGroupChat(QImage photo, QString subject, QStringList participants);
+    void getParticipants(QString gjid);
+    void groupParticipantAdded(QString gjid, QString jid);
+    void previewPhotoReceived(QString jid);
+    void largePhotoReceived(QString jid, QImage photo, QString photoId);
+    void onlineStatusChanged(QString jid);
+    void userStatusUpdated(QString jid);
+    void groupSubjectUpdated(QString gjid);
+    void addGroupParticipant(QString gjid, QString participant);
+    void removeGroupParticipant(QString gjid, QString participant);
+    void groupParticipantRemoved(QString gjid, QString participant);
 };
 
 #endif // MAINWINDOW_H

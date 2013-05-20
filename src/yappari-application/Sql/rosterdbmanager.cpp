@@ -40,7 +40,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define DB_FILENAME "roster.db"
-#define DB_VERSION  3
+#define DB_VERSION  4
 
 RosterDBManager::RosterDBManager(QObject *parent) :
     QObject(parent)
@@ -86,6 +86,13 @@ void RosterDBManager::init()
                    "photo_id varchar(256)"
                    ")");
 
+        query.exec("create table participants ("
+                   "gjid varchar(256),"
+                   "jid varchar(256)"
+                   ")");
+
+        query.exec("create index participants_idx on participants(gjid)");
+
         query.exec("create table settings ("
                    "version integer"
                    ")");
@@ -103,20 +110,9 @@ void RosterDBManager::init()
 
         if (query.next())
         {
-            if (query.value(0).toInt() == 2)
-            {
-                // Upgrade it to version 3
+            int version = query.value(0).toInt();
 
-                Utilities::logData("Upgrading roster db to version " +
-                                   QString::number(DB_VERSION));
-
-                query.prepare("alter table roster add column photo_id varchar(256)");
-                query.exec();
-                query.prepare("update settings set version="+
-                              QString::number(DB_VERSION));
-                query.exec();
-            }
-            else if (query.value(0).toInt() == 1)
+            if (version == 1)
             {
                 Utilities::logData("Removing old v1 roster database...");
                 db.close();
@@ -128,6 +124,42 @@ void RosterDBManager::init()
                 file.remove();
 
                 init();
+
+                version = DB_VERSION;
+            }
+
+            if (version == 2)
+            {
+                // Upgrade it to version 3
+
+                Utilities::logData("Upgrading roster db to version 3");
+
+                query.prepare("alter table roster add column photo_id varchar(256)");
+                query.exec();
+
+                version = 3;
+                query.prepare("update settings set version="+
+                              QString::number(version));
+                query.exec();
+            }
+
+            if (version == 3)
+            {
+                // Upgrade it to version 4
+
+                Utilities::logData("Upgrading roster db to version 4");
+
+                query.exec("create table participants ("
+                           "gjid varchar(256),"
+                           "jid varchar(256)"
+                           ")");
+
+                query.exec("create index participants_idx on participants(gjid)");
+
+                version = DB_VERSION;
+                query.prepare("update settings set version="+
+                              QString::number(version));
+                query.exec();
             }
         }
     }
@@ -252,6 +284,16 @@ ContactList *RosterDBManager::getAllContacts()
             g->subjectTimestamp = query.value(12).toLongLong();
             g->subjectOwner = query.value(13).toString();
             g->subjectOwnerName = query.value(14).toString();
+
+            QSqlQuery subQuery(db);
+            subQuery.prepare("select jid from participants where gjid = :gjid");
+            subQuery.bindValue(":jid",g->jid);
+            subQuery.exec();
+
+            while (subQuery.next()) {
+                g->addParticipant(subQuery.value(0).toString());
+            }
+
         }
 
         c->photoId = query.value(15).toString();
@@ -356,3 +398,61 @@ void RosterDBManager::updatePhoto(Contact *c)
 
     query.exec();
 }
+
+void RosterDBManager::addParticipant(Group *g, Contact *c)
+{
+    QSqlQuery query(db);
+
+    Utilities::logData("Updating group " + g->jid + ": Adding participant " + c->jid);
+
+    query.prepare("insert into participants "
+                  "(gjid, jid) "
+                  "values "
+                  "(:gjid, :jid)");
+
+    query.bindValue(":jid",c->jid);
+    query.bindValue(":gjid",g->jid);
+
+    query.exec();
+}
+
+void RosterDBManager::removeGroup(QString gjid)
+{
+    QSqlQuery query(db);
+
+    query.prepare("delete from participants where gjid=:gjid");
+    query.bindValue(":gjid",gjid);
+
+    query.exec();
+
+    removeContact(gjid);
+}
+
+void RosterDBManager::updateGroupSubject(Group *g)
+{
+    QSqlQuery gquery(db);
+
+    gquery.prepare("update roster set subject_timestamp=:subject_timestamp, "
+                  "subject_owner=:subject_owner, "
+                  "subject_owner_name=:subject_owner_name where jid=:jid");
+
+    gquery.bindValue(":jid",g->jid);
+    gquery.bindValue(":subject_timestamp",g->subjectTimestamp);
+    gquery.bindValue(":subject_owner",g->subjectOwner);
+    gquery.bindValue(":subject_owner_name",g->subjectOwnerName);
+
+    gquery.exec();
+}
+
+void RosterDBManager::removeParticipant(Group *g, Contact *c)
+{
+    QSqlQuery query(db);
+
+    query.prepare("delete from participants where gjid=:gjid and jid=:jid");
+    query.bindValue(":gjid",g->jid);
+    query.bindValue(":jid",c->jid);
+
+    query.exec();
+}
+
+

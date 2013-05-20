@@ -54,6 +54,7 @@ public slots:
     void phoneNumberEntered(QString,QString);
     void registrationFinished(PhoneRegReply *);
     void requestCall();
+    void expired(QVariantMap result);
 
 private:
     RegistrationProgressWidget *progressWidget;

@@ -31,3 +31,30 @@
 Group::Group() : Contact()
 {
 }
+
+bool Group::addParticipant(QString jid)
+{
+    if (!participants.contains(jid))
+    {
+        participants.append(jid);
+        return true;
+    }
+    else
+        return false;
+}
+
+bool Group::containsParticipant(QString jid)
+{
+    return participants.contains(jid);
+}
+
+bool Group::removeParticipant(QString jid)
+{
+    if (participants.contains(jid))
+    {
+        participants.removeAt(participants.indexOf(jid));
+        return true;
+    }
+    else
+        return false;
+}

@@ -26,6 +26,8 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#include <QMaemo5Style>
+
 #include <QDesktopServices>
 #include <QPainter>
 
@@ -147,16 +149,20 @@ void ChatImageItem::setNickname(FMessage message)
             ? "You"
             : message.notify_name.replace("<","&lt;").replace(">","&gt;");
 
-    QString nickcolor = Client::nickcolor.isEmpty() ? "cyan" : Client::nickcolor;
+    QColor color = QMaemo5Style::standardColor("ActiveTextColor");
+    QString nickcolor = Client::nickcolor.isEmpty() ? color.name() : Client::nickcolor;
+
     QString mycolor = Client::mycolor.isEmpty() ? "#333333" : Client::mycolor;
 
     ui->groupBox->setStyleSheet("QGroupBox { border-color: "
                                 + mycolor +
                                 "; border-width: 1px; "
-                                "border-style: solid; }"
-                                ".nick { color:" + nickcolor + "; }");
+                                "border-style: solid; }");
 
-    QString html = "<span class=\"nick\">" +
+    QString html = "<style type=\"text/css\">"
+                   ".nick { color:" + nickcolor + "; }"
+                   "</style>"
+                   "<span class=\"nick\">" +
                    Utilities::WATextToHtml(from + ":",32) +
                    "</span>&nbsp;";
 
@@ -179,7 +185,9 @@ void ChatImageItem::setTimestamp(FMessage message)
 
     QString time = DateTimeUtilities::shortTimeFormat(message.timestamp);
 
-    QString html = "<div style=\"font-size:18px;color:gray\">"
+    QColor color = QMaemo5Style::standardColor("SecondaryTextColor");
+
+    QString html = "<div style=\"font-size:18px;color:" + color.name() + "\">"
                     + day + " </div>";
 
     if (from_me)
@@ -205,12 +213,12 @@ void ChatImageItem::setTimestamp(FMessage message)
         html.append("</div>");
     }
 
-    html.append("<div align=\"right\" style=\"font-size:18px;color:gray\">" + time +
+    html.append("<div align=\"right\" style=\"font-size:18px;color:" + color.name() + "\">" + time +
                 "</div>");
     if (waiting)
     {
-        html.append("<div align=\"right\" style=\"font-size:14px;color:gray;\">Please wait...</div>");
-        html.append("<div align=\"right\" style=\"font-size:14px;color:gray;\">Might take several minutes</div>");
+        html.append("<div align=\"right\" style=\"font-size:14px;color:" + color.name() + ";\">Please wait...</div>");
+        html.append("<div align=\"right\" style=\"font-size:14px;color:" + color.name() + ";\">Might take several minutes</div>");
     }
 
     ui->timestamp->setTextFormat(Qt::RichText);

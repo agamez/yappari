@@ -1,4 +1,4 @@
-/* Copyright 2012 Naikel Aparicio. All rights reserved.
+/* Copyright 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,30 +26,45 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
-#ifndef GROUPSUBJECTDIALOG_H
-#define GROUPSUBJECTDIALOG_H
+#ifndef SELECTGROUPPARTICIPANTSWINDOW_H
+#define SELECTGROUPPARTICIPANTSWINDOW_H
 
-#include <QDialog>
+#include <QMainWindow>
+#include <QHash>
+
+#include "Contacts/contactroster.h"
+
+#include "groupparticipantitem.h"
+#include "contactselectionmodel.h"
 
 namespace Ui {
-    class GroupSubjectDialog;
+    class SelectGroupParticipantsWindow;
 }
 
-class GroupSubjectDialog : public QDialog
+class SelectGroupParticipantsWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit GroupSubjectDialog(QString currentSubject, QWidget *parent = 0);
-    ~GroupSubjectDialog();
+    explicit SelectGroupParticipantsWindow(ContactRoster *roster, QWidget *parent = 0);
+    ~SelectGroupParticipantsWindow();
 
-    QString getSubject();
-
-private:
-    Ui::GroupSubjectDialog *ui;
+signals:
+    void createGroup(QStringList groupParticipants);
 
 public slots:
-    void accept();
+    void addParticipant();
+    void verifyGroup();
+
+private:
+    Ui::SelectGroupParticipantsWindow *ui;
+
+    ContactSelectionModel *model;
+    ContactRoster *roster;
+    QHash<QString,GroupParticipantItem *> participants;
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
 };
 
-#endif // GROUPSUBJECTDIALOG_H
+#endif // SELECTGROUPPARTICIPANTSWINDOW_H

@@ -110,6 +110,7 @@ public:
     static QString password;
     static QString userName;
     static QString imei;
+    static QString imsi;
 
     static QString creation;
     static QString expiration;
@@ -157,17 +158,21 @@ public:
 
     static bool isSynchronizing;
 
+    // Main window
+    static MainWindow *mainWin;
+
+    // Roster
+    static ContactRoster *roster;
+
     explicit Client(bool minimized, QObject *parent = 0);
     ~Client();
 
 private:
-    MainWindow *mainWin;
     Connection *connection;
     QTcpSocket *socket;
     QNetworkConfigurationManager *manager;
     QString lastError;
     QString activeNetworkID;
-    ContactRoster *roster;
     DBusIfAdaptor *ifAdaptor;
     DBusNokiaMCESignalIf *mceAdaptor;
     DBusAppletIf *applet;
@@ -186,6 +191,9 @@ private:
     QMutex connectionMutex;
     QMutex pendingMessagesMutex;
 
+    // Groups waiting to be created
+    QHash<QString,Group *> groups;
+
     // Registration
     bool isRegistered;
 
@@ -199,6 +207,7 @@ private:
     void startRegistration();
     void connectToServer();
     QString parseStatus();
+    void createMyJidContact();
 
 signals:
 
@@ -235,7 +244,22 @@ public slots:
     void photoReceived(QString from, QByteArray data,
                        QString photoId, bool largeFormat);
     void requestContactStatus(QString jid);
-    void setPhoto(QImage image);
+    void setPhoto(QString jid, QImage image);
+    void requestPresenceSubscription(QString jid);
+    void requestPresenceUnsubscription(QString jid);
+    void createGroupChat(QImage photo, QString subject,QStringList participants);
+    void groupInfoFromList(QString id, QString from, QString author,
+                           QString newSubject, QString creation,
+                           QString subjectOwner, QString subjectTimestamp);
+    void groupNewSubject(QString from, QString author, QString authorName,
+                         QString newSubject, QString creation);
+    void addParticipant(QString gjid, QString jid);
+    void getParticipants(QString gjid);
+    void groupParticipant(QString gjid, QString jid);
+    void sendAddGroupParticipant(QString gjid, QString jid);
+    void sendRemoveGroupParticipant(QString gjid, QString jid);
+    void groupAddUser(QString gjid ,QString jid);
+    void groupRemoveUser(QString gjid ,QString jid);
 
 
 public Q_SLOTS:

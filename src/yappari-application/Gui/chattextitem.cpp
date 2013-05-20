@@ -26,6 +26,8 @@
  * official policies, either expressed or implied, of Eeli Reilin.
  */
 
+#include <QMaemo5Style>
+
 #include <QTextLayout>
 #include <QTextDocument>
 #include <QTextBlock>
@@ -81,10 +83,13 @@ QString ChatTextItem::createHTML()
             ? "You"
             : message.notify_name;
 
-    QString nickcolor = Client::nickcolor.isEmpty() ? "cyan" : Client::nickcolor;
+    QColor color = QMaemo5Style::standardColor("ActiveTextColor");
+
+    QString nickcolor = Client::nickcolor.isEmpty() ? color.name() : Client::nickcolor;
     QString textcolor = Client::textcolor.isEmpty() ?
                 QString() :
                 "table { color: " + Client::textcolor + " } ";
+
     QString mycolor = Client::mycolor.isEmpty() ? "#333333" : Client::mycolor;
 
     QString html = "<style type=\"text/css\">"
@@ -98,11 +103,6 @@ QString ChatTextItem::createHTML()
     if (from_me)
         html.append(" bgcolor=\"" + mycolor + "\"");
 
-    //html.append("><tr><td><table width=\"100%\" border=\"0\"><tr><td valign=\"bottom\"><div style=\"color:cyan\">" +
-    //            from + ":</div> " + processMessage(message.data) +
-    //            "</td><td align=\"right\" valign=\"bottom\">");
-
-
     html.append("><tr><td><table width=\"100%\" border=\"0\">"
                 "<tr><td valign=\"center\"><span class=\"nick\">" +
                 Utilities::WATextToHtml(from + ":",32) +
@@ -110,8 +110,13 @@ QString ChatTextItem::createHTML()
                 Utilities::WATextToHtml(QString::fromUtf8(message.data),32) +
                 "</td><td align=\"right\" valign=\"bottom\">");
 
+
+    color = QMaemo5Style::standardColor("SecondaryTextColor");
+
     if (!day.isEmpty())
-        html.append("<div style=\"font-size:18px;color:gray\">"
+        html.append("<div style=\"font-size:18px;color:"
+                    + color.name() +
+                    "\">"
                     + day + " </div>");
 
     if (from_me)
@@ -124,7 +129,7 @@ QString ChatTextItem::createHTML()
            html.append(GRAYCHECK);
     }
 
-    html.append("<div style=\"font-size:18px;color:gray\">" + time +
+    html.append("<div style=\"font-size:18px;color:" + color.name() + "\">" + time +
                 "</div></td></tr></table></td></tr></table>"
                 "<div style=\"font-size:5px\">&nbsp;</div>");
 

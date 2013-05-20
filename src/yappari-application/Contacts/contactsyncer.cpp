@@ -266,8 +266,11 @@ void ContactSyncer::sync()
                     // address book to synchronize it.
                     // We need to create a new one because this
                     // is gonna be freed later
-                    Contact *cc = roster->cloneContact(c);
-                    abook.insert(cc->phone,cc);
+                    if (!abook.contains(c->jid))
+                    {
+                        Contact *cc = roster->cloneContact(c);
+                        abook.insert(cc->phone,cc);
+                    }
                 }
             }
         }
@@ -466,10 +469,19 @@ void ContactSyncer::syncNextPhone()
                     Contact &d = roster->getContact(jid);
                     contact = &d;
 
+                    // Check if the name was changed in the address book
                     if (contact->name != c->name)
                     {
                         updated = true;
                         contact->name = c->name;
+                    }
+
+                    // Check if this contact wasn't in the address book
+                    // before but now it is
+                    if (contact->fromAddressBook != c->fromAddressBook)
+                    {
+                        updated = true;
+                        contact->fromAddressBook = c->fromAddressBook;
                     }
                 }
                 else
@@ -497,7 +509,8 @@ void ContactSyncer::syncNextPhone()
 
                 abookJids.remove(jid);
 
-                emit photoRefresh(jid, contact->photoId, false);
+                // if (contact->photoId.isEmpty() || contact->photoId == "abook")
+                    emit photoRefresh(jid, contact->photoId, false);
 
                 /*
                 Utilities::logData("Synchronized contact:\n"

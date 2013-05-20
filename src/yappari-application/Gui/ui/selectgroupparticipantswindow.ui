@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SelectGroupParticipantsWindow</class>
+ <widget class="QMainWindow" name="SelectGroupParticipantsWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>484</width>
+    <height>339</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Select Participants</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="addParticipantButton">
+        <property name="text">
+         <string>Add Group Participant</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="createGroupButton">
+        <property name="text">
+         <string>Create Group</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QListView" name="listView">
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

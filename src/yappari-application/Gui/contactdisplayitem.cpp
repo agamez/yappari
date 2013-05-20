@@ -28,6 +28,7 @@
 
 #include <QAbstractTextDocumentLayout>
 #include <QTextDocument>
+#include <QMaemo5Style>
 
 #include "contactdisplayitem.h"
 
@@ -40,7 +41,9 @@ ContactDisplayItem::ContactDisplayItem(Contact *c) :
 {
     this->contact = c;
 
-    QString name = (c->fromAddressBook) ? c->name : c->alias;
+    QString name = (contact->fromAddressBook || contact->alias.isEmpty())
+            ? (contact->name.isEmpty() ? contact->phone : contact->name)
+            : contact->alias;
 
     QString status = c->status.replace("<","&lt;").replace(">","&gt;");
 
@@ -48,15 +51,17 @@ ContactDisplayItem::ContactDisplayItem(Contact *c) :
                    Utilities::WATextToHtml(name,32) + "</td>"
                    "<td align=\"right\">";
 
+    QColor color = QMaemo5Style::standardColor("SecondaryTextColor");
+
     if (Client::showNumbers)
-        html.append("<div style=\"font-size:16px;color:gray\">(" +
+        html.append("<div style=\"font-size:16px;color:" + color.name() + "\">(" +
                     c->phone + ")&nbsp;</div>");
 
     QTextDocument line;
-    line.setHtml("<div style=\"font-size:18px;color:gray\">O</div>");
+    line.setHtml("<div style=\"font-size:18px;color:" + color.name() + "\">O</div>");
 
     html.append("</td></tr>"
-                "<tr><td colspan=\"2\"><div style=\"font-size:18px;color:gray\">" +
+                "<tr><td colspan=\"2\"><div style=\"font-size:18px;color:" + color.name() + "\">" +
                 Utilities::WATextToHtml(status,line.documentLayout()->documentSize().height() - 8)
                 + "</div></td></tr></table>");
 

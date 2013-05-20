@@ -22,10 +22,13 @@ public slots:
     void setContactName();
     void setContactStatus();
     void showPhoto();
-    void photoReceived(QImage photo, QString photoId);
+    void previewPhotoReceived(QString jid);
+    void photoReceived(QString jid, QImage photo, QString photoId);
     void showPhotoInImageViewer();
     void copyPhoneToClipboard();
     void dialPhone();
+    void onlineStatusChanged(QString jid);
+    void userStatusUpdated(QString jid);
 
 signals:
     void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);

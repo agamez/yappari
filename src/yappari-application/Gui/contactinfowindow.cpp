@@ -1,4 +1,5 @@
 #include <QMaemo5InformationBox>
+#include <QMaemo5Style>
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
@@ -13,6 +14,8 @@
 #include "Whatsapp/util/utilities.h"
 #include "Whatsapp/util/datetimeutilities.h"
 
+#include "mainwindow.h"
+#include "client.h"
 #include "globalconstants.h"
 
 ContactInfoWindow::ContactInfoWindow(Contact *contact, QWidget *parent) :
@@ -44,6 +47,21 @@ ContactInfoWindow::ContactInfoWindow(Contact *contact, QWidget *parent) :
     QFile file(fileName);
     photoDownloaded = (file.exists());
     isDownloading = false;
+
+    connect(Client::mainWin,SIGNAL(previewPhotoReceived(QString)),
+            this,SLOT(previewPhotoReceived(QString)));
+
+    connect(Client::mainWin,SIGNAL(largePhotoReceived(QString,QImage,QString)),
+            this,SLOT(photoReceived(QString,QImage,QString)));
+
+    connect(Client::mainWin,SIGNAL(onlineStatusChanged(QString)),
+            this,SLOT(onlineStatusChanged(QString)));
+
+    connect(Client::mainWin,SIGNAL(userStatusUpdated(QString)),
+            this,SLOT(userStatusUpdated(QString)));
+
+    connect(this,SIGNAL(photoRefresh(QString,QString,bool)),
+            Client::mainWin,SLOT(requestPhotoRefresh(QString,QString,bool)));
 }
 
 ContactInfoWindow::~ContactInfoWindow()
@@ -80,7 +98,8 @@ void ContactInfoWindow::setContactName()
     else
         text = "Online";
 
-    html.append("<div style=\"font-size:18px;color:gray\">" + text + "</div>");
+    QColor color = QMaemo5Style::standardColor("SecondaryTextColor");
+    html.append("<div style=\"font-size:18px;color:" + color.name() +"\">" + text + "</div>");
     ui->contactNameLabel->setText(html);
 }
 
@@ -97,9 +116,7 @@ void ContactInfoWindow::showPhoto()
     }
     else if (isDownloading)
     {
-        QMessageBox msg(this);
-        msg.setText("Please wait while the photo is being downloaded.");
-        msg.exec();
+        QMaemo5InformationBox::information(this,"Please wait while the photo is being downloaded");
     }
     else if (!photoDownloaded)
     {
@@ -113,26 +130,29 @@ void ContactInfoWindow::showPhoto()
         showPhotoInImageViewer();
 }
 
-void ContactInfoWindow::photoReceived(QImage photo, QString photoId)
+void ContactInfoWindow::photoReceived(QString jid, QImage photo, QString photoId)
 {
-    Utilities::logData("Photo received in Profile Window");
+    if (jid == contact->jid)
+    {
+        Utilities::logData("Photo received in Profile Window");
 
-    QDir home = QDir::home();
-    QString folder = home.path() + CACHE_DIR"/"PHOTOS_DIR"/" + contact->jid;
+        QDir home = QDir::home();
+        QString folder = home.path() + CACHE_DIR"/"PHOTOS_DIR"/" + contact->jid;
 
-    // Check the directory is created
-    if (!home.exists(folder))
-        home.mkpath(folder);
+        // Check the directory is created
+        if (!home.exists(folder))
+            home.mkpath(folder);
 
-    QString fileName = folder + "/" + photoId + ".png";
-    photo.save(fileName,"PNG");
+        QString fileName = folder + "/" + photoId + ".png";
+        photo.save(fileName,"PNG");
 
-    photoDownloaded = true;
-    isDownloading = false;
-    setAttribute(Qt::WA_Maemo5ShowProgressIndicator, Qt::Unchecked);
-    ui->messageLabel->clear();
+        photoDownloaded = true;
+        isDownloading = false;
+        setAttribute(Qt::WA_Maemo5ShowProgressIndicator, Qt::Unchecked);
+        ui->messageLabel->clear();
 
-    showPhotoInImageViewer();
+        showPhotoInImageViewer();
+    }
 }
 
 void ContactInfoWindow::showPhotoInImageViewer()
@@ -166,6 +186,24 @@ void ContactInfoWindow::dialPhone()
                                                             dbus,this);
 
     csdCallBus->CreateWith(contact->phone, 0);
+}
+
+void ContactInfoWindow::onlineStatusChanged(QString jid)
+{
+    if (contact->jid == jid)
+        setContactName();
+}
+
+void ContactInfoWindow::userStatusUpdated(QString jid)
+{
+    if (contact->jid == jid)
+        setContactStatus();
+}
+
+void ContactInfoWindow::previewPhotoReceived(QString jid)
+{
+    if (contact->jid == jid)
+        setContactPhoto();
 }
 
 

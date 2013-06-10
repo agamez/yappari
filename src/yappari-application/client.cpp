@@ -1155,6 +1155,8 @@ void Client::photoReceived(QString from, QByteArray data,
     {
         c.photoId = photoId;
         roster->updatePhoto(&c);
+
+        Utilities::logData("Updated my picture photoId: " + c.photoId);
     }
     else if (!data.isEmpty())
     {
@@ -1168,9 +1170,7 @@ void Client::photoReceived(QString from, QByteArray data,
 
             mainWin->updatePhoto(c);
 
-            Utilities::logData("Updated picture of " + from + " Size " +
-                               QString::number(c.photo.width()) + "x" +
-                               QString::number(c.photo.width()));
+            Utilities::logData("Updated picture of " + from);
         }
         else
         {
@@ -1203,6 +1203,8 @@ void Client::photoDeleted(QString jid)
 
         if (jid != myJid)
             mainWin->updatePhoto(c);
+
+        Utilities::logData("Deleted photo of contact " + c.jid);
     }
 }
 

@@ -381,7 +381,7 @@ void RosterDBManager::updatePhoto(Contact *c)
 {
     QSqlQuery query(db);
 
-    Utilities::logData("Updating photo of contact " + c->jid);
+    Utilities::logData("Updating photo of contact " + c->jid + " photoId: " + c->photoId);
 
     // Update contact
     query.prepare("update roster set photo=:photo, photo_id=:photo_id "

@@ -935,8 +935,8 @@ void MainWindow::showProfileWindow()
 {
     ProfileWindow *window = new ProfileWindow(this);
 
-    connect(window,SIGNAL(photoSelected(QString jid, QImage)),
-            this,SLOT(requestSetPhoto(QString jid, QImage)));
+    connect(window,SIGNAL(photoSelected(QString, QImage)),
+            this,SLOT(requestSetPhoto(QString, QImage)));
 
     connect(window,SIGNAL(changeUserName(QString)),
             this,SLOT(requestChangeUserName(QString)));

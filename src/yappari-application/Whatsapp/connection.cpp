@@ -535,12 +535,12 @@ bool Connection::read()
 
                     else if (child.getTag() == "picture")
                     {
-                        QString type = child.getAttributeValue("type");
+                        QString imageType = child.getAttributeValue("type");
                         QString photoId = child.getAttributeValue("id");
                         QByteArray bytes = child.getData();
 
                         emit photoReceived(from, bytes,
-                                           photoId, (type == "image"));
+                                           photoId, (imageType == "image"));
 
                         pictureReceived = true;
                         counters->increaseCounter(DataCounters::ProfileBytes, node.getSize(), 0);
@@ -563,7 +563,8 @@ bool Connection::read()
 
                 }
 
-                if (id.left(10) == "set_photo_" && from == myJid)
+                if (id.left(10) == "set_photo_" && from == myJid &&
+                    node.getChildrenCount() == 0)
                 {
                     emit photoDeleted(myJid);
                 }

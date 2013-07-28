@@ -1,4 +1,5 @@
-/* Copyright 2012 Naikel Aparicio. All rights reserved.
+/**
+ * Copyright (C) 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,6 +41,7 @@
 
 #include "util/messagedigest.h"
 #include "util/datacounters.h"
+
 #include "protocoltreenode.h"
 #include "bintreenodewriter.h"
 #include "bintreenodereader.h"
@@ -52,11 +54,25 @@
 // QtMobility namespace
 QTM_USE_NAMESPACE
 
+/**
+    @class      Connection
+
+    @brief      The Connection class provides the WhatsApp functionality.
+                It represents a connection to the WhatsApp servers and provides
+                functions to send and receive WhatsApp messages
+*/
+
 class Connection : public QObject
 {
     Q_OBJECT
 
 public:
+
+    /** ***********************************************************************
+     ** Enumerations
+     **/
+
+    // Message Status types
     enum ChatMessageType {
         Unknown,
         MessageReceived,
@@ -66,118 +82,413 @@ public:
         UserStatusUpdate
     };
 
-    QTcpSocket *socket;
-    QString domain;
-    QString resource;
-    QString user;
-    QString push_name;
-    QByteArray password;
-    QString myJid;
+    // Photo notification type
+    enum PhotoOperationType {
+        UnknownPhotoOperation,
+        SetPhoto,
+        DeletePhoto
+    };
 
+
+    /** ***********************************************************************
+     ** Public members
+     **/
+
+    // Next authentication challenge
     QByteArray nextChallenge;
+
+    // Account creation date (unixtime)
     QString creation;
+
+    // Account expiration date (unixtime)
     QString expiration;
+
+    // Account kind (free / paid)
     QString kind;
+
+    // Account status (active / expired)
     QString accountstatus;
 
-    BinTreeNodeWriter *out;
-    BinTreeNodeReader *in;
 
+    /** ***********************************************************************
+     ** Constructors and destructors
+     **/
+
+    // Create a Connection object
     explicit Connection(QTcpSocket *socket, QString domain, QString resource,
                         QString user, QString push_name, QByteArray password,
                         DataCounters *counters, QObject *parent = 0);
+
+    // Destroy a Connection object
     ~Connection();
 
+
+    /** ***********************************************************************
+     ** General Public Methods
+     **/
+
+    // Login to the WhatsApp servers
     void login(QByteArray nextChallenge);
+
+    // Read next node
     bool read();
-    void ping();
+
+    // Get the unixtime of the last node successfully read
     qint64 getLastTreeReadTimestamp();
-
-    void updateGroupChats();
-    void setNewUserName(QString push_name);
-
-private:
-    static FunStore store;
-    KeyStream *outputKey;
-    KeyStream *inputKey;
-    QStringList dictionary;
-    qint64 lastTreeRead;
-    int iqid;
-    DataCounters *counters;
-
-    ProtocolTreeNode getMessageNode(FMessage& message, ProtocolTreeNode& child);
-    int sendFeatures();
-    int sendAuth();
-    QByteArray getAuthBlob(QByteArray nonce);
-    QByteArray readFeaturesUntilChallengeOrSuccess(int *bytes);
-    int sendResponse(QByteArray challengeData);
-    void parseSuccessNode(ProtocolTreeNode& node);
-    int readSuccess();
-    void sendClientConfig(QString platform);
-    void sendAvailableForChat();
-
-    void parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageNode);
-    void sendMessageReceived(FMessage& message);
-    void sendSubjectReceived(QString to, QString id);
-    void sendNotificationReceived(QString to, QString id);
-    void getReceiptAck(ProtocolTreeNode& node, QString to, QString id, QString receiptType);
-    void sendDeliveredReceiptAck(QString to, QString id);
-    QString makeId(QString prefix);
-    void sendMessageWithBody(FMessage& message);
-    void sendMessageWithMedia(FMessage& message);
-    void requestMessageWithMedia(FMessage& message);
-    void sendComposing(QString to);
-    void sendPaused(QString to);
-    void sendPong(QString id);
-    void sendGetGroups(QString id,QString type);
-
-
-signals:
-    void connectionClosed();
-    void messageReceived(FMessage message);
-    void messageStatusUpdate(FMessage message);
-    void groupInfoFromList(QString id, QString from, QString author,
-                           QString newSubject, QString creation,
-                           QString subjectOwner, QString subjectTimestamp);
-    void groupNewSubject(QString from, QString author, QString authorName,
-                         QString newSubject, QString creation);
-    void groupAddUser(QString from, QString remove);
-    void groupRemoveUser(QString from, QString remove);
-    void available(QString jid,bool online);
-    void composing(QString jid);
-    void paused(QString jid);
-    void leaveGroup(QString gjid);
-    void userStatusUpdated(FMessage message);
-    void lastOnline(QString jid, qint64 timestamp);
-    void mediaUploadAccepted(FMessage message);
-    void photoIdReceived(QString jid, QString pictureId);
-    void photoDeleted(QString jid);
-    void photoReceived(QString from, QByteArray data,
-                       QString photoId, bool largeFormat);
-    void addParticipant(QString gjid, QString jid);
-    void groupParticipant(QString gjid, QString jid);
-    void groupError(QString gjid);
 
 
 public slots:
+
+    /** ***********************************************************************
+     ** Public slots methods
+     **/
+
+
+    /** ***********************************************************************
+     ** Message handling
+     **/
+
+    // Sends a FMessage
     void sendMessage(FMessage& message);
-    void sendNop();
-    void sendSetGroupSubject(QString gjid, QString subject);
-    void sendLeaveGroup(QString gjid);
+
+
+    /** ***********************************************************************
+     ** User handling
+     **/
+
+    // Sends a query to request the time when a user was last seen online.
     void sendQueryLastOnline(QString jid);
-    void sendGetPhotoIds(QStringList jids);
-    void sendGetPhoto(QString jid, QString expectedPhotoId, bool largeFormat);
+
+    // Sends a query to get the current status of a user
     void sendGetStatus(QString jid);
-    void sendSetPhoto(QString jid, QByteArray imageBytes, QByteArray thumbBytes);
+
+    // Sends a query to request a subscription to a user
     void sendPresenceSubscriptionRequest(QString jid);
+
+    // Sends a query to request a subscription remove to a user
     void sendUnsubscribeHim(QString jid);
+
+
+    /** ***********************************************************************
+     ** Picture handling
+     **/
+
+    // Sends a query to request to get the current profile picture of a user
+    void sendGetPhoto(QString jid, QString expectedPhotoId, bool largeFormat);
+
+    // Sends a request to set a photo
+    void sendSetPhoto(QString jid, QByteArray imageBytes, QByteArray thumbBytes);
+
+    // Sends a request to get the photo Ids from a list of jids
+    void sendGetPhotoIds(QStringList jids);
+
+
+    /** ***********************************************************************
+     ** Group handling
+     **/
+
+    // Sends a request to create a group
     void sendCreateGroupChat(QString subject, QString id);
+
+    // Sends a request to add participants to a group
     void sendAddParticipants(QString gjid, QStringList participants);
+
+    // Sends a request to remove participants from a group
     void sendRemoveParticipants(QString gjid, QStringList participants);
+
+    // Sends a request with participants to a group
     void sendVerbParticipants(QString gjid, QStringList participants,
                               QString id, QString innerTag);
+
+    // Sends a request to retrieve the participants list of a group
     void sendGetParticipants(QString gjid);
 
+    // Sends a request to retrieve the participants list of all groups
+    void updateGroupChats();
+
+    // Sends a request to change/set a group subject
+    void sendSetGroupSubject(QString gjid, QString subject);
+
+    // Sends a request to leave a group
+    void sendLeaveGroup(QString gjid);
+
+
+    /** ***********************************************************************
+     ** Privacy list handling
+     **/
+
+    // Sends a request to get the privacy list
+    void sendGetPrivacyList();
+
+    // Sends a request to set the privacy list
+    void sendSetPrivacyBlockedList(QStringList jidList);
+
+
+    /** ***********************************************************************
+     ** General slots
+     **/
+
+    // Sends a no operation (ping) to the network
+    void sendNop();
+
+    // Changes the user name or alias
+    void setNewUserName(QString push_name);
+
+
+private:
+
+    /** ***********************************************************************
+     ** Private members
+     **/
+
+    // Store with messages waiting for acks
+    static FunStore store;
+
+    // TCP Socket with the TCP connection established
+    QTcpSocket *socket;
+
+    // XMPP domain.  Usually "s.whatsapp.net"
+    QString domain;
+
+    // Client resource identifier.  Example: "S40-2.4.22-443"
+    QString resource;
+
+    // Phone number
+    QString user;
+
+    // User name or alias
+    QString push_name;
+
+    // User password
+    QByteArray password;
+
+    // User jid
+    QString myJid;
+
+    // XMPP dictionary
+    QStringList dictionary;
+
+    // Timestamp of the last successfully node read
+    qint64 lastTreeRead;
+
+    // Unique identifier for <iq> nodes
+    int iqid;
+
+    // Pointer to the DataCounters where network counters are being kept
+    DataCounters *counters;
+
+    // Writer stream to send nodes
+    BinTreeNodeWriter *out;
+
+    // Reader stream to receive nodes
+    BinTreeNodeReader *in;
+
+    // Writer crypto stream
+    KeyStream *outputKey;
+
+    // Reader crypto stream
+    KeyStream *inputKey;
+
+
+    /** ***********************************************************************
+     ** Private methods
+     **/
+
+    // Parse a <message> node
+    void parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageNode);
+
+
+    /** ***********************************************************************
+     ** Authentication
+     **/
+
+    // Sends the features supported by this client to the WhatsApp servers
+    int sendFeatures();
+
+    // Sends the authentication request
+    int sendAuth();
+
+    // Constructs the authentication data to be sent
+    QByteArray getAuthBlob(QByteArray nonce);
+
+    // Reads the features from the node and the challenge data
+    QByteArray readFeaturesUntilChallengeOrSuccess(int *bytes);
+
+    // Sends authentication response
+    int sendResponse(QByteArray challengeData);
+
+    // Read authentication success node
+    int readSuccess();
+
+    // Parses authentication success node
+    void parseSuccessNode(ProtocolTreeNode& node);
+
+
+    /** ***********************************************************************
+     ** Message handling
+     **/
+
+    // Sends a text message
+    void sendMessageWithBody(FMessage& message);
+
+    // Sends a request to send a multimedia message
+    void requestMessageWithMedia(FMessage& message);
+
+    // Sends a multimedia message
+    void sendMessageWithMedia(FMessage& message);
+
+    // Constructs a message node
+    ProtocolTreeNode getMessageNode(FMessage& message, ProtocolTreeNode& child);
+
+    // Send a message received acknowledgement
+    void sendMessageReceived(FMessage& message);
+
+    // Send a notification received acknowledgement
+    void sendNotificationReceived(QString to, QString id);
+
+    // Constructs a receipt acknowledge node
+    void getReceiptAck(ProtocolTreeNode& node, QString to, QString id,
+                       QString receiptType);
+
+    // Sends a receipt acknowledging a delivered message notification received
+    void sendDeliveredReceiptAck(QString to, QString id);
+
+
+    /** ***********************************************************************
+     ** Typing status handling
+     **/
+
+    // Sends a notification that the user is composing a message
+    void sendComposing(QString to);
+
+    // Sends a notification that the user has stopped typing a message
+    void sendPaused(QString to);
+
+
+    /** ***********************************************************************
+     ** Group handling
+     **/
+
+    // Sends a request to all groups
+    void sendGetGroups(QString id,QString type);
+
+    // Sends a notification that a group subject was changed
+    void sendSubjectReceived(QString to, QString id);
+
+
+    /** ***********************************************************************
+     ** General methods
+     **/
+
+    // Sends a ping acknowledge (pong) to the network
+    void sendPong(QString id);
+
+    // Constructs an id
+    QString makeId(QString prefix);
+
+    // Sends the client configuration
+    void sendClientConfig(QString platform);
+
+    // Sends notification that this client is available for chat (online)
+    void sendAvailableForChat();
+
+signals:
+
+    /** ***********************************************************************
+     ** Message handling
+     **/
+
+    // Message received
+    void messageReceived(FMessage message);
+
+    // Message status update
+    void messageStatusUpdate(FMessage message);
+
+    // Upload of Multimedia message accepted
+    void mediaUploadAccepted(FMessage message);
+
+
+    /** ***********************************************************************
+     ** Typing status handling
+     **/
+
+    // User is typing
+    void composing(QString jid);
+
+    // User stopped typing
+    void paused(QString jid);
+
+
+    /** ***********************************************************************
+     ** User handling
+     **/
+
+    // User availability
+    void available(QString jid, bool online);
+
+    // Last seen timestamp of user
+    void lastOnline(QString jid, qint64 timestamp);
+
+    // User status update
+    void userStatusUpdated(FMessage message);
+
+
+    /** ***********************************************************************
+     ** Picture handling
+     **/
+
+    // User photo updated notification received
+    void photoIdReceived(QString jid, QString alias, QString photoId);
+
+    // User photo has been deleted
+    void photoDeleted(QString jid, QString alias);
+
+    // User photo has been received
+    void photoReceived(QString from, QByteArray data,
+                       QString photoId, bool largeFormat);
+
+
+    /** ***********************************************************************
+     ** Group handling
+     **/
+
+    // Received a group from the list of groups obtained by updateGroupChats()
+    void groupInfoFromList(QString id, QString from, QString author,
+                           QString newSubject, QString creation,
+                           QString subjectOwner, QString subjectTimestamp);
+
+    // Received a new group subject (and possibly a new group)
+    void groupNewSubject(QString from, QString author, QString authorName,
+                         QString newSubject, QString creation);
+
+    // User added to a group
+    void groupAddUser(QString from, QString remove);
+
+    // User removed from a group
+    void groupRemoveUser(QString from, QString remove);
+
+    // Group left
+    void groupLeft(QString gjid);
+
+    // User belongs to group
+    void groupUser(QString gjid, QString jid);
+
+    // Group error (not in the group anymore or group doesn't exist anymore)
+    void groupError(QString gjid);
+
+
+    /** ***********************************************************************
+     ** Privacy list handling
+     **/
+
+    // Privacy list received
+    void privacyListReceived(QStringList list);
+
+    /** ***********************************************************************
+     ** General signals
+     **/
+
+    void connectionClosed();
 };
 
 

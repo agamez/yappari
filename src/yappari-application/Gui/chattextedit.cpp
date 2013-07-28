@@ -55,7 +55,7 @@ ChatTextEdit::ChatTextEdit(QWidget *parent) :
     fontHeight = metrics.height();
 
     isEmojiWidgetOpen = false;
-    isComposing = true;
+    isComposing = false;
 
     connect(&composingTimer,SIGNAL(timeout()),
             this,SLOT(verifyPaused()));
@@ -76,6 +76,7 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
         if (keyEvent->nativeScanCode() == 36)
         {
             // Return pressed
+            isComposing = false;
             emit returnPressed();
             return true;
         }
@@ -125,6 +126,7 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
         {
             // Let's hide the keyboard if it was shown
             QTimer::singleShot(0,this,SLOT(closeKB()));
+            isComposing = false;
             emit returnPressed();
             return true;
         }
@@ -196,7 +198,11 @@ void ChatTextEdit::verifyPaused()
     if ((QDateTime::currentMSecsSinceEpoch() - lastKeyPressed) > 2000)
     {
         composingTimer.stop();
-        emit paused();
+        if (isComposing)
+        {
+            isComposing = false;
+            emit paused();
+        }
     }
 }
 

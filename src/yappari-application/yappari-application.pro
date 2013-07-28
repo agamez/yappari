@@ -135,7 +135,8 @@ SOURCES += main.cpp \
     Gui/groupparticipantitem.cpp \
     Gui/groupparticipantdelegate.cpp \
     Gui/groupinfowindow.cpp \
-    Gui/groupsubjectwindow.cpp
+    Gui/groupsubjectwindow.cpp \
+    Gui/blockedcontactswindow.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -244,7 +245,8 @@ HEADERS += \
     Gui/groupparticipantitem.h \
     Gui/groupparticipantdelegate.h \
     Gui/groupinfowindow.h \
-    Gui/groupsubjectwindow.h
+    Gui/groupsubjectwindow.h \
+    Gui/blockedcontactswindow.h
 
 CONFIG += mobility qtdbus network link_pkgconfig
 MOBILITY = systeminfo messaging
@@ -277,7 +279,8 @@ FORMS += \
     Gui/ui/creategroupwindow.ui \
     Gui/ui/selectgroupparticipantswindow.ui \
     Gui/ui/groupinfowindow.ui \
-    Gui/ui/groupsubjectwindow.ui
+    Gui/ui/groupsubjectwindow.ui \
+    Gui/ui/blockedcontactswindow.ui
 
 maemo5 {
   #VARIABLES
@@ -324,6 +327,9 @@ maemo5 {
   script.path = /etc/event.d
   script.files += event.d/yappari
 }
+
+
+
 
 
 

@@ -1,6 +1,14 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version:</b><br>
+<b>New in this version 1.0.37:</b><br>
+<li>&bull; Fixed bug where typing/stopped typing notifications weren't being sent.</li>
+<li>&bull; Implemented block/unblock of contacts.</li>
+<br>
+<b>New in 1.0.36:</b><br>
+<li>&bull; Fixed registration once again.</li>
+<li>&bull; Fixed status bug in contact details windows.</li>
+<br>
+<b>New in 0.0.35:</b><br>
 <li>&bull; <b>Full group support.</b>  You can now create groups and add/remove members of the groups you have created.</li>
 <li>&bull; Group info option implemented.  Press and hold over a group and select <i>Group Info<i>.</li>
 <li>&bull; SIM card change detection. If you change your SIM card you're asked if you want to register the new number or continue using the old number.</li>

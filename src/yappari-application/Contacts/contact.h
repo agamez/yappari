@@ -67,6 +67,7 @@ public:
     qint64 lastSeen;
     QImage photo;
     QString photoId;
+    bool blocked;
 
     void setOnlineStatus(bool isOnline);
 };

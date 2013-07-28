@@ -1,3 +1,18 @@
+yappari (1.0.37) stable; urgency=low
+
+  * Fixed bug where the composing notification wasn't being sent.
+  * Implemented contacts block/unblock.
+
+ -- Scorpius <naikel@gmail.com>  Sat, 27 Jul 2013 21:25:04 -0430
+
+yappari (1.0.36) stable; urgency=low
+
+  * Fixed registration once again. Now id is a constant.
+  * User aliases are now updated when they set or delete their picture.
+  * Removed use of method SendGetUserStatus since it doesn't work anymore.
+
+ -- Scorpius <naikel@gmail.com>  Wed, 19 Jun 2013 12:40:09 -0430
+
 yappari (0.0.35) unstable; urgency=low
 
   * Fixed bug where profile pictures weren't being submitted to WA servers.

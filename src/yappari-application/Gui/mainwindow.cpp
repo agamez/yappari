@@ -41,6 +41,7 @@
 
 #include "aboutdialog.h"
 #include "accountinfowindow.h"
+#include "blockedcontactswindow.h"
 #include "statuswindow.h"
 #include "chatdisplaydelegate.h"
 #include "contactdisplayitem.h"
@@ -97,6 +98,8 @@ MainWindow::MainWindow(ContactRoster *roster, bool showWhatsNew, QWidget *parent
             this,SLOT(showNetworkUsageWindow()));
     connect(ui->actionCreateGroup,SIGNAL(triggered()),
             this,SLOT(showCreateGroupWindow()));
+    connect(ui->actionBlockedContacts,SIGNAL(triggered()),
+            this,SLOT(showBlockedContactsWindow()));
 
     connect(ui->listView,SIGNAL(clicked(QModelIndex)),
             this,SLOT(contactSelected(QModelIndex)));
@@ -286,6 +289,9 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
 
         connect(chat,SIGNAL(mute(QString,bool,qint64)),
                 this,SLOT(mute(QString,bool,qint64)));
+
+        connect(chat,SIGNAL(blockOrUnblockContact(QString,bool)),
+                this,SLOT(blockOrUnblockContact(QString,bool)));
 
         connect(chat,SIGNAL(photoRefresh(QString,QString,bool)),
                 this,SLOT(requestPhotoRefresh(QString,QString,bool)));
@@ -679,7 +685,7 @@ void MainWindow::requestLeaveGroupFromChat(QString gjid)
     emit requestLeaveGroup(gjid);
 }
 
-void MainWindow::leaveGroup(QString gjid)
+void MainWindow::groupLeft(QString gjid)
 {
     // Delete group from open chat windows
     if (chatWindowList.contains(gjid))
@@ -999,14 +1005,20 @@ void MainWindow::photoReceived(Contact &c, QImage photo, QString photoId)
 
 void MainWindow::statusChanged(FMessage message)
 {
-    if (chatWindowList.contains(message.key.remote_jid))
+    statusChanged(message.key.remote_jid, QString::fromUtf8(message.data.constData()));
+}
+
+void MainWindow::statusChanged(QString jid, QString status)
+{
+    if (chatWindowList.contains(jid))
     {
-        ChatWindow *chat = chatWindowList.value(message.key.remote_jid);
-        chat->statusChanged(QString::fromUtf8(message.data.constData()));
+        ChatWindow *chat = chatWindowList.value(jid);
+        chat->statusChanged(status);
     }
 
-    emit userStatusUpdated(message.key.remote_jid);
+    emit userStatusUpdated(jid);
 }
+
 
 void MainWindow::viewContact(Contact *c)
 {
@@ -1089,3 +1101,27 @@ void MainWindow::groupError(QString gjid)
         chat->groupError();
     }
 }
+
+void MainWindow::showBlockedContactsWindow()
+{
+    emit requestPrivacyList();
+
+    BlockedContactsWindow *blockedContactsWindow =
+            new BlockedContactsWindow(roster, this);
+
+    connect(this,SIGNAL(privacyListRefreshed()),
+            blockedContactsWindow,SLOT(showBlocked()));
+
+    showWindow(blockedContactsWindow);
+}
+
+void MainWindow::blockOrUnblockContact(QString jid, bool blocked)
+{
+    emit requestBlockOrUnblockContact(jid, blocked);
+}
+
+void MainWindow::refreshPrivacyList()
+{
+    emit privacyListRefreshed();
+}
+

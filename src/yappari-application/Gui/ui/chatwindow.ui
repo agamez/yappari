@@ -155,6 +155,7 @@
     <addaction name="actionDeleteAll"/>
     <addaction name="actionSendMultimedia"/>
     <addaction name="actionMute"/>
+    <addaction name="actionBlock"/>
    </widget>
    <addaction name="chatMenu"/>
   </widget>
@@ -176,6 +177,11 @@
   <action name="actionViewContact">
    <property name="text">
     <string>View Contact</string>
+   </property>
+  </action>
+  <action name="actionBlock">
+   <property name="text">
+    <string>Block</string>
    </property>
   </action>
  </widget>

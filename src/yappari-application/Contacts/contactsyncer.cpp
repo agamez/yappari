@@ -46,7 +46,6 @@
 #include "version.h"
 #include "globalconstants.h"
 #include "contactsyncer.h"
-#include "contactlistiterator.h"
 
 ContactSyncer::ContactSyncer(ContactRoster* roster,
                              QObject *parent)
@@ -160,7 +159,6 @@ void ContactSyncer::freeAddressBook()
         delete c;
     }
 
-    delete listIterator;
     abook.clear();
 }
 
@@ -243,26 +241,21 @@ void ContactSyncer::sync()
         syncDataReceived = false;
         emit progress(0);
 
-        abookJids.clear();
+        deletedJids.clear();
         ContactList list = roster->getContactList();
-        ContactListIterator abookIterator(list);
-        for (int i = 0; abookIterator.hasNext(); i++)
+        foreach (Contact *c, list.values())
         {
-            abookIterator.next();
-
-            Contact *c = abookIterator.value();
-
             if (c->type == Contact::TypeContact)
             {
                 if (c->fromAddressBook)
                 {
                     // Save the JID to check if it was
                     // removed from the phone address book later
-                    abookJids.insert(c->jid,true);
+                    deletedJids.insert(c->jid,true);
                 }
                 else
                 {
-                    // If it's a temporal contact add it to the
+                    // If it's a temporal contact include it to the
                     // address book to synchronize it.
                     // We need to create a new one because this
                     // is gonna be freed later
@@ -275,20 +268,44 @@ void ContactSyncer::sync()
             }
         }
 
+        // Fill the abook with the phone's address book
         getAddressBook();
-        listIterator = new ContactListIterator(abook);
 
-        QString response = getAuthResponse("0");
-
-        connect(this,SIGNAL(finished()),this,SLOT(authResponse()));
-        connect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
-                this,SLOT(errorHandler(QAbstractSocket::SocketError)));
-
-        setHeader("Authorization", response);
-
-        Utilities::logData("syncer: Authenticating...");
-        post(QUrl(URL_CONTACTS_AUTH), writeBuffer.constData(), writeBuffer.length());
+        // Sync the abook
+        syncAddressBook();
     }
+}
+
+void ContactSyncer::syncContact(Contact *c)
+{
+    if (!isSyncing && Client::connectionStatus == Client::LoggedIn)
+    {
+        Utilities::logData("syncer: Synchronizing contact: " + c->jid);
+        deletedJids.clear();
+        isSyncing = true;
+        syncDataReceived = false;
+
+        // Only include a copy of the contact in the abook
+        // It is gonna be freed later
+        Contact *cc = roster->cloneContact(c);
+        abook.insert(cc->phone,cc);
+
+        syncAddressBook();
+    }
+}
+
+void ContactSyncer::syncAddressBook()
+{
+    QString response = getAuthResponse("0");
+
+    connect(this,SIGNAL(finished()),this,SLOT(authResponse()));
+    connect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
+            this,SLOT(errorHandler(QAbstractSocket::SocketError)));
+
+    setHeader("Authorization", response);
+
+    Utilities::logData("syncer: Authenticating...");
+    post(QUrl(URL_CONTACTS_AUTH), writeBuffer.constData(), writeBuffer.length());
 }
 
 void ContactSyncer::authResponse()
@@ -335,19 +352,14 @@ void ContactSyncer::authResponse()
 
         // Synchronize all contacts
 
-        if (listIterator->hasNext())
+        if (abook.size() > 0)
         {
             writeBuffer.clear();
-            addParam("ut","all");
+            addParam("ut","wa");
             addParam("t", "c");
 
-            int j;
-            for (j = 0; listIterator->hasNext(); j++)
+            foreach (Contact *c, abook.values())
             {
-                listIterator->next();
-
-                Contact *c = listIterator->value();
-
                 if (c->type == Contact::TypeContact)
                     addParam("u[]",c->phone);
             }
@@ -500,6 +512,7 @@ void ContactSyncer::syncNextPhone()
                     updated = true;
                     contact->statusTimestamp = statusTimestamp;
                     contact->status = e.value("s").toString();
+                    emit statusChanged(contact->jid, contact->status);
                 }
 
                 if (exists && updated)
@@ -507,7 +520,7 @@ void ContactSyncer::syncNextPhone()
                 else if (!exists)
                     roster->insertContact(contact);
 
-                abookJids.remove(jid);
+                deletedJids.remove(jid);
 
                 // if (contact->photoId.isEmpty() || contact->photoId == "abook")
                     emit photoRefresh(jid, contact->photoId, false);
@@ -533,8 +546,7 @@ void ContactSyncer::syncNextPhone()
     else
     {
         // Remove contacts that were deleted from the address book
-        QList<QString> deleted = abookJids.keys();
-        foreach (QString jid, deleted)
+        foreach (QString jid, deletedJids.keys())
             roster->deleteContact(jid);
         Utilities::logData("syncer: Contacts synchronization successful");
 

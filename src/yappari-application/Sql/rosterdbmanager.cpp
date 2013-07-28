@@ -40,7 +40,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define DB_FILENAME "roster.db"
-#define DB_VERSION  4
+#define DB_VERSION  5
 
 RosterDBManager::RosterDBManager(QObject *parent) :
     QObject(parent)
@@ -83,7 +83,8 @@ void RosterDBManager::init()
                    "subject_timestamp integer,"
                    "subject_owner varchar(256),"
                    "subject_owner_name varchar(256),"
-                   "photo_id varchar(256)"
+                   "photo_id varchar(256),"
+                   "blocked boolean"
                    ")");
 
         query.exec("create table participants ("
@@ -156,6 +157,24 @@ void RosterDBManager::init()
 
                 query.exec("create index participants_idx on participants(gjid)");
 
+                version = 4;
+                query.prepare("update settings set version="+
+                              QString::number(version));
+                query.exec();
+            }
+
+            if (version == 4)
+            {
+                // Upgrade it to version 5
+
+                Utilities::logData("Upgrading roster db to version 5");
+
+                query.prepare("alter table roster add column blocked boolean");
+                query.exec();
+
+                query.prepare("update roster set blocked='false'");
+                query.exec();
+
                 version = DB_VERSION;
                 query.prepare("update settings set version="+
                               QString::number(version));
@@ -195,10 +214,10 @@ void RosterDBManager::updateContact(Contact *c)
 
         query.prepare("insert into roster "
                       "(jid, name, alias, type, phone, status, status_timestamp, "
-                      "last_seen, from_abook) "
+                      "last_seen, from_abook, blocked) "
                       "values "
                       "(:jid, :name, :alias, :type, :phone, :status, :status_timestamp, "
-                      ":last_seen, :from_abook)");
+                      ":last_seen, :from_abook, :blocked)");
     }
 
     query.bindValue(":jid",c->jid);
@@ -212,6 +231,7 @@ void RosterDBManager::updateContact(Contact *c)
     query.bindValue(":status",c->status);
     query.bindValue(":status_timestamp",c->statusTimestamp);
     query.bindValue(":last_seen",c->lastSeen);
+    query.bindValue(":blocked",c->blocked);
 
     /*
     QByteArray bytes;
@@ -297,6 +317,7 @@ ContactList *RosterDBManager::getAllContacts()
         }
 
         c->photoId = query.value(15).toString();
+        c->blocked = query.value(16).toBool();
 
         list->insert(c->jid,c);
     }
@@ -428,7 +449,7 @@ void RosterDBManager::removeGroup(QString gjid)
     removeContact(gjid);
 }
 
-void RosterDBManager::updateGroupSubject(Group *g)
+void RosterDBManager::updateSubjectGroup(Group *g)
 {
     QSqlQuery gquery(db);
 
@@ -451,6 +472,21 @@ void RosterDBManager::removeParticipant(Group *g, Contact *c)
     query.prepare("delete from participants where gjid=:gjid and jid=:jid");
     query.bindValue(":gjid",g->jid);
     query.bindValue(":jid",c->jid);
+
+    query.exec();
+}
+
+void RosterDBManager::updateBlockContact(Contact *c)
+{
+    QSqlQuery query(db);
+
+    Utilities::logData("Updating contact blocked flag " + c->jid);
+
+    // Update contact
+    query.prepare("update roster set blocked=:blocked "
+                  "where jid=:jid");
+    query.bindValue(":jid",c->jid);
+    query.bindValue(":blocked",c->blocked);
 
     query.exec();
 }

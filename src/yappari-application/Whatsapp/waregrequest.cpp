@@ -36,6 +36,7 @@ WARegRequest::WARegRequest(QString cc, QString in, QString code, QObject *parent
 
     addParam("cc", cc);
     addParam("in", in);
-    addParam("id", Utilities::getChatPassword());
+    // addParam("id", Utilities::getChatPassword());
+    addParam("id", "abcdef0123456789");
     addParam("code", code);
 }

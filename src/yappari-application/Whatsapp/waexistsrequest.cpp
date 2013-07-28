@@ -35,5 +35,6 @@ WAExistsRequest::WAExistsRequest(QString cc, QString in, QObject *parent) : WARe
 
     addParam("cc", cc);
     addParam("in", in);
-    addParam("id",Utilities::getChatPassword());
+    addParam("id","abcdef0123456789");
+    // addParam("id",Utilities::getChatPassword());
 }

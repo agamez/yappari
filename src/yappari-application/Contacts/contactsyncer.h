@@ -35,7 +35,6 @@
 #include "Whatsapp/httprequestv2.h"
 #include "contactlist.h"
 #include "contactroster.h"
-#include "contactlistiterator.h"
 
 class ContactSyncer : public HttpRequestv2
 {
@@ -49,6 +48,7 @@ public:
 
 public slots:
     void sync();
+    void syncContact(Contact *c);
     void onResponse();
     void fillBuffer();
     void parseResponse();
@@ -61,8 +61,7 @@ public slots:
 private:
     ContactRoster *roster;
     ContactList abook;
-    QMap<QString,bool> abookJids;
-    ContactListIterator *listIterator;
+    QMap<QString,bool> deletedJids;
     QVariantList phoneList;
     int totalPhones, nextSignal;
     bool isSyncing;
@@ -71,6 +70,8 @@ private:
     QByteArray readBuffer;
     QByteArray writeBuffer;
     qint64 totalLength;
+
+    void syncAddressBook();
 
     QByteArray encode(QByteArray bytes);
     int encodeByte(int c);
@@ -81,6 +82,7 @@ private:
     void addParam(QString name, QString value);
 
 signals:
+    void statusChanged(QString jid, QString status);
     void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
     void syncFinished();
     void progress(int);

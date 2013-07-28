@@ -89,6 +89,8 @@ public slots:
     void viewContact();
     void photoReceivedHandler(QImage photo, QString photoId);
     void statusChanged(QString status);
+    void blockOrUnblock();
+    void setBlock(bool blocked);
 
 signals:
     void logMessage(FMessage message);
@@ -102,6 +104,7 @@ signals:
     void lastSeenUpdated();
     void requestStatus(QString jid);
     void userStatusChanged();
+    void blockOrUnblockContact(QString jid, bool blocked);
 
 private:
     bool isPeerComposing;

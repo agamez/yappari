@@ -69,5 +69,6 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method, QObject *pa
     addParam("method", method);
     // addParam("imsi", imsi.isEmpty() ? "00000000000000" : imsi);
     addParam("token", Utilities::getToken(in));
-    addParam("id",Utilities::getChatPassword());
+    // addParam("id",Utilities::getChatPassword());
+    addParam("id","abcdef0123456789");
 }

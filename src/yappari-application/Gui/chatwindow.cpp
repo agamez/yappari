@@ -140,8 +140,13 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     connect(ui->actionViewContact,SIGNAL(triggered()),
             this,SLOT(viewContact()));
 
+    connect(ui->actionBlock,SIGNAL(triggered()),
+            this,SLOT(blockOrUnblock()));
+
     connect(ui->scrollArea,SIGNAL(topReached()),
             this,SLOT(readMoreLogLines()));
+
+    setBlock(contact->blocked);
 
     readMoreLogLines();
 
@@ -608,12 +613,7 @@ void ChatWindow::mute()
 
         if (dialog.exec() == QDialog::Accepted)
         {
-            muted = true;
-            muteExpireTimestamp = dialog.getMuteExpireTimestamp();
-            //Utilities::logData("Subject change to: " + newSubject);
-            //emit changeSubject(contact.jid,newSubject);
-
-            ui->actionMute->setText("Unmute");
+            setMute(dialog.getMuteExpireTimestamp());
             emit mute(contact->jid,muted,muteExpireTimestamp);
         }
     }
@@ -679,4 +679,28 @@ void ChatWindow::statusChanged(QString status)
 {
     contact->status = status;
     emit userStatusChanged();
+}
+
+void ChatWindow::blockOrUnblock()
+{
+    setBlock(!contact->blocked);
+}
+
+void ChatWindow::setBlock(bool blocked)
+{
+    ui->actionBlock->setText((blocked) ? "Unblock" : "Block");
+
+    if (contact->blocked != blocked)
+    {
+        if (Client::connectionStatus != Client::LoggedIn)
+        {
+            QMaemo5InformationBox::information(this,"You have to be logged in to unblock a contact",
+                                               QMaemo5InformationBox::NoTimeout);
+        }
+        else
+        {
+            contact->blocked = blocked;
+            emit blockOrUnblockContact(contact->jid, blocked);
+        }
+    }
 }

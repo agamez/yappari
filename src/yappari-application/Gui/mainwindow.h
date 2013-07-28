@@ -70,6 +70,7 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event);
 
 public slots:
+    void statusChanged(QString jid, QString status);
     void createChatWindow();
     void messageReceived(FMessage message);
     void mediaUploadAccepted(FMessage message);
@@ -93,7 +94,7 @@ public slots:
     void composing(QString jid);
     void paused(QString jid);
     void showDonate();
-    void leaveGroup(QString jid);
+    void groupLeft(QString jid);
     void requestSync();
     void contextMenu(QPoint p);
     void mute(QString jid, bool muted, qint64 muteExpireTimestamp);
@@ -115,6 +116,9 @@ public slots:
     void requestAddGroupParticipant(QString gjid, QString participant);
     void requestRemoveGroupParticipant(QString gjid, QString participant);
     void groupError(QString gjid);
+    void showBlockedContactsWindow();
+    void blockOrUnblockContact(QString jid, bool blocked);
+    void refreshPrivacyList();
 
 private:
     Ui::MainWindow *ui;
@@ -162,6 +166,9 @@ signals:
     void addGroupParticipant(QString gjid, QString participant);
     void removeGroupParticipant(QString gjid, QString participant);
     void groupParticipantRemoved(QString gjid, QString participant);
+    void requestPrivacyList();
+    void requestBlockOrUnblockContact(QString jid, bool blocked);
+    void privacyListRefreshed();
 };
 
 #endif // MAINWINDOW_H

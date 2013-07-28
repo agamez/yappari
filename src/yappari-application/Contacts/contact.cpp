@@ -34,6 +34,7 @@ Contact::Contact()
 {
     isOnline = false;
     lastSeen = 0;
+    blocked = false;
     type = TypeContact;
 
 }

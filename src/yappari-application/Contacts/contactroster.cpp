@@ -56,6 +56,7 @@ ContactRoster::ContactRoster(QObject *parent) : QObject(parent)
     connect(this,SIGNAL(addParticipant(Group*,Contact*)),&rosterDb,SLOT(addParticipant(Group*,Contact*)));
     connect(this,SIGNAL(removeParticipant(Group*,Contact*)),&rosterDb,SLOT(removeParticipant(Group*,Contact*)));
     connect(this,SIGNAL(updateSubjectGroup(Group*)),&rosterDb,SLOT(updateSubjectGroup(Group*)));
+    connect(this,SIGNAL(updateBlockContact(Contact *)),&rosterDb,SLOT(updateBlockContact(Contact *)));
 
     ContactList *list = rosterDb.getAllContacts();
 
@@ -350,5 +351,21 @@ void ContactRoster::removeGroupParticipant(Group *group, QString jid)
         Contact &c = getContact(jid);
         emit removeParticipant(group,&c);
     }
+}
+
+ContactList ContactRoster::getBlockedJidsList()
+{
+    ContactList result;
+
+    foreach (Contact *c, roster)
+        if (c->blocked)
+            result.insert(c->jid,c);
+
+    return result;
+}
+
+void ContactRoster::updateBlock(Contact *contact)
+{
+    emit updateBlockContact(contact);
 }
 

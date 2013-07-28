@@ -12,10 +12,18 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: WhatsApp client written in Qt for the Nokia N900
  Yappari is a WhatsApp client for the Nokia N900.
  .
- You have to reboot your phone after installation.
+ WhatsApp is a propietary instant messaging application for Android,
+ iPhone, Blackberry, Windows Phone and Nokia phones running Symbian OS.
+ Users can send text and also multimedia messages containing images,
+ audio and video files.
  .
- Yappari supports messaging and multimedia. There's also some
- basic group support.
+ Since there is no official WhatsApp client for Maemo, Yappari has
+ been created.  Yappari supports almost everything the official client
+ does and your WhatsApp experience using Yappari will be a nice one.
+ .
+ Yappari fully supports text and multimedia messages and groups.
+ .
+ You have to reboot your phone after installation.
  .
 XB-Maemo-Display-Name: Yappari
 XB-Maemo-Icon-26:

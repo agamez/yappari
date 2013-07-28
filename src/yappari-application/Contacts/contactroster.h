@@ -63,6 +63,8 @@ public:
     void addGroupParticipant(Group *group, QString jid);
     void removeGroupParticipant(Group *group, QString jid);
     void updateSubject(Group *group);
+    ContactList getBlockedJidsList();
+    void updateBlock(Contact *contact);
 
 
 private:
@@ -86,6 +88,7 @@ signals:
     void addParticipant(Group *g, Contact *c);
     void removeParticipant(Group *g, Contact *c);
     void updateSubjectGroup(Group *g);
+    void updateBlockContact(Contact *c);
 };
 
 #endif // CONTACTROSTER_H

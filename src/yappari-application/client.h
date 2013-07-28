@@ -1,4 +1,5 @@
-/* Copyright 2013 Naikel Aparicio. All rights reserved.
+/**
+ * Copyright (C) 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -48,24 +49,38 @@
 #include "Dbus/dbusappletif.h"
 #include "Dbus/dbusnokiamcesignalif.h"
 
+#include "Whatsapp/util/datacounters.h"
+
 #include "Whatsapp/warequest.h"
 #include "Whatsapp/connection.h"
 #include "Whatsapp/phonereg.h"
-
-#include "Whatsapp/util/datacounters.h"
 
 #include "Contacts/contactroster.h"
 #include "Contacts/contactsyncer.h"
 
 #include "Gui/mainwindow.h"
 
-// Q_DECLARE_METATYPE(QAbstractSocket::SocketError)
+/**
+    @class      Client
+
+    @brief      This is the main class of Yappari.
+                It provides interaction between the GUI and the Connection object
+                that keeps the connection to the WhatsApp servers.
+                The object from this class is always running in background, and also
+                interacts with the status menu applet.
+*/
 
 class Client : public QObject
 {
     Q_OBJECT
+
 public:
 
+    /** ***********************************************************************
+     ** Enumerations
+     **/
+
+    // Status of the connection to the WhatsApp servers
     enum ConnectionStatus {
         Unknown,
         WaitingForConnection,
@@ -78,6 +93,7 @@ public:
         RegistrationFailed
     };
 
+    // Frequency of the address book synchronization
     enum SyncFrequencies {
         onConnect,
         onceADay,
@@ -85,48 +101,81 @@ public:
         onceAMonth
     };
 
+
+    /** ***********************************************************************
+     ** Public members
+     **/
+
+    // Network data counters
     static DataCounters dataCounters;
 
+    // Status of the connection
     static ConnectionStatus connectionStatus;
 
+    // Context to make calls to libosso functions
     static osso_context_t *osso_context;
 
-    // Settings
-    static QSettings *settings;
-
-    // Sequence
+    // Message number sequence
     static quint64 seq;
 
-    // Colors
+    // Global settings
+    static QSettings *settings;
+
+    // Background color of own self text
     static QString mycolor;
+
+    // Nicknames color
     static QString nickcolor;
+
+    // Text color
     static QString textcolor;
 
-    // Account information
+    // Own JID
     static QString myJid;
+
+    // Country code
     static QString cc;
+
+    // Phone number in local format (without the country code)
     static QString number;
+
+    // Phone number in international format (with the country code)
     static QString phoneNumber;
-    static QString password;
+
+    // User name or alias
     static QString userName;
+
+    // User password
+    static QString password;
+
+    // IMEI
     static QString imei;
+
+    // IMSI
     static QString imsi;
 
+    // Account creation timestamp
     static QString creation;
+
+    // Account expiration timestamp
     static QString expiration;
+
+    // Account kind (free/paid)
     static QString kind;
+
+    // Account status (active/expired)
     static QString accountstatus;
 
-    // Port
+    // Port to connect to WhatsApp Servers (443/5222)
     static quint16 port;
 
-    // Status
+    // User Status
     static QString myStatus;
 
-    // Nicknames in conversations
+    // Show nicknames in conversations instead of their names from the address book
     static bool showNicknames;
 
-    // Phone numbers in select contact dialog
+    // Show users phone numbers in select contact dialog
     static bool showNumbers;
 
     // Pop up conversation windows when first message is received
@@ -138,34 +187,107 @@ public:
     // Import media into gallery
     static bool importMediaToGallery;
 
-    // Last time photo refresh was performed
+    // Last time address book synchronizarion was performed
     static qint64 lastSync;
 
-    // What's new window
+    // What's new window magic number
     static qint64 whatsNew;
 
-    // Sync
+    // Sync setting (on/intl/off)
     static QString sync;
 
-    // Sync frequency
+    // Sync frequency (see SyncFrequencies enum above)
     static int syncFreq;
 
-    // Start on boot
+    // Start Yappari on boot
     static bool startOnBoot;
 
-    // Android password encryption method
+    // Android password encryption method enabled
     static bool android;
 
+    // Is a synchronization active?
     static bool isSynchronizing;
 
-    // Main window
+    // Main GUI window
     static MainWindow *mainWin;
 
     // Roster
     static ContactRoster *roster;
 
+
+    /** ***********************************************************************
+     ** Constructors and destructors
+     **/
+
+    // Create a Client object
     explicit Client(bool minimized, QObject *parent = 0);
+
+    // Destroy a Client object
     ~Client();
+
+
+public slots:
+
+    /** ***********************************************************************
+     ** Public slots methods
+     **/
+
+    void updateSettings();
+    void networkStatusChanged(bool isOnline);
+    void networkConfigurationChanged(QNetworkConfiguration);
+    void verifyAndConnect();
+    void connected();
+    void error(QAbstractSocket::SocketError socketError);
+    void connectionActivated();
+    void connectionDeactivated();
+    void connectionClosed();
+    void read();
+    void keepAlive();
+    void queueMessage(FMessage message);
+    void sendMessagesInQueue();
+    void updateStatus();
+    void registrationSuccessful(QVariantMap result);
+    void sendSetGroupSubject(QString gjid, QString subject);
+    void requestLeaveGroup(QString jid);
+    void requestQueryLastOnline(QString jid);
+    void userStatusUpdated(FMessage message);
+    void changeStatus(QString newStatus);
+    void changeUserName(QString newUserName);
+    void synchronizeContacts();
+    void syncHttpError(int error);
+    void syncSslError();
+    void syncFinished();
+    void syncProgress(int progress);
+    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
+    void photoDeleted(QString jid, QString alias);
+    void photoIdReceived(QString jid, QString name, QString pictureId);
+    void photoReceived(QString from, QByteArray data,
+                       QString photoId, bool largeFormat);
+    void requestContactStatus(QString jid);
+    void setPhoto(QString jid, QImage image);
+    void requestPresenceSubscription(QString jid);
+    void requestPresenceUnsubscription(QString jid);
+    void createGroupChat(QImage photo, QString subject,QStringList participants);
+    void groupInfoFromList(QString id, QString from, QString author,
+                           QString newSubject, QString creation,
+                           QString subjectOwner, QString subjectTimestamp);
+    void groupNewSubject(QString from, QString author, QString authorName,
+                         QString newSubject, QString creation);
+    void getParticipants(QString gjid);
+    void groupUser(QString gjid, QString jid);
+    void sendAddGroupParticipant(QString gjid, QString jid);
+    void sendRemoveGroupParticipant(QString gjid, QString jid);
+    void groupAddUser(QString gjid ,QString jid);
+    void groupRemoveUser(QString gjid ,QString jid);
+    void requestPrivacyList();
+    void setPrivacyList();
+    void blockOrUnblockContact(QString jid, bool blocked);
+    void privacyListReceived(QStringList list);
+
+
+public Q_SLOTS:
+    void ShowWindow();
+    bool isRunning();
 
 private:
     Connection *connection;
@@ -210,64 +332,10 @@ private:
     void createMyJidContact();
 
 signals:
-
-public slots:
-    void updateSettings();
-    void networkStatusChanged(bool isOnline);
-    void networkConfigurationChanged(QNetworkConfiguration);
-    void verifyAndConnect();
-    void connected();
-    void error(QAbstractSocket::SocketError socketError);
-    void connectionActivated();
-    void connectionDeactivated();
-    void connectionClosed();
-    void read();
-    void keepAlive();
-    void queueMessage(FMessage message);
-    void sendMessagesInQueue();
-    void updateStatus();
-    void registrationSuccessful(QVariantMap result);
-    void sendSetGroupSubject(QString gjid, QString subject);
-    void requestLeaveGroup(QString jid);
-    void requestQueryLastOnline(QString jid);
-    void userStatusUpdated(FMessage message);
-    void changeStatus(QString newStatus);
-    void changeUserName(QString newUserName);
-    void synchronizeContacts();
-    void syncHttpError(int error);
-    void syncSslError();
-    void syncFinished();
-    void syncProgress(int progress);
-    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
-    void photoDeleted(QString jid);
-    void photoIdReceived(QString jid, QString pictureId);
-    void photoReceived(QString from, QByteArray data,
-                       QString photoId, bool largeFormat);
-    void requestContactStatus(QString jid);
-    void setPhoto(QString jid, QImage image);
-    void requestPresenceSubscription(QString jid);
-    void requestPresenceUnsubscription(QString jid);
-    void createGroupChat(QImage photo, QString subject,QStringList participants);
-    void groupInfoFromList(QString id, QString from, QString author,
-                           QString newSubject, QString creation,
-                           QString subjectOwner, QString subjectTimestamp);
-    void groupNewSubject(QString from, QString author, QString authorName,
-                         QString newSubject, QString creation);
-    void addParticipant(QString gjid, QString jid);
-    void getParticipants(QString gjid);
-    void groupParticipant(QString gjid, QString jid);
-    void sendAddGroupParticipant(QString gjid, QString jid);
-    void sendRemoveGroupParticipant(QString gjid, QString jid);
-    void groupAddUser(QString gjid ,QString jid);
-    void groupRemoveUser(QString gjid ,QString jid);
-
-
-public Q_SLOTS:
-    void ShowWindow();
-    bool isRunning();
-
 Q_SIGNALS:
     void tklock_mode_ind(const QString &lock_mode);
+
+
 };
 
 #endif // CLIENTTHREAD_H

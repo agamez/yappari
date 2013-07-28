@@ -1,4 +1,5 @@
-/* Copyright 2013 Naikel Aparicio. All rights reserved.
+/**
+ * Copyright (C) 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,8 +29,6 @@
 
 #include <mce/dbus-names.h>
 
-#include <execinfo.h>
-
 #include <QDateTime>
 #include <QStatusBar>
 #include <QSystemInfo>
@@ -51,59 +50,131 @@
 #include "Whatsapp/util/qtmd5digest.h"
 #include "Whatsapp/util/datetimeutilities.h"
 
-#define MAX_SIZE    0xfc00
+/** ***********************************************************************
+ ** Local definitions
+ **/
 
+// Maximum size of a profile picture
+#define MAX_PROFILE_PICTURE_SIZE    0xfc00
+
+/** ***********************************************************************
+ ** Static global members
+ **/
+
+// Network data counters
 DataCounters Client::dataCounters;
 
+// Status of the connection
 Client::ConnectionStatus Client::connectionStatus;
 
+// Context to make calls to libosso functions
 osso_context_t *Client::osso_context;
 
+// Message number sequence
+quint64 Client::seq;
+
+// Global settings
 QSettings *Client::settings;
 
-quint64 Client::seq;
+// Background color of own self text
 QString Client::mycolor;
-QString Client::nickcolor;
-QString Client::textcolor;
-QString Client::myStatus;
 
+// Nicknames color
+QString Client::nickcolor;
+
+// Text color
+QString Client::textcolor;
+
+// Own JID
 QString Client::myJid;
+
+// Country code
 QString Client::cc;
-QString Client::phoneNumber;
-QString Client::password;
-QString Client::userName;
+
+// Phone number in local format (without the country code)
 QString Client::number;
+
+// Phone number in international format (with the country code)
+QString Client::phoneNumber;
+
+// User name or alias
+QString Client::userName;
+
+// User password
+QString Client::password;
+
+// IMEI
 QString Client::imei;
+
+// IMSI
 QString Client::imsi;
 
+// Account creation timestamp
 QString Client::creation;
+
+// Account expiration timestamp
 QString Client::expiration;
+
+// Account kind (free/paid)
 QString Client::kind;
+
+// Account status (active/expired)
 QString Client::accountstatus;
 
+// Port to connect to WhatsApp Servers (443/5222)
 quint16 Client::port;
-int Client::automaticDownloadBytes;
-bool Client::importMediaToGallery;
-qint64 Client::lastSync;
-qint64 Client::whatsNew;
 
+// User status
+QString Client::myStatus;
+
+// Show nicknames in conversations instead of their names from the address book
 bool Client::showNicknames;
+
+// Show users phone numbers in select contact dialog
 bool Client::showNumbers;
+
+// Pop up conversation windows when first message is received
 bool Client::popupOnFirstMessage;
 
+// Automatic download of media if less than this number of bytes
+int Client::automaticDownloadBytes;
+
+// Import media into gallery
+bool Client::importMediaToGallery;
+
+// Last time address book synchronizarion was performed
+qint64 Client::lastSync;
+
+// What's new window magic number
+qint64 Client::whatsNew;
+
+// Sync setting (on/intl/off)
 QString Client::sync;
+
+// Sync frequency
 int Client::syncFreq;
 
+// Start Yappari on boot
 bool Client::startOnBoot;
 
+// Android password encryption method enabled
 bool Client::android;
 
+// Is a synchronization active?
 bool Client::isSynchronizing;
 
+// Main GUI window
 MainWindow *Client::mainWin;
 
+// Roster
 ContactRoster *Client::roster;
 
+/**
+    Constructs a Client object.
+
+    @param minimized    Starts Yappari minimized if true.
+    @param parent       QObject parent.
+*/
 Client::Client(bool minimized, QObject *parent) : QObject(parent)
 {
     // Debug info start
@@ -192,6 +263,11 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(mainWin, SIGNAL(removeGroupParticipant(QString,QString)),
             this,SLOT(sendRemoveGroupParticipant(QString,QString)));
 
+    connect(mainWin, SIGNAL(requestPrivacyList()),
+            this, SLOT(requestPrivacyList()));
+
+    connect(mainWin, SIGNAL(requestBlockOrUnblockContact(QString,bool)),
+            this, SLOT(blockOrUnblockContact(QString,bool)));
 
     if (!minimized)
         mainWin->show();
@@ -270,26 +346,11 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     networkStatusChanged(isOnline);
 }
 
+/**
+    Destroys a Connection object
+*/
 Client::~Client()
 {
-    /*
-    void *array[10];
-    backtrace(array,10);
-    char **strings;
-    size_t size;
-
-    size = backtrace (array, 10);
-    strings = backtrace_symbols (array, size);
-
-    Utilities::logData("Obtained " + QString::number(size) + " stack frames");
-
-    for (size_t i = 0; i < size; i++)
-       Utilities::logData(strings[i]);
-
-    free (strings);
-
-    */
-
     // Update data counters
     dataCounters.writeCounters();
 
@@ -712,8 +773,8 @@ void Client::connected()
     connect(connection,SIGNAL(paused(QString)),
             mainWin,SLOT(paused(QString)));
 
-    connect(connection,SIGNAL(leaveGroup(QString)),
-            mainWin,SLOT(leaveGroup(QString)));
+    connect(connection,SIGNAL(groupLeft(QString)),
+            mainWin,SLOT(groupLeft(QString)));
 
     connect(connection,SIGNAL(userStatusUpdated(FMessage)),
             this,SLOT(userStatusUpdated(FMessage)));
@@ -724,20 +785,17 @@ void Client::connected()
     connect(connection,SIGNAL(mediaUploadAccepted(FMessage)),
             mainWin,SLOT(mediaUploadAccepted(FMessage)));
 
-    connect(connection,SIGNAL(photoIdReceived(QString,QString)),
-            this,SLOT(photoIdReceived(QString,QString)));
+    connect(connection,SIGNAL(photoIdReceived(QString,QString,QString)),
+            this,SLOT(photoIdReceived(QString,QString,QString)));
 
     connect(connection,SIGNAL(photoReceived(QString,QByteArray,QString,bool)),
             this,SLOT(photoReceived(QString,QByteArray,QString,bool)));
 
-    connect(connection,SIGNAL(photoDeleted(QString)),
-            this,SLOT(photoDeleted(QString)));
+    connect(connection,SIGNAL(photoDeleted(QString,QString)),
+            this,SLOT(photoDeleted(QString,QString)));
 
-    connect(connection,SIGNAL(addParticipant(QString,QString)),
-            this,SLOT(addParticipant(QString,QString)));
-
-    connect(connection,SIGNAL(groupParticipant(QString,QString)),
-            this,SLOT(groupParticipant(QString,QString)));
+    connect(connection,SIGNAL(groupUser(QString,QString)),
+            this,SLOT(groupUser(QString,QString)));
 
     connect(connection,SIGNAL(groupAddUser(QString,QString)),
             this,SLOT(groupAddUser(QString,QString)));
@@ -747,6 +805,9 @@ void Client::connected()
 
     connect(connection,SIGNAL(groupError(QString)),
             mainWin,SLOT(groupError(QString)));
+
+    connect(connection,SIGNAL(privacyListReceived(QStringList)),
+            this,SLOT(privacyListReceived(QStringList)));
 
 
     // Update participating groups
@@ -1132,7 +1193,7 @@ void Client::userStatusUpdated(FMessage message)
     }
 }
 
-void Client::photoIdReceived(QString jid, QString photoId)
+void Client::photoIdReceived(QString jid, QString alias, QString photoId)
 {
     Contact &c = roster->getContact(jid);
 
@@ -1144,6 +1205,13 @@ void Client::photoIdReceived(QString jid, QString photoId)
             connection->sendGetPhoto(jid, QString(), false);
     }
 
+    if (!c.alias.isEmpty() && c.alias != alias)
+    {
+        Utilities::logData("Contact " + jid + " has updated his alias to " + alias);
+
+        c.alias = alias;
+        roster->updateAlias(&c);
+    }
 }
 
 void Client::photoReceived(QString from, QByteArray data,
@@ -1185,7 +1253,7 @@ void Client::photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat
         connection->sendGetPhoto(jid, expectedPhotoId, largeFormat);
 }
 
-void Client::photoDeleted(QString jid)
+void Client::photoDeleted(QString jid, QString alias)
 {
     Contact &c = roster->getContact(jid);
 
@@ -1206,12 +1274,46 @@ void Client::photoDeleted(QString jid)
 
         Utilities::logData("Deleted photo of contact " + c.jid);
     }
+
+    if (!c.alias.isEmpty() && c.alias != alias)
+    {
+        Utilities::logData("Contact " + jid + " has updated his alias to " + alias);
+
+        c.alias = alias;
+        roster->updateAlias(&c);
+    }
 }
 
 void Client::requestContactStatus(QString jid)
 {
+    // This method is obsolete
+    /*
     if (connectionStatus == LoggedIn)
         connection->sendGetStatus(jid);
+    */
+
+    if (connectionStatus == LoggedIn)
+    {
+        // Contact syncer
+        syncer = new ContactSyncer(roster, this);
+
+        connect(syncer,SIGNAL(syncFinished()),this,SLOT(syncFinished()));
+
+        connect(syncer,SIGNAL(statusChanged(QString,QString)),
+                mainWin,SLOT(statusChanged(QString,QString)));
+
+        connect(syncer,SIGNAL(photoRefresh(QString,QString,bool)),
+                this,SLOT(photoRefresh(QString,QString,bool)));
+
+        connect(syncer,SIGNAL(httpError(int)),
+                this,SLOT(syncHttpError(int)));
+
+        connect(syncer,SIGNAL(sslError()),
+                this,SLOT(synSslError()));
+
+        isSynchronizing = true;
+        syncer->syncContact(&(roster->getContact(jid)));
+    }
 }
 
 void Client::setPhoto(QString jid, QImage image)
@@ -1229,7 +1331,7 @@ void Client::setPhoto(QString jid, QImage image)
             out.open(QIODevice::WriteOnly);
             image.save(&out, "JPEG", quality);
             quality -= 10;
-        } while ((quality > 10) && data.size() > MAX_SIZE);
+        } while ((quality > 10) && data.size() > MAX_PROFILE_PICTURE_SIZE);
 
         QImage thumb = image.scaled(100, 100, Qt::KeepAspectRatio,
                                     Qt::SmoothTransformation);
@@ -1241,7 +1343,7 @@ void Client::setPhoto(QString jid, QImage image)
             out.open(QIODevice::WriteOnly);
             thumb.save(&out, "JPEG", quality);
             quality -= 10;
-        } while ((quality > 10) && thumbnail.size() > MAX_SIZE);
+        } while ((quality > 10) && thumbnail.size() > MAX_PROFILE_PICTURE_SIZE);
     }
 
     if (connectionStatus == LoggedIn)
@@ -1330,21 +1432,13 @@ void Client::groupNewSubject(QString from, QString author, QString authorName, Q
         connection->updateGroupChats();
 }
 
-void Client::addParticipant(QString gjid, QString jid)
-{
-    Group &group = roster->getGroup(gjid);
-
-    roster->addGroupParticipant(&group,jid);
-    mainWin->groupParticipant(gjid, jid);
-}
-
 void Client::getParticipants(QString gjid)
 {
     if (connectionStatus == LoggedIn)
         connection->sendGetParticipants(gjid);
 }
 
-void Client::groupParticipant(QString gjid, QString jid)
+void Client::groupUser(QString gjid, QString jid)
 {
     Group &group = roster->getGroup(gjid);
 
@@ -1423,5 +1517,63 @@ void Client::sendRemoveGroupParticipant(QString gjid, QString jid)
         participants.append(jid);
         connection->sendRemoveParticipants(gjid, participants);
     }
+}
+
+void Client::requestPrivacyList()
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendGetPrivacyList();
+}
+
+void Client::setPrivacyList()
+{
+    QStringList list = roster->getBlockedJidsList().keys();
+    Utilities::logData("Blocked people count: " + QString::number(list.size()));
+    connection->sendSetPrivacyBlockedList(list);
+}
+
+void Client::blockOrUnblockContact(QString jid, bool blocked)
+{
+    Contact &c = roster->getContact(jid);
+    c.blocked = blocked;
+    roster->updateBlock(&c);
+    setPrivacyList();
+}
+
+void Client::privacyListReceived(QStringList list)
+{
+    // Synchronize privacy list
+
+    ContactList blockedList = roster->getBlockedJidsList();
+    ContactList serverList;
+
+    foreach(QString jid, list)
+    {
+        Contact &c = roster->getContact(jid);
+        serverList.insert(jid,&c);
+    }
+
+    // Remove entries that are in both
+    foreach (QString jid, serverList.keys())
+        if (blockedList.contains(jid))
+        {
+            serverList.remove(jid);
+            blockedList.remove(jid);
+        }
+
+    // Block people locally that are blocked in servers
+
+    foreach (QString jid, serverList.keys())
+    {
+        Contact *c = serverList.value(jid);
+        c->blocked = true;
+        roster->updateBlock(c);
+    }
+
+    // Block people in servers that are blocked locally
+    if (blockedList.size() > 0)
+        setPrivacyList();
+
+    mainWin->refreshPrivacyList();
 }
 

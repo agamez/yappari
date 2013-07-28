@@ -51,6 +51,7 @@
     <addaction name="actionAccountInfo"/>
     <addaction name="actionNetworkUsage"/>
     <addaction name="actionCreateGroup"/>
+    <addaction name="actionBlockedContacts"/>
     <addaction name="actionDonate"/>
     <addaction name="actionAbout"/>
     <addaction name="actionQuit"/>
@@ -122,6 +123,11 @@
   <action name="actionCreateGroup">
    <property name="text">
     <string>Create Group</string>
+   </property>
+  </action>
+  <action name="actionBlockedContacts">
+   <property name="text">
+    <string>Blocked Contacts</string>
    </property>
   </action>
  </widget>

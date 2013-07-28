@@ -61,7 +61,8 @@ public slots:
     void removeGroup(QString gjid);
     void addParticipant(Group *g, Contact *c);
     void removeParticipant(Group *g, Contact *c);
-    void updateGroupSubject(Group *g);
+    void updateSubjectGroup(Group *g);
+    void updateBlockContact(Contact *c);
 
 
 

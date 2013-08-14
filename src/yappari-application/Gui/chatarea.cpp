@@ -137,7 +137,8 @@ void ChatArea::insertMediaMessage(FMessage message, bool atTop)
 
     if (message.media_wa_type == FMessage::Image ||
         message.media_wa_type == FMessage::Video ||
-        message.media_wa_type == FMessage::Audio)
+        message.media_wa_type == FMessage::Audio ||
+        message.media_wa_type == FMessage::Location)
     {
         ChatImageItem *imageItem = new ChatImageItem(message,container);
         connect(this,SIGNAL(updateTimestamps()),imageItem,SLOT(updateTimestamp()));

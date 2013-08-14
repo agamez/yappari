@@ -156,6 +156,7 @@ QString Utilities::WATextToHtml(QString data, int iconSize, bool urlConversion)
 
     data.replace("<","&lt;");
     data.replace(">","&gt;");
+    data.replace("\n","<br>");
 
     QByteArray array = data.toUtf8();
     QByteArray buffer;

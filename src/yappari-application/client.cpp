@@ -29,6 +29,10 @@
 
 #include <mce/dbus-names.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/tcp.h>
+
 #include <QDateTime>
 #include <QStatusBar>
 #include <QSystemInfo>
@@ -162,6 +166,9 @@ bool Client::android;
 
 // Is a synchronization active?
 bool Client::isSynchronizing;
+
+// Enter is Send
+bool Client::enterIsSend;
 
 // Main GUI window
 MainWindow *Client::mainWin;
@@ -335,6 +342,7 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     manager = new QNetworkConfigurationManager(this);
     connect(manager,SIGNAL(onlineStateChanged(bool)),
             this,SLOT(networkStatusChanged(bool)));
+
     connect(manager,SIGNAL(configurationChanged(QNetworkConfiguration)),
             this,SLOT(networkConfigurationChanged(QNetworkConfiguration)));
 
@@ -358,6 +366,13 @@ Client::~Client()
     applet->HideApplet();
 }
 
+/** ***********************************************************************
+ ** Settings methods
+ **/
+
+/**
+    Reads the global settings and store them in the public static members.
+*/
 void Client::readSettings()
 {
     // Check the directories are created
@@ -398,7 +413,6 @@ void Client::readSettings()
     this->userName = settings->value(SETTINGS_USERNAME).toString();
     this->imei = settings->value(SETTINGS_IMEI).toString();
     this->imsi = settings->value(SETTINGS_IMSI).toString();
-
     this->creation = settings->value(SETTINGS_CREATION).toString();
     this->kind = settings->value(SETTINGS_KIND).toString();
     this->expiration = settings->value(SETTINGS_EXPIRATION).toString();
@@ -437,11 +451,18 @@ void Client::readSettings()
     // What's New Window
     this->whatsNew = settings->value(SETTINGS_WHATSNEW).toLongLong();
 
+    // Enter is Send
+    this->enterIsSend = settings->value(SETTINGS_ENTER_IS_SEND,
+                                        QVariant(DEFAULT_ENTER_IS_SEND)).toBool();
+
     // Read counters
     dataCounters.readCounters();
     lastCountersWrite = QDateTime::currentMSecsSinceEpoch();
 }
 
+/**
+    Update the global settings file with the current settings
+*/
 void Client::updateSettings()
 {
     // We just update the settings that are configurable
@@ -456,6 +477,7 @@ void Client::updateSettings()
     settings->setValue(SETTINGS_IMPORT_TO_GALLERY,importMediaToGallery);
     settings->setValue(SETTINGS_SYNC_FREQ,syncFreq);
     settings->setValue(SETTINGS_START_ON_BOOT,startOnBoot);
+    settings->setValue(SETTINGS_ENTER_IS_SEND,enterIsSend);
 
     QDir home = QDir::home();
     QString startFile = home.path() + START_FILE;
@@ -470,6 +492,15 @@ void Client::updateSettings()
     }
 }
 
+/** ***********************************************************************
+ ** Network detection methods
+ **/
+
+/**
+    Handles a network change
+
+    @param isOnline     True if an network connection is currently available
+*/
 void Client::networkStatusChanged(bool isOnline)
 {
     QString status = (isOnline) ? "Online" : "Offline";
@@ -681,6 +712,13 @@ void Client::connected()
 {
     // Set SO_KEEPALIVE option
     socket->setSocketOption(QAbstractSocket::KeepAliveOption,1);
+    int fd = socket->socketDescriptor();
+
+    // Set TCP_KEEPIDLE option
+    int optval = 300;
+    socklen_t optlen = sizeof(optval);
+
+    setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &optval, optlen);
 
     connectionStatus = Connected;
     updateStatus();
@@ -749,6 +787,8 @@ void Client::connected()
     // Shouldn't these be in a function instead?
 
     connect(socket,SIGNAL(readyRead()),this,SLOT(read()));
+
+    connect(connection,SIGNAL(timeout()),this,SLOT(connectionClosed()));
 
     connect(connection,SIGNAL(groupNewSubject(QString,QString,QString,QString,QString)),
             this,SLOT(groupNewSubject(QString,QString,QString,QString,QString)));
@@ -1018,7 +1058,8 @@ void Client::keepAlive()
             settings->setValue(SETTINGS_LAST_SYNC, lastSync);
         }
         else
-            connection->sendNop();
+            // connection->sendNop();
+            connection->sendPing();
 
         keepAliveTimer->start(MIN_INTERVAL);
     }

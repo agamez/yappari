@@ -53,6 +53,7 @@ public:
     int getAutomaticDownloadBytes();
     int getSyncFrequency();
     bool getStartOnBoot();
+    bool getEnterIsSend();
 
 private:
     Ui::GlobalSettingsDialog *ui;

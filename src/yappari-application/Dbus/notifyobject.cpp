@@ -89,10 +89,7 @@ void NotifyObject::sendNotify(QString contact, FMessage message)
 
     QString text;
     if (message.type == FMessage::MediaMessage)
-    {
-        if (message.media_wa_type == FMessage::Image)
-            text = "[image]";
-    }
+        text = "[" + message.getMediaWAType() + "]";
     else
         text = QString::fromUtf8(message.data.constData());
 

@@ -95,7 +95,7 @@ public:
     ContentType type;
 
     double latitude;
-    double lontigude;
+    double longitude;
     QString location_details;
     QString location_url;
     qint32 media_duration_seconds;

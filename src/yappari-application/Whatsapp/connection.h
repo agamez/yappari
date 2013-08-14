@@ -32,6 +32,7 @@
 
 #include <QSystemInfo>
 #include <QTcpSocket>
+#include <QTimer>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -231,9 +232,15 @@ public slots:
     // Sends a no operation (ping) to the network
     void sendNop();
 
+    // Sends a ping request to th3e network
+    void sendPing();
+
     // Changes the user name or alias
     void setNewUserName(QString push_name);
 
+
+    // Connection timeout handling
+    void connectionTimeout();
 
 private:
 
@@ -288,6 +295,9 @@ private:
 
     // Reader crypto stream
     KeyStream *inputKey;
+
+    // Connection timeout timer
+    QTimer connTimeout;
 
 
     /** ***********************************************************************
@@ -488,7 +498,8 @@ signals:
      ** General signals
      **/
 
-    void connectionClosed();
+    // Connection timeout
+    void timeout();
 };
 
 

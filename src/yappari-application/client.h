@@ -208,6 +208,9 @@ public:
     // Is a synchronization active?
     static bool isSynchronizing;
 
+    // Enter is Send
+    static bool enterIsSend;
+
     // Main GUI window
     static MainWindow *mainWin;
 
@@ -232,8 +235,21 @@ public slots:
      ** Public slots methods
      **/
 
+    /** ***********************************************************************
+     ** Settings methods
+     **/
+
+    // Update the global settings file with the current settings
     void updateSettings();
+
+
+    /** ***********************************************************************
+     ** Network Detection methods
+     **/
+
+    // Handles a network change
     void networkStatusChanged(bool isOnline);
+
     void networkConfigurationChanged(QNetworkConfiguration);
     void verifyAndConnect();
     void connected();
@@ -322,7 +338,17 @@ private:
     // Online
     bool isOnline;
 
+    /** ***********************************************************************
+     ** Private methods
+     **/
+
+    /** ***********************************************************************
+     ** Settings
+     **/
+
+    // Reads the global settings and store them in the public static members
     void readSettings();
+
     bool isNetworkAvailable();
     void updateActiveNetworkID();
     void showStatus(QString status);

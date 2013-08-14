@@ -94,6 +94,7 @@ void ChatDisplayItem::updateData()
                                     "<i>[" + lastMessage.getMediaWAType() + "]</i>"
                           );
 
+    lastLine.replace("\n"," ");
     do {
         htmlLastLine = "<div style=\"font-size:18px;color:" + color.name() + "\">" +
                        lastLine + "</div>";

@@ -80,6 +80,9 @@ Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
 
     this->out = new BinTreeNodeWriter(socket,dictionary,this);
     this->in = new BinTreeNodeReader(socket,dictionary,this);
+
+    connect(&connTimeout,SIGNAL(timeout()),this,SLOT(connectionTimeout()));
+    connTimeout.start(CHECK_CONNECTION_INTERVAL);
 }
 
 /**
@@ -136,6 +139,7 @@ bool Connection::read()
     if (in->nextTree(node))
     {
         lastTreeRead = QDateTime::currentMSecsSinceEpoch();
+        connTimeout.start(CHECK_CONNECTION_INTERVAL);
         QString tag = node.getTag();
 
         if (tag == "iq")
@@ -398,7 +402,16 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
 
                 message.setMediaWAType(child.getAttributeValue("type"));
                 message.media_url = child.getAttributeValue("url");
-                message.media_name = child.getAttributeValue("file");
+
+                if (message.media_wa_type == FMessage::Location)
+                {
+                    message.media_name = child.getAttributeValue("name");
+                    message.latitude = child.getAttributeValue("latitude").toLongLong();
+                    message.longitude = child.getAttributeValue("latitude").toLongLong();
+                }
+                else
+                    message.media_name = child.getAttributeValue("file");
+
                 message.media_size = child.getAttributeValue("size").toLongLong();
                 message.media_mime_type = child.getAttributeValue("mimetype");
 
@@ -1710,9 +1723,33 @@ void Connection::sendSetPrivacyBlockedList(QStringList jidList)
 */
 void Connection::sendNop()
 {
+
     ProtocolTreeNode empty;
 
     int bytes = out->write(empty);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+/**
+    Sends a ping request to the network.
+*/
+void Connection::sendPing()
+{
+    QString id = makeId("ping_");
+
+    AttributeList attrs;
+    ProtocolTreeNode pingNode("ping");
+    attrs.insert("xmlns","w:p");
+    pingNode.setAttributes(attrs);
+
+    ProtocolTreeNode iqNode("iq");
+    attrs.clear();
+    attrs.insert("id",id);
+    attrs.insert("type","get");
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(pingNode);
+
+    int bytes = out->write(iqNode);
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
@@ -1809,5 +1846,14 @@ void Connection::sendAvailableForChat()
 
     int bytes = out->write(presenceNode);
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+/**
+    Connection timeout handler
+*/
+void Connection::connectionTimeout()
+{
+    connTimeout.stop();
+    emit timeout();
 }
 

@@ -734,6 +734,7 @@ void MainWindow::showGlobalSettingsDialog()
         Client::importMediaToGallery = dialog.getImportMediaToGallery();
         Client::syncFreq = dialog.getSyncFrequency();
         Client::startOnBoot = dialog.getStartOnBoot();
+        Client::enterIsSend = dialog.getEnterIsSend();
 
         emit settingsUpdated();
     }

@@ -107,6 +107,7 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
     ui->popupCheckbox->setChecked(Client::popupOnFirstMessage);
     ui->importCheckbox->setChecked(Client::importMediaToGallery);
     ui->startOnBootCheckBox->setChecked(Client::startOnBoot);
+    ui->enterIsSendCheckbox->setChecked(Client::enterIsSend);
 
     // Configure automatic download bytes
 
@@ -166,6 +167,11 @@ int GlobalSettingsDialog::getSyncFrequency()
 bool GlobalSettingsDialog::getStartOnBoot()
 {
     return ui->startOnBootCheckBox->isChecked();
+}
+
+bool GlobalSettingsDialog::getEnterIsSend()
+{
+    return ui->enterIsSendCheckbox->isChecked();
 }
 
 int GlobalSettingsDialog::getAutomaticDownloadBytes()

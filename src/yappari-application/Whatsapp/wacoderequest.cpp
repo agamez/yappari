@@ -50,7 +50,7 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method, QObject *pa
     QString country = systemInfo.currentCountryCode();
     QString mcc = networkInfo.currentMobileCountryCode();
     QString mnc = networkInfo.currentMobileNetworkCode();
-    QString imsi = deviceInfo.imsi();
+    // QString imsi = deviceInfo.imsi();
 #endif
 
     if (mcc.length() < 3)
@@ -70,5 +70,5 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method, QObject *pa
     // addParam("imsi", imsi.isEmpty() ? "00000000000000" : imsi);
     addParam("token", Utilities::getToken(in));
     // addParam("id",Utilities::getChatPassword());
-    addParam("id","abcdef0123456789");
+    addParam("id","acbdef0123456789");
 }

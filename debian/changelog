@@ -1,3 +1,12 @@
+yappari (1.0.38) stable; urgency=low
+
+  * Added new option to use Enter as a Send Key (default enabled).
+  * Changed keepalive timer to send pings instead of no-ops.
+  * Implemented connection timeout timer in Connection class.
+  * Fixed registration once again and bumped version number.
+
+ -- Scorpius <naikel@gmail.com>  Wed, 14 Aug 2013 12:26:25 -0430
+
 yappari (1.0.37) stable; urgency=low
 
   * Fixed bug where the composing notification wasn't being sent.

@@ -58,6 +58,8 @@ ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
     ui->progressBar->setValue(0);
     ui->progressBar->hide();
 
+    ui->nameLabel->hide();
+
     connect(ui->viewImageButton,SIGNAL(clicked()),this,SLOT(downloadOrViewImage()));
 
     setButton();
@@ -77,7 +79,8 @@ void ChatImageItem::setImage()
     else
         image = QImage::fromData(message.data);
 
-    if (message.media_wa_type == FMessage::Image)
+    if (message.media_wa_type == FMessage::Image ||
+        message.media_wa_type == FMessage::Location)
     {
         ui->image->setPixmap(QPixmap::fromImage(image));
         return;
@@ -228,7 +231,14 @@ void ChatImageItem::setTimestamp(FMessage message)
 
 void ChatImageItem::setButton()
 {
-    if (message.local_file_uri.isEmpty())
+    if (message.media_wa_type == FMessage::Location)
+    {
+        ui->nameLabel->setText(message.media_name);
+        ui->nameLabel->show();
+        ui->viewImageButton->setText("Go");
+        ui->viewImageButton->setEnabled(true);
+    }
+    else if (message.local_file_uri.isEmpty())
     {
         ui->viewImageButton->setText("Download");
         if (message.media_size <= (Client::automaticDownloadBytes * 1024))
@@ -251,7 +261,11 @@ ChatImageItem::~ChatImageItem()
 
 void ChatImageItem::downloadOrViewImage()
 {
-    if (!message.local_file_uri.isEmpty())
+    if (message.media_wa_type == FMessage::Location)
+    {
+        QDesktopServices::openUrl(QUrl(message.media_url));
+    }
+    else if (!message.local_file_uri.isEmpty())
     {
         QString uri = "file://" + message.local_file_uri;
 

@@ -36,6 +36,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #include "chattextedit.h"
+#include "client.h"
 
 #include <QX11Info>
 
@@ -76,9 +77,12 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
         if (keyEvent->nativeScanCode() == 36)
         {
             // Return pressed
-            isComposing = false;
-            emit returnPressed();
-            return true;
+            if (Client::enterIsSend)
+            {
+                isComposing = false;
+                emit returnPressed();
+                return true;
+            }
         }
         else if (keyEvent->nativeScanCode() == 54 &&
                  keyEvent->modifiers() == Qt::ControlModifier)
@@ -122,7 +126,7 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
         QInputMethodEvent *inputEvent = (QInputMethodEvent *) event;
 
         //Utilities::logData("Commit String: '" + inputEvent->commitString() + "'");
-        if (inputEvent->commitString() == "\n")
+        if (inputEvent->commitString() == "\n" && Client::enterIsSend)
         {
             // Let's hide the keyboard if it was shown
             QTimer::singleShot(0,this,SLOT(closeKB()));
@@ -131,7 +135,6 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
             return true;
         }
     }
-
 
     return QTextEdit::eventFilter(obj,event);
 }

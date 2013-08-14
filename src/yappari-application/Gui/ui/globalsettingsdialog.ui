@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>530</width>
-    <height>400</height>
+    <height>467</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,7 +43,7 @@
         <x>0</x>
         <y>0</y>
         <width>398</width>
-        <height>700</height>
+        <height>780</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -55,7 +55,7 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>700</height>
+        <height>780</height>
        </size>
       </property>
       <property name="layoutDirection">
@@ -67,7 +67,7 @@
          <x>0</x>
          <y>0</y>
          <width>339</width>
-         <height>277</height>
+         <height>305</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -123,6 +123,13 @@
          <widget class="QCheckBox" name="popupCheckbox">
           <property name="text">
            <string>Pop up window when first message is received</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enterIsSendCheckbox">
+          <property name="text">
+           <string>Use Enter to send the message</string>
           </property>
          </widget>
         </item>

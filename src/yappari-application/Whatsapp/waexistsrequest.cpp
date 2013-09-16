@@ -22,19 +22,20 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include "waexistsrequest.h"
 #include "util/utilities.h"
 
-WAExistsRequest::WAExistsRequest(QString cc, QString in, QObject *parent) : WARequest(parent)
+WAExistsRequest::WAExistsRequest(QString cc, QString in,
+                                 QString id, QObject *parent)
+    : WARequest(parent)
 {
     this->method = "exist";
 
     addParam("cc", cc);
     addParam("in", in);
-    addParam("id","abcdef0123456789");
-    // addParam("id",Utilities::getChatPassword());
+    addParam("id",id);
 }

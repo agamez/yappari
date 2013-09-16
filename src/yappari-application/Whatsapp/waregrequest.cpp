@@ -22,21 +22,21 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include "waregrequest.h"
 #include "util/utilities.h"
 
-WARegRequest::WARegRequest(QString cc, QString in, QString code, QObject *parent) :
+WARegRequest::WARegRequest(QString cc, QString in, QString code,
+                           QString id, QObject *parent) :
     WARequest(parent)
 {
     this->method = "register";
 
     addParam("cc", cc);
     addParam("in", in);
-    // addParam("id", Utilities::getChatPassword());
-    addParam("id", "abcdef0123456789");
+    addParam("id", id);
     addParam("code", code);
 }

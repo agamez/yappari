@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QSslConfiguration>
@@ -35,10 +35,8 @@
 #include "util/utilities.h"
 #include "qt-json/json.h"
 
-WARequest::WARequest(QObject *parent) : HttpRequest(parent)
+WARequest::WARequest(QObject *parent) : HttpRequestv2(parent)
 {
-    connect(&manager,SIGNAL(finished(QNetworkReply*)),
-            this,SLOT(onResponse(QNetworkReply*)));
 }
 
 void WARequest::getRequest()
@@ -47,42 +45,54 @@ void WARequest::getRequest()
 #ifndef TEST
     QString url = URL_REGISTRATION_V2 + method +
                   "?" + QString::fromUtf8(writeBuffer.constData());
-
-
 #else
     QString url;
 
     if (method == "exist")
-        url = "http://192.168.100.100:9090/fail-exists.xml?";
+        url = "https://192.168.100.103/v2/exist?";
     if (method == "code")
-        url = "http://192.168.100.100:9090/fail-too-recent.xml?";
+        url = "https://192.168.100.103/v2/code?";
     if (method == "register")
-        url = "http://192.168.100.100:9090/success-registration.xml?";
+        url = "https://192.168.100.103/v2/register?";
 
     url += QString::fromUtf8(writeBuffer.constData());
 #endif
 
+    // Be professional
+    if (url.right(1) == "&")
+        url = url.left(url.length()-1);
+
     Utilities::logData("Request: " + url);
 
-    get(url,false);
+    connect(this,SIGNAL(finished()),
+            this,SLOT(onResponse()));
+
+    connect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
+            this,SLOT(errorHandler(QAbstractSocket::SocketError)));
+
+    get(url);
 }
 
-void WARequest::onResponse(QNetworkReply *reply)
+void WARequest::onResponse()
 {
-    QString jsonStr = QString::fromUtf8(reply->readAll().constData());
-    disconnect(reply, 0, 0, 0);
-    reply->deleteLater();
+    if (errorCode != 200)
+    {
+        emit httpError(this, errorCode);
+        return;
+    }
+
+    if (socket->bytesAvailable())
+        readResult();
+
+    connect(socket,SIGNAL(readyRead()),this,SLOT(readResult()));
+}
+
+void WARequest::readResult()
+{
+    QString jsonStr = QString::fromUtf8(socket->readAll().constData());
 
     // Debugging info
     Utilities::logData("Reply: " + jsonStr);
-    QList<QByteArray> headers = reply->rawHeaderList();
-
-    for (int i = 0; i < headers.length(); i++)
-    {
-        Utilities::logData(QString::fromLatin1(headers.at(i).constData()) + ": " +
-                           QString::fromLatin1(reply->rawHeader(headers.at(i)).constData()));
-    }
-    // End of debugging info
 
     bool ok;
     QVariantMap mapResult = QtJson::parse(jsonStr, ok).toMap();
@@ -96,4 +106,19 @@ void WARequest::addParam(QString name, QString value)
     writeBuffer.append('=');
     writeBuffer.append(QUrl::toPercentEncoding(value));
     writeBuffer.append('&');
+}
+
+void WARequest::errorHandler(QAbstractSocket::SocketError error)
+{
+    if (error == QAbstractSocket::SslHandshakeFailedError)
+    {
+        // SSL error is a fatal error
+        emit sslError(this);
+    }
+    else
+    {
+        // ToDo: Retry here
+        Utilities::logData("Registration failed: Socket error " + QString::number(error));
+        emit httpError(this, error);
+    }
 }

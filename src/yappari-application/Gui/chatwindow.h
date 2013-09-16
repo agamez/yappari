@@ -1,4 +1,4 @@
-/* Copyright 2012 Naikel Aparicio. All rights reserved.
+/* Copyright 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -22,14 +22,15 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #ifndef CHATWINDOW_H
 #define CHATWINDOW_H
 
 #include <QMainWindow>
+#include <QMutex>
 #include <QTimer>
 #include <QMap>
 
@@ -60,7 +61,7 @@ public:
     const Contact& getContact() const;
     void messageStatusUpdate(FMessage& message);
     void available(bool online, qint64 lastSeen);
-    void composing();
+    void composing(QString media);
     void paused();
     FMessage lastMessage();
     void setMute(qint64 timestamp);
@@ -68,10 +69,12 @@ public:
 
 public slots:
     void readMoreLogLines();
-    void myselfComposing();
+    void textChanged();
+    void myselfComposing(int waType = -1);
     void myselfPaused();
     void sendButtonClicked();
-    void sendMultimediaMessage();
+    void selectMultimediaMessage();
+    void sendMultimediaMessage(QString fileName, int waType, bool live);
     void mediaUploadAccepted(FMessage msg);
     void mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg);
     void mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg);
@@ -91,6 +94,10 @@ public slots:
     void statusChanged(QString status);
     void blockOrUnblock();
     void setBlock(bool blocked);
+    void startRecording();
+    void finishedRecording(QString fileName, int lengthInSeconds);
+    void updateRecordingTime(int current);
+    void sendVoiceNotePlayed(FMessage message);
 
 signals:
     void logMessage(FMessage message);
@@ -105,11 +112,14 @@ signals:
     void requestStatus(QString jid);
     void userStatusChanged();
     void blockOrUnblockContact(QString jid, bool blocked);
+    void voiceNotePlayed(FMessage message);
 
 private:
     bool isPeerComposing;
     bool isMyselfComposing;
+    bool isRecording;
     ChatLogger logger;
+    QMutex recordingMutex;
 
     bool muted;
     qint64 muteExpireTimestamp;

@@ -1,4 +1,4 @@
-/* Copyright 2012 Naikel Aparicio. All rights reserved.
+/* Copyright 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #ifndef GLOBALSETTINGSDIALOG_H
@@ -54,6 +54,7 @@ public:
     int getSyncFrequency();
     bool getStartOnBoot();
     bool getEnterIsSend();
+    QString getVoiceCodec();
 
 private:
     Ui::GlobalSettingsDialog *ui;
@@ -61,6 +62,7 @@ private:
     QMaemo5ListPickSelector *portSelector;
     QMaemo5ListPickSelector *syncSelector;
     QMaemo5ListPickSelector *syncFreqSelector;
+    QMaemo5ListPickSelector *voiceCodecSelector;
 };
 
 #endif // GLOBALSETTINGSDIALOG_H

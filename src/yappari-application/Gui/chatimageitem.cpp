@@ -22,23 +22,29 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QMaemo5Style>
 
+// #include <QtMultimediaKit/QMediaPlayer>
+// #include <phonon/MediaObject>
+// #include <phonon/AudioOutput>
+
 #include <QDesktopServices>
 #include <QPainter>
-
-#include "globalconstants.h"
-#include "client.h"
 
 #include "Whatsapp/util/datetimeutilities.h"
 #include "Whatsapp/util/utilities.h"
 
 #include "Dbus/dbusnokiaimageviewerif.h"
 #include "Dbus/dbusnokiamediaplayerif.h"
+
+#include "Multimedia/audioplayer.h"
+
+#include "globalconstants.h"
+#include "client.h"
 
 #include "chatimageitem.h"
 #include "ui_chatimageitem.h"
@@ -60,6 +66,8 @@ ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
 
     ui->nameLabel->hide();
 
+    ui->timeLabel->hide();
+
     connect(ui->viewImageButton,SIGNAL(clicked()),this,SLOT(downloadOrViewImage()));
 
     setButton();
@@ -73,7 +81,11 @@ void ChatImageItem::setImage()
     QImage image;
 
     if (message.media_wa_type == FMessage::Audio)
-        image.load("/usr/share/yappari/icons/100x100/audio_overlay_icon.png");
+        image.load(
+                    (message.live)
+                        ? "/usr/share/yappari/icons/100x100/voice_overlay_icon.png"
+                        : "/usr/share/yappari/icons/100x100/audio_overlay_icon.png"
+                  );
     else if (message.data.isEmpty() && message.media_wa_type == FMessage::Video)
         image.load("/usr/share/yappari/icons/100x100/video_overlay_icon.png");
     else
@@ -204,7 +216,12 @@ void ChatImageItem::setTimestamp(FMessage message)
             html.append(CHECK);
         }
         else if (message.status == FMessage::ReceivedByTarget)
-           html.append(DOUBLECHECK);
+            html.append(DOUBLECHECK);
+        else if (message.status == FMessage::Played)
+        {
+            html.append(VOICEPLAYED);
+            html.append(DOUBLECHECK);
+        }
         else if (message.status == FMessage::Uploading)
         {
             ui->progressBar->show();
@@ -227,6 +244,10 @@ void ChatImageItem::setTimestamp(FMessage message)
     ui->timestamp->setTextFormat(Qt::RichText);
     ui->timestamp->setAlignment(Qt::AlignTop);
     ui->timestamp->setText(html);
+
+    // Update local message
+    this->message.status = message.status;
+    this->message.timestamp = message.timestamp;
 }
 
 void ChatImageItem::setButton()
@@ -263,7 +284,13 @@ void ChatImageItem::downloadOrViewImage()
 {
     if (message.media_wa_type == FMessage::Location)
     {
-        QDesktopServices::openUrl(QUrl(message.media_url));
+        QString url = (message.media_url.isEmpty())
+                ? URL_LOCATION_SHARING +
+                    QString::number(message.latitude) + "," +
+                    QString::number(message.longitude) + "+(" +
+                    message.notify_name.replace("<","&lt;").replace(">","&gt;") + ")"
+                : message.media_url;
+        QDesktopServices::openUrl(QUrl(url));
     }
     else if (!message.local_file_uri.isEmpty())
     {
@@ -275,6 +302,22 @@ void ChatImageItem::downloadOrViewImage()
         switch (message.media_wa_type)
         {
             case FMessage::Audio:
+                if (message.live)
+                {
+                    AudioPlayer *player = new AudioPlayer(this);
+
+                    connect(player,SIGNAL(progress(int)),this,SLOT(updateTime(int)));
+                    connect(player,SIGNAL(finished()),this,SLOT(finishedAudioPlay()));
+
+                    ui->viewImageButton->setEnabled(false);
+
+                    player->play(uri);
+
+                    // We need to notificate the sender that we played the audio
+                    emit voiceNotePlayed(message);
+                    break;
+                }
+
             case FMessage::Video:
                 {
                     DBusNokiaMediaPlayerIf *mediaPlayerBus =
@@ -329,6 +372,21 @@ void ChatImageItem::updateProgress(float p)
     }
 }
 
+void ChatImageItem::updateTime(int current)
+{
+    QString duration;
+    int minutes = current / 60;
+    int seconds = current % 60;
+    ui->timeLabel->show();
+    ui->timeLabel->setText(duration.sprintf("%02d:%02d",minutes,seconds));
+}
+
+void ChatImageItem::finishedAudioPlay()
+{
+    ui->timeLabel->hide();
+    ui->viewImageButton->setEnabled(true);
+}
+
 void ChatImageItem::updateUri(QString uri)
 {
     ui->progressBar->hide();
@@ -347,5 +405,3 @@ void ChatImageItem::updateImage(FMessage message)
     this->message = message;
     setImage();
 }
-
-

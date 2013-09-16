@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QDateTime>
@@ -89,7 +89,12 @@ void NotifyObject::sendNotify(QString contact, FMessage message)
 
     QString text;
     if (message.type == FMessage::MediaMessage)
-        text = "[" + message.getMediaWAType() + "]";
+    {
+        if (message.live)
+            text = "[voice note]";
+        else
+            text = "[" + message.getMediaWAType() + "]";
+    }
     else
         text = QString::fromUtf8(message.data.constData());
 

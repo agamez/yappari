@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #ifndef GLOBALCONSTANTS_H
@@ -48,7 +48,7 @@
 
 
 #define USER_AGENT_VERSION  "2.11.1"
-#define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/14.26 Device/Nokia302"
+#define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/gadCEX3.60 Device/Nokia305"
 #define RESOURCE	    "S40-"USER_AGENT_VERSION"-443"
 
 
@@ -84,6 +84,7 @@
 #define URL_REGISTRATION_V2     "https://v.whatsapp.net/v2/"
 #define URL_CONTACTS_AUTH       "https://sro.whatsapp.net/v2/sync/a"
 #define URL_CONTACTS_SYNC       "https://sro.whatsapp.net/v2/sync/q"
+#define URL_LOCATION_SHARING    "https://maps.google.com/maps?q=loc:"
 
 // WhatsApp Servers
 #define JID_DOMAIN              "s.whatsapp.net"
@@ -156,6 +157,7 @@
 #define SETTINGS_SYNC_FREQ                  "syncfreq"
 #define SETTINGS_START_ON_BOOT              "startonboot"
 #define SETTINGS_ENTER_IS_SEND              "enterissend"
+#define SETTINGS_VOICE_CODEC                "voicecodec"
 
 #define SETTINGS_WHATSNEW                   "whatsnew"
 
@@ -170,6 +172,7 @@
 #define DEFAULT_SYNC_FREQ                   2
 #define DEFAULT_START_ON_BOOT               false
 #define DEFAULT_ENTER_IS_SEND               true
+#define DEFAULT_VOICE_CODEC                 "aac"
 
 // Synchronization options
 
@@ -207,6 +210,7 @@
 #define PHOTOS_DIR      "photos"
 #define START_FILE      HOME_DIR"start"
 
+#define VOICEPLAYED     "<img src=\"/usr/share/yappari/icons/17x13/yappari-voiceplayed.png\" />"
 #define GRAYCHECK       "<img src=\"/usr/share/yappari/icons/17x13/yappari-graycheck.png\" />"
 #define CHECK           "<img src=\"/usr/share/yappari/icons/17x13/yappari-greencheck.png\" />"
 #define DOUBLECHECK     "<img src=\"/usr/share/yappari/icons/17x13/yappari-greendoublecheck.png\" />"
@@ -229,7 +233,11 @@
 #define VERSION_CHECK_URL   "version.txt"
 #define WHATS_NEW_URL       "changelog.txt"
 #define DONATE_URL          "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER        433788752
+#define MAGIC_NUMBER        568647972
 
+// Codecs
+
+#define AAC                 "aac"
+#define AMR                 "amr"
 
 #endif // GLOBALCONSTANTS_H

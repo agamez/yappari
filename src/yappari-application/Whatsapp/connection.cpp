@@ -23,8 +23,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QRegExp>
@@ -357,12 +357,14 @@ bool Connection::read()
 void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageNode)
 {
     ChatMessageType msgType = Unknown;
+    QString media;
 
     QString id = messageNode.getAttributeValue("id");
     QString attribute_t = messageNode.getAttributeValue("t");
     QString from = messageNode.getAttributeValue("from");
     QString author = messageNode.getAttributeValue("author");
     QString typeAttribute = messageNode.getAttributeValue("type");
+
 
     if (typeAttribute == "chat")
     {
@@ -417,7 +419,9 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
 
                 if (message.media_wa_type == FMessage::Video ||
                     message.media_wa_type == FMessage::Audio)
-                    message.media_duration_seconds = child.getAttributeValue("seconds").toInt();
+                    message.media_duration_seconds = child.getAttributeValue("duration").toInt();
+
+                message.live = (child.getAttributeValue("origin") == "live");
 
                 QString encoding = child.getAttributeValue("encoding");
                 if (encoding == "text" || encoding == "raw")
@@ -442,14 +446,17 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 {
                     Key k(from, true, id);
                     message = store.value(k);
-                    message.status = FMessage::ReceivedByServer;
+                    if (message.key.id == id)
+                    {
+                        message.status = FMessage::ReceivedByServer;
 
-                    msgType = (from == "s.us") ? UserStatusUpdate : MessageStatusUpdate;
+                        msgType = (from == "s.us") ? UserStatusUpdate : MessageStatusUpdate;
 
-                    // If this a receipt from a group message
-                    // delete it from the FunStore
-                    if (from.right(5) == "@g.us")
-                        store.remove(k);
+                        // If this a receipt from a group message
+                        // delete it from the FunStore
+                        if (from.right(5) == "@g.us")
+                            store.remove(k);
+                    }
                 }
                 else if (xmlns == "jabber:x:delay")
                 {
@@ -464,21 +471,34 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 message = store.value(k);
                 if (message.key.id == id)
                 {
-                    message.status = FMessage::ReceivedByTarget;
+                    message.status = (receipt_type == "played")
+                            ? FMessage::Played
+                            : FMessage::ReceivedByTarget;
                     msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
-                    store.remove(k);
+
+                    // Remove it from the store if it's not a voice message
+                    // Or if it's a voice message already played
+                    if ((message.live && receipt_type == "played") || !message.live)
+                        store.remove(k);
                 }
-                if (receipt_type == "delivered" || receipt_type.isEmpty())
+                if (receipt_type == "delivered" || receipt_type == "played" ||
+                    receipt_type.isEmpty())
                 {
                     // Delivery Receipt received
-                    sendDeliveredReceiptAck(from,id);
+                    sendDeliveredReceiptAck(from,id,
+                                            (receipt_type.isEmpty()
+                                             ? "delivered"
+                                             : receipt_type));
                 }
             }
             else if (child.getTag() == "composing")
             {
                 QString xmlns = child.getAttributeValue("xmlns");
                 if (xmlns == "http://jabber.org/protocol/chatstates")
+                {
                     msgType = Composing;
+                    media = child.getAttributeValue("media");
+                }
             }
             else if (child.getTag() == "paused")
             {
@@ -498,7 +518,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 break;
 
             case Composing:
-                emit composing(from);
+                emit composing(from, media);
                 break;
 
             case Paused:
@@ -824,11 +844,11 @@ void Connection::sendMessage(FMessage& message)
     switch (message.type)
     {
         case FMessage::ComposingMessage:
-            sendComposing(message.key.remote_jid);
+            sendComposing(message);
             break;
 
         case FMessage::PausedMessage:
-            sendPaused(message.key.remote_jid);
+            sendPaused(message);
             break;
 
         case FMessage::BodyMessage:
@@ -891,6 +911,8 @@ void Connection::requestMessageWithMedia(FMessage &message)
     attrs.insert("hash", message.data);
     attrs.insert("type", message.getMediaWAType());
     attrs.insert("size", QString::number(message.media_size));
+    if (message.live)
+        attrs.insert("origin","live");
 
     mediaNode.setAttributes(attrs);
 
@@ -928,10 +950,15 @@ void Connection::sendMessageWithMedia(FMessage& message)
         attrs.insert("file", message.media_name);
         attrs.insert("size", QString::number(message.media_size));
         attrs.insert("url", message.media_url);
+        if (message.live)
+            attrs.insert("origin","live");
 
         if (message.media_wa_type == FMessage::Audio ||
             message.media_wa_type == FMessage::Video)
+        {
             attrs.insert("duration", QString::number(message.media_duration_seconds));
+            attrs.insert("seconds", QString::number(message.media_duration_seconds));
+        }
     }
 
     if (message.media_wa_type == FMessage::Contact && !message.media_name.isEmpty())
@@ -1006,6 +1033,7 @@ void Connection::sendMessageReceived(FMessage& message)
     attrs.insert("to",message.key.remote_jid);
     attrs.insert("type","chat");
     attrs.insert("id",message.key.id);
+
     messageNode.setAttributes(attrs);
     messageNode.addChild(receivedNode);
 
@@ -1071,11 +1099,12 @@ void Connection::getReceiptAck(ProtocolTreeNode& node, QString to, QString id,
 
     @param to           Destination jid.
     @param id           Id of the receipt received.
+    @param type         Type of the ack (delivered, played)
 */
-void Connection::sendDeliveredReceiptAck(QString to, QString id)
+void Connection::sendDeliveredReceiptAck(QString to, QString id, QString type)
 {
     ProtocolTreeNode node;
-    getReceiptAck(node,to,id,"delivered");
+    getReceiptAck(node,to,id,type);
 
     int bytes = out->write(node);
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
@@ -1319,6 +1348,26 @@ void Connection::sendGetPhotoIds(QStringList jids)
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
+/**
+    Sends a notification that a voice note was played
+
+    @param message      Voice note that was played by the user
+*/
+void Connection::sendVoiceNotePlayed(FMessage message)
+{
+    AttributeList attrs;
+
+    ProtocolTreeNode receivedNode("received");
+    attrs.clear();
+    attrs.insert("xmlns","urn:xmpp:receipts");
+    attrs.insert("type","played");
+    receivedNode.setAttributes(attrs);
+    ProtocolTreeNode messageNode = getMessageNode(message, receivedNode);
+
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
 
 /** ***********************************************************************
  ** Typing status handling methods
@@ -1329,17 +1378,19 @@ void Connection::sendGetPhotoIds(QStringList jids)
 
     @param to   Destination jid.
 */
-void Connection::sendComposing(QString to)
+void Connection::sendComposing(FMessage message)
 {
     AttributeList attrs;
 
     ProtocolTreeNode composingNode("composing");
     attrs.insert("xmlns","http://jabber.org/protocol/chatstates");
+    if (!message.media_wa_type >=  0)
+        attrs.insert("media",message.getMediaWAType());
     composingNode.setAttributes(attrs);
 
     ProtocolTreeNode messageNode("message");
     attrs.clear();
-    attrs.insert("to",to);
+    attrs.insert("to",message.key.remote_jid);
     attrs.insert("type","chat");
     messageNode.setAttributes(attrs);
     messageNode.addChild(composingNode);
@@ -1353,7 +1404,7 @@ void Connection::sendComposing(QString to)
 
     @param to   Destination jid.
 */
-void Connection::sendPaused(QString to)
+void Connection::sendPaused(FMessage message)
 {
     AttributeList attrs;
 
@@ -1363,7 +1414,7 @@ void Connection::sendPaused(QString to)
 
     ProtocolTreeNode messageNode("message");
     attrs.clear();
-    attrs.insert("to",to);
+    attrs.insert("to",message.key.remote_jid);
     attrs.insert("type","chat");
     messageNode.setAttributes(attrs);
     messageNode.addChild(pausedNode);

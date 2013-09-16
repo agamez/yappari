@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include "phoneregreply.h"
@@ -52,13 +52,21 @@ QString PhoneRegReply::getReason()
             if (minutes < 1)
                 minutes = 1;
 
-            return "Registration attempt too recent.  Please try again in " +
+            return "Registration attempt too recent.\nPlease try again in " +
                     QString::number(minutes) + " minutes.";
         }
-
-        if (reason == "mismatch")
+        else if (reason == "mismatch")
         {
             return "Registration code is invalid";
+        }
+        else if (reason.left(11) == "http_error_")
+        {
+            QString code = reason.right(reason.length()-11);
+            return "Couldn't connect to registration server (error " + code + ")";
+        }
+        else if (reason == "ssl_error")
+        {
+            return "SSL Handshake Failed.\nPlease check time & date settings on your phone.";
         }
 
         return "Server response was: " + reason;

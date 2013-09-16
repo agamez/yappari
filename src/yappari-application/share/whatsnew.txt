@@ -1,6 +1,20 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.0.37:</b><br>
+<b>New in this version 1.1.39:</b><br>
+<li>&bull; <b>Push-To-Talk implemented.</b> Just press and hold the send button, start talking, and release when done.</li>
+<li>&bull; Implemented indication that the recipient of a voice note has listened to it (a little green microphone to the left of the double green checkmark).</li>
+<li>&bull; You can select the quality of the voice notes you send in the Settings dialog.</li>
+<li>&bull; Fixed registration.</li>
+<li>&bull; Fixed bug: The <i>Go</i> button didn't work on some locations.</li>
+<li>&bull; Some other minor bugs fixed.</li>
+<br>
+<b>New in 1.0.38:</b><br>
+<li>&bull; Fixed registration... again.</li>
+<li>&bull; Implemented setting to turn off the sending message when Enter is pressed feature.</li>
+<li>&bull; Location sharing is received successfully now.</li>
+<li>&bull; Better network disconnection detection.</li>
+<br>
+<b>New in 1.0.37:</b><br>
 <li>&bull; Fixed bug where typing/stopped typing notifications weren't being sent.</li>
 <li>&bull; Implemented block/unblock of contacts.</li>
 <br>

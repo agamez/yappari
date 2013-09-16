@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QMaemo5InformationBox>
@@ -144,6 +144,11 @@ void ChatArea::insertMediaMessage(FMessage message, bool atTop)
         connect(this,SIGNAL(updateTimestamps()),imageItem,SLOT(updateTimestamp()));
         connect(imageItem,SIGNAL(mediaDownload(FMessage)),
                 this,SLOT(mediaDownloadHandler(FMessage)));
+
+        if (message.live)
+            connect(imageItem,SIGNAL(voiceNotePlayed(FMessage)),
+                    this,SLOT(voiceNotePlayedHandler(FMessage)));
+
         label = imageItem;
     }
 
@@ -169,6 +174,11 @@ void ChatArea::insertMediaMessage(FMessage message, bool atTop)
 void ChatArea::mediaDownloadHandler(FMessage message)
 {
     emit mediaDownload(message);
+}
+
+void ChatArea::voiceNotePlayedHandler(FMessage message)
+{
+    emit voiceNotePlayed(message);
 }
 
 void ChatArea::updateStatus(FMessage message)

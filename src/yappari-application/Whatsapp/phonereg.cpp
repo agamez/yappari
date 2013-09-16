@@ -22,12 +22,15 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
+
+#include <QUuid>
 
 #include "phonereg.h"
 #include "util/utilities.h"
+#include "util/qtmd5digest.h"
 
 #include <QTimer>
 
@@ -36,6 +39,17 @@ PhoneReg::PhoneReg(QString cc, QString number, QObject *parent) :
 {
     this->cc = cc;
     this->number = number;
+
+    // Generate a new id
+
+    QtMD5Digest digest;
+    digest.reset();
+
+    digest.update(QUuid::createUuid().toString().toUtf8());
+
+    QByteArray bytes = digest.digest();
+
+    this->id = QString::fromLatin1(bytes.toHex().constData()).left(20);
 }
 
 void PhoneReg::start()
@@ -46,9 +60,13 @@ void PhoneReg::start()
 void PhoneReg::startExistRequest()
 {
     Utilities::logData("reg/req/exists/start");
-    WAExistsRequest *request = new WAExistsRequest(cc,number,this);
+    WAExistsRequest *request = new WAExistsRequest(cc,number,id,this);
     connect(request,SIGNAL(finished(WARequest*,bool, QVariantMap)),
             this,SLOT(onExistRequestDone(WARequest *,bool, QVariantMap)));
+    connect(request,SIGNAL(sslError(WARequest*)),
+            this,SLOT(sslError(WARequest*)));
+    connect(request,SIGNAL(httpError(WARequest*,int)),
+            this,SLOT(errorHandler(WARequest*,int)));
     request->getRequest();
 }
 
@@ -89,9 +107,13 @@ void PhoneReg::onExistRequestDone(WARequest *req, bool ok, QVariantMap result)
 void PhoneReg::startSelfRequest()
 {
     Utilities::logData("reg/req/self/start");
-    WACodeRequest *request = new WACodeRequest(cc,number,"self",this);
+    WACodeRequest *request = new WACodeRequest(cc,number,"self",id,this);
     connect(request,SIGNAL(finished(WARequest*,bool,QVariantMap)),
             this,SLOT(onSelfRequestDone(WARequest *,bool,QVariantMap)));
+    connect(request,SIGNAL(sslError(WARequest*)),
+            this,SLOT(sslError(WARequest*)));
+    connect(request,SIGNAL(httpError(WARequest*,int)),
+            this,SLOT(errorHandler(WARequest*,int)));
     request->getRequest();
 }
 
@@ -126,9 +148,13 @@ void PhoneReg::onSelfRequestDone(WARequest *req, bool ok, QVariantMap result)
 void PhoneReg::startSMSRequest()
 {
     Utilities::logData("reg/req/sms/start");
-    WACodeRequest *request = new WACodeRequest(cc,number,"sms",this);
+    WACodeRequest *request = new WACodeRequest(cc,number,"sms",id,this);
     connect(request,SIGNAL(finished(WARequest*,bool,QVariantMap)),
             this,SLOT(onSMSRequestDone(WARequest *,bool,QVariantMap)));
+    connect(request,SIGNAL(sslError(WARequest*)),
+            this,SLOT(sslError(WARequest*)));
+    connect(request,SIGNAL(httpError(WARequest*,int)),
+            this,SLOT(errorHandler(WARequest*,int)));
     request->getRequest();
 }
 
@@ -181,9 +207,13 @@ void PhoneReg::onSMSReceived(SMSListener *listener, QString code)
 void PhoneReg::startRegRequest(QString code)
 {
     Utilities::logData("reg/req/register/start");
-    WARegRequest *request = new WARegRequest(cc,number,code,this);
+    WARegRequest *request = new WARegRequest(cc,number,code,id,this);
     connect(request,SIGNAL(finished(WARequest*,bool,QVariantMap)),
             this,SLOT(onRegRequestDone(WARequest *,bool,QVariantMap)));
+    connect(request,SIGNAL(sslError(WARequest*)),
+            this,SLOT(sslError(WARequest*)));
+    connect(request,SIGNAL(httpError(WARequest*,int)),
+            this,SLOT(errorHandler(WARequest*,int)));
     request->getRequest();
 }
 
@@ -216,9 +246,13 @@ void PhoneReg::onRegRequestDone(WARequest *req, bool ok, QVariantMap result)
 void PhoneReg::startVoiceRequest()
 {
     Utilities::logData("reg/req/voice/start");
-    WACodeRequest *request = new WACodeRequest(cc,number,"voice",this);
+    WACodeRequest *request = new WACodeRequest(cc,number,"voice",id,this);
     connect(request,SIGNAL(finished(WARequest*,bool,QVariantMap)),
             this,SLOT(onVoiceRequestDone(WARequest *,bool,QVariantMap)));
+    connect(request,SIGNAL(sslError(WARequest*)),
+            this,SLOT(sslError(WARequest*)));
+    connect(request,SIGNAL(httpError(WARequest*,int)),
+            this,SLOT(errorHandler(WARequest*,int)));
     request->getRequest();
 }
 
@@ -244,4 +278,28 @@ void PhoneReg::onVoiceRequestDone(WARequest *req, bool ok, QVariantMap result)
     {
         emit finished(new PhoneRegReply(false,result));
     }
+}
+
+void PhoneReg::errorHandler(WARequest *req, int code)
+{
+    QVariantMap result;
+
+    // Dispose of the request
+    disconnect(req,0,0,0);
+    req->deleteLater();
+
+    result.insert("reason","http_error_" + QString::number(code));
+    emit finished(new PhoneRegReply(false,result));
+}
+
+void PhoneReg::sslError(WARequest *req)
+{
+    QVariantMap result;
+
+    // Dispose of the request
+    disconnect(req,0,0,0);
+    req->deleteLater();
+
+    result.insert("reason","ssl_error");
+    emit finished(new PhoneRegReply(false,result));
 }

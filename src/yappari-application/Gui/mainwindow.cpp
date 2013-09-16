@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QApplication>
@@ -44,7 +44,6 @@
 #include "blockedcontactswindow.h"
 #include "statuswindow.h"
 #include "chatdisplaydelegate.h"
-#include "contactdisplayitem.h"
 #include "globalsettingsdialog.h"
 #include "creategroupwindow.h"
 #include "groupinfowindow.h"
@@ -298,6 +297,9 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
 
         connect(chat,SIGNAL(requestStatus(QString)),
                 this,SLOT(requestContactStatus(QString)));
+
+        connect(chat,SIGNAL(voiceNotePlayed(FMessage)),
+                this,SLOT(sendVoiceNotePlayed(FMessage)));
 
         if (contact.type == Contact::TypeGroup)
         {
@@ -656,12 +658,12 @@ void MainWindow::available(QString jid, qint64 lastSeen)
 }
 
 
-void MainWindow::composing(QString jid)
+void MainWindow::composing(QString jid, QString media)
 {
     if (chatWindowList.contains(jid))
     {
         ChatWindow *chat = chatWindowList.value(jid);
-        chat->composing();
+        chat->composing(media);
     }
 }
 
@@ -735,6 +737,7 @@ void MainWindow::showGlobalSettingsDialog()
         Client::syncFreq = dialog.getSyncFrequency();
         Client::startOnBoot = dialog.getStartOnBoot();
         Client::enterIsSend = dialog.getEnterIsSend();
+        Client::voiceCodec = dialog.getVoiceCodec();
 
         emit settingsUpdated();
     }
@@ -988,6 +991,11 @@ void MainWindow::requestPhotoRefresh(QString jid, QString photoId, bool largeFor
 void MainWindow::requestContactStatus(QString jid)
 {
     emit requestStatus(jid);
+}
+
+void MainWindow::sendVoiceNotePlayed(FMessage message)
+{
+    emit voiceNotePlayed(message);
 }
 
 void MainWindow::photoReceived(Contact &c, QImage photo, QString photoId)

@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QDir>
@@ -204,7 +204,7 @@ void RosterDBManager::updateContact(Contact *c)
     {
         // Update contact
         query.prepare("update roster set name=:name, type=:type, alias=:alias,"
-                      "phone=:phone, status=:status, "
+                      "phone=:phone, status=:status, blocked=:blocked, "
                       "status_timestamp=:status_timestamp, last_seen=:last_seen,"
                       "from_abook=:from_abook where jid=:jid");
     }

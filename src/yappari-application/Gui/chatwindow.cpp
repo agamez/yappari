@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QAbstractTextDocumentLayout>
@@ -52,6 +52,8 @@
 #include "contactinfowindow.h"
 #include "globalconstants.h"
 
+#include "Multimedia/audiorecorder.h"
+
 #include "Whatsapp/util/utilities.h"
 #include "Whatsapp/util/datetimeutilities.h"
 
@@ -76,12 +78,18 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     ui->setupUi(this);
     ui->scrollArea->init();
 
+    ui->recordingLabel->hide();
+    // ui->timeLabel->hide();
+
     muted = false;
     muteExpireTimestamp = 0;
 
     connect(ui->scrollArea,SIGNAL(mediaDownload(FMessage)),
             this,SLOT(mediaDownloadRequested(FMessage)));
+    connect(ui->scrollArea,SIGNAL(voiceNotePlayed(FMessage)),
+            this,SLOT(sendVoiceNotePlayed(FMessage)));
     connect(ui->sendButton,SIGNAL(clicked()),this,SLOT(sendButtonClicked()));
+    connect(ui->sendButton,SIGNAL(pressed()),this,SLOT(startRecording()));
     connect(ui->selectEmojiButton,SIGNAL(clicked()),
             ui->textEdit,SLOT(selectEmojiButtonClicked()));
 
@@ -132,7 +140,7 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
             this,SLOT(deleteAllMessages()));
 
     connect(ui->actionSendMultimedia,SIGNAL(triggered()),
-            this,SLOT(sendMultimediaMessage()));
+            this,SLOT(selectMultimediaMessage()));
 
     connect(ui->actionMute,SIGNAL(triggered()),
             this,SLOT(mute()));
@@ -162,6 +170,9 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     connect(ui->textEdit,SIGNAL(returnPressed()),
             this,SLOT(sendButtonClicked()));
 
+    connect(ui->textEdit,SIGNAL(textChanged()),
+            this,SLOT(textChanged()));
+
     Utilities::logData("Created chat window for " + contact->jid + " ID: " +
                        QString::number(this->winId()));
 }
@@ -188,14 +199,10 @@ void ChatWindow::messageReceived(FMessage& message)
 
 void ChatWindow::sendButtonClicked()
 {
-    // This has to be changed to toHtml() to get smileys
-    // eventually.
-    // QString text = ui->textEdit->toPlainText();
-
-    QString text = Utilities::htmlToWAText(ui->textEdit->toHtml());
-
-    if (!text.isEmpty())
+    if (!ui->textEdit->document()->isEmpty())
     {
+        QString text = Utilities::htmlToWAText(ui->textEdit->toHtml());
+
         FMessage message(contact->jid,true);
         message.type = FMessage::BodyMessage;
         message.setData(text);
@@ -260,7 +267,21 @@ void ChatWindow::setOnlineText(QString text)
     ui->onlineStatusLabel->setText(text);
 }
 
-void ChatWindow::myselfComposing()
+void ChatWindow::textChanged()
+{
+    if (!ui->textEdit->document()->isEmpty())
+    {
+        ui->sendButton->setText("Send");
+        ui->sendButton->setIcon(QIcon());
+    }
+    else
+    {
+        ui->sendButton->setText("");
+        ui->sendButton->setIcon(QIcon("/usr/share/yappari/icons/48x48/voice_overlay_icon.png"));
+    }
+}
+
+void ChatWindow::myselfComposing(int waType)
 {
     if (contact->type == Contact::TypeContact)
     {
@@ -268,6 +289,7 @@ void ChatWindow::myselfComposing()
 
         FMessage message(contact->jid,true);
         message.type = FMessage::ComposingMessage;
+        message.media_wa_type = waType;
 
         emit sendMessage(message);
     }
@@ -287,16 +309,18 @@ void ChatWindow::myselfPaused()
 }
 
 
-void ChatWindow::composing()
+void ChatWindow::composing(QString media)
 {
     isPeerComposing = true;
-    ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + " is typing...");
+    QString text = (media == "audio") ? " is recording audio..." : " is typing...";
+    ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + text);
 }
 
 void ChatWindow::paused()
 {
     if (isPeerComposing)
-        ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + " stopped typing.");
+        // ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + " stopped typing.");
+        ui->typingStatusLabel->clear();
 }
 
 bool ChatWindow::eventFilter(QObject *obj, QEvent *event)
@@ -315,7 +339,7 @@ bool ChatWindow::eventFilter(QObject *obj, QEvent *event)
     return QMainWindow::eventFilter(obj,event);
 }
 
-void ChatWindow::sendMultimediaMessage()
+void ChatWindow::selectMultimediaMessage()
 {
     // Select type of media to send
     MediaSelectDialog dialog(this);
@@ -375,38 +399,47 @@ void ChatWindow::sendMultimediaMessage()
                 {
                     Utilities::logData("File selected: " + fileName);
 
-                    FMessage msg(JID_DOMAIN, true);
-
-                    msg.status = FMessage::Unsent;
-                    msg.type = FMessage::RequestMediaMessage;
-                    msg.media_size = file.size();
-                    msg.remote_resource = contact->jid;
-                    msg.media_wa_type = waType;
-                    msg.media_name = fileName;
-
-                    // We still don't know the duration in seconds
-                    msg.media_duration_seconds = 0;
-
-                    if (file.open(QIODevice::ReadOnly))
-                    {
-                        QByteArray bytes = file.readAll();
-                        SHA256Context sha256;
-
-                        SHA256Reset(&sha256);
-                        SHA256Input(&sha256, reinterpret_cast<uint8_t *>(bytes.data()),
-                                    bytes.length());
-                        QByteArray result;
-                        result.resize(SHA256HashSize);
-                        SHA256Result(&sha256, reinterpret_cast<uint8_t *>(result.data()));
-                        msg.setData(result.toBase64());
-
-                        file.close();
-
-                        emit sendMessage(msg);
-                    }
+                    sendMultimediaMessage(fileName, waType, false);
                 }
             }
         }
+    }
+}
+
+void ChatWindow::sendMultimediaMessage(QString fileName, int waType, bool live)
+{
+    QFile file(fileName);
+
+    FMessage msg(JID_DOMAIN, true);
+
+    msg.status = FMessage::Unsent;
+    msg.type = FMessage::RequestMediaMessage;
+    msg.media_size = file.size();
+    msg.remote_resource = contact->jid;
+    msg.media_wa_type = waType;
+    msg.media_name = fileName;
+    if (live)
+        msg.live = true;
+
+    // We still don't know the duration in seconds
+    msg.media_duration_seconds = 0;
+
+    if (file.open(QIODevice::ReadOnly))
+    {
+        QByteArray bytes = file.readAll();
+        SHA256Context sha256;
+
+        SHA256Reset(&sha256);
+        SHA256Input(&sha256, reinterpret_cast<uint8_t *>(bytes.data()),
+                    bytes.length());
+        QByteArray result;
+        result.resize(SHA256HashSize);
+        SHA256Result(&sha256, reinterpret_cast<uint8_t *>(result.data()));
+        msg.setData(result.toBase64());
+
+        file.close();
+
+        emit sendMessage(msg);
     }
 }
 
@@ -445,6 +478,8 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
 void ChatWindow::mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg)
 {
     emit logMessage(msg);
+
+    Utilities::logData("Message is live: "  + QString(((msg.live) ? "LIVE" : "no")));
 
     showMessageInUI(msg);
 
@@ -702,5 +737,87 @@ void ChatWindow::setBlock(bool blocked)
             contact->blocked = blocked;
             emit blockOrUnblockContact(contact->jid, blocked);
         }
+    }
+}
+
+void ChatWindow::startRecording()
+{
+    recordingMutex.lock();
+
+    if (ui->textEdit->document()->isEmpty())
+    {
+        isRecording = true;
+
+        ui->textEdit->hide();
+        ui->recordingLabel->show();
+        updateRecordingTime(0);
+
+        AudioRecorder *recorder = new AudioRecorder(Client::voiceCodec, this);
+
+        connect(ui->sendButton,SIGNAL(released()),recorder,SLOT(stop()));
+        connect(recorder,SIGNAL(finished(QString,int)),this,SLOT(finishedRecording(QString,int)));
+        connect(recorder,SIGNAL(progress(int)),this,SLOT(updateRecordingTime(int)));
+
+        myselfComposing(FMessage::Audio);
+
+        recorder->record();
+
+        Utilities::logData("Recording....");
+    }
+
+    recordingMutex.unlock();
+}
+
+void ChatWindow::updateRecordingTime(int current)
+{
+    QString duration;
+    int minutes = current / 60;
+    int seconds = current % 60;
+
+    ui->recordingLabel->setText(
+                "<table width=\"100%\" border=\"0\" cellspacing=\"-1\">"
+                "<tr>"
+                "<td width=\"50%\"><div style=\"color:red\" align=\"center\"><b>RECORDING</b></div></td>"
+                "<td>" + duration.sprintf("%02d:%02d",minutes,seconds) + "<td>"
+                "</tr></table>"
+                );
+}
+
+void ChatWindow::finishedRecording(QString fileName, int lengthInSeconds)
+{
+    if (isRecording)
+    {
+        ui->textEdit->show();
+        ui->recordingLabel->hide();
+
+        myselfPaused();
+
+        if (lengthInSeconds < 2)
+        {
+            QMaemo5InformationBox::information(this,"Press and hold the button to record, "
+                                               "release to send");
+            QFile file(fileName);
+            file.remove();
+
+            return;
+        }
+
+        Utilities::logData("Finished recording: " + fileName);
+
+#ifndef Q_WS_SCRATCHBOX
+        // Send media
+        sendMultimediaMessage(fileName, FMessage::Audio, true);
+#endif
+    }
+}
+
+void ChatWindow::sendVoiceNotePlayed(FMessage message)
+{
+    if (!message.key.from_me && message.status != FMessage::Played)
+    {
+        message.status = FMessage::Played;
+
+        messageStatusUpdate(message);
+        emit voiceNotePlayed(message);
     }
 }

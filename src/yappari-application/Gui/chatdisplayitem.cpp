@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QMaemo5Style>
@@ -87,12 +87,20 @@ void ChatDisplayItem::updateData()
 
     line.setHtml("<div style=\"font-size:18px;color:" + color.name() + "\">O</div>");
 
-    QString lastLine = (lastMessage.type == FMessage::UndefinedMessage) ? "" :
-                          (
-                                (lastMessage.type == FMessage::BodyMessage) ?
-                                    QString::fromUtf8(lastMessage.data) :
-                                    "<i>[" + lastMessage.getMediaWAType() + "]</i>"
-                          );
+    QString lastLine;
+
+    if (lastMessage.type == FMessage::UndefinedMessage)
+        lastLine = "";
+    else
+    {
+        if (lastMessage.type == FMessage::BodyMessage)
+            lastLine = QString::fromUtf8(lastMessage.data);
+        else if (lastMessage.type == FMessage::MediaMessage && lastMessage.live)
+            lastLine = "<i>[voice note]</i>";
+        else
+            lastLine = "<i>[" + lastMessage.getMediaWAType() + "]</i>";
+
+    }
 
     lastLine.replace("\n"," ");
     do {

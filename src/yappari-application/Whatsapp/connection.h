@@ -23,8 +23,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #ifndef CONNECTION_H
@@ -183,6 +183,12 @@ public slots:
     // Sends a request to get the photo Ids from a list of jids
     void sendGetPhotoIds(QStringList jids);
 
+    /** ***********************************************************************
+     ** Voice notes handling
+     **/
+
+    // Sends a notification that a voice note was played
+    void sendVoiceNotePlayed(FMessage message);
 
     /** ***********************************************************************
      ** Group handling
@@ -361,7 +367,7 @@ private:
                        QString receiptType);
 
     // Sends a receipt acknowledging a delivered message notification received
-    void sendDeliveredReceiptAck(QString to, QString id);
+    void sendDeliveredReceiptAck(QString to, QString id, QString type);
 
 
     /** ***********************************************************************
@@ -369,10 +375,10 @@ private:
      **/
 
     // Sends a notification that the user is composing a message
-    void sendComposing(QString to);
+    void sendComposing(FMessage message);
 
     // Sends a notification that the user has stopped typing a message
-    void sendPaused(QString to);
+    void sendPaused(FMessage message);
 
 
     /** ***********************************************************************
@@ -423,7 +429,7 @@ signals:
      **/
 
     // User is typing
-    void composing(QString jid);
+    void composing(QString jid, QString media);
 
     // User stopped typing
     void paused(QString jid);

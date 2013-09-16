@@ -1,3 +1,3 @@
-#define BUILD_NUMBER "4280"
-#define VERSION "1.0.38"
-#define FULL_VERSION "1.0.38 Build 4280"
+#define BUILD_NUMBER "4448"
+#define VERSION "1.1.39"
+#define FULL_VERSION "1.1.39 Build 4448"

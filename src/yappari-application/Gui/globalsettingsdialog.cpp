@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QMaemo5ListPickSelector>
@@ -99,6 +99,24 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
 
     syncFreqSelector->setCurrentIndex(Client::syncFreq);
     ui->syncFreqButton->setPickSelector(syncFreqSelector);
+
+    // Configure the Voice Codec picker
+
+    QStandardItemModel *voiceCodecModel = new QStandardItemModel(0,0,this);
+    item = new QStandardItem("High Quality - Medium-size files (AAC)");
+    voiceCodecModel->appendRow(item);
+    item = new QStandardItem("Low Quality - Tiny files (AMR)");
+    voiceCodecModel->appendRow(item);
+
+    ui->voiceCodecButton->setValueLayout(QMaemo5ValueButton::ValueUnderText);
+    voiceCodecSelector = new QMaemo5ListPickSelector(ui->voiceCodecButton);
+    voiceCodecSelector->setModel(voiceCodecModel);
+
+    if (Client::voiceCodec == AMR)
+        voiceCodecSelector->setCurrentIndex(1);
+    else
+        voiceCodecSelector->setCurrentIndex(0);
+    ui->voiceCodecButton->setPickSelector(voiceCodecSelector);
 
     // Configure the checkboxes
 
@@ -184,6 +202,21 @@ int GlobalSettingsDialog::getAutomaticDownloadBytes()
         bytes = 0;  // disable this feature
 
     return bytes;
+}
+
+QString GlobalSettingsDialog::getVoiceCodec()
+{
+    switch (voiceCodecSelector->currentIndex())
+    {
+        case 0:
+            return AAC;
+
+        case 1:
+            return AMR;
+
+        default:
+            return AAC;
+    }
 }
 
 

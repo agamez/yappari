@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QDir>
@@ -37,7 +37,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define MAX_MESSAGES               7
-#define LOG_VERSION                2
+#define LOG_VERSION                3
 #define LOG_EXTENSION              ".dblog"
 
 // Column definitions
@@ -58,6 +58,9 @@
 #define LOG_MEDIA_NAME              13
 #define LOG_MEDIA_DURATION_SECONDS  14
 #define LOG_LOCAL_FILE_URI          15
+#define LOG_LIVE                    16
+#define LOG_LATITUDE                17
+#define LOG_LONGITUDE               18
 
 ChatLogger::ChatLogger(QObject *parent):
     QObject(parent)
@@ -109,7 +112,10 @@ bool ChatLogger::init(QString jid)
                    "media_size integer,"
                    "media_name varchar(256),"
                    "media_duration_seconds integer,"
-                   "local_file_uri varchar(512)"
+                   "local_file_uri varchar(512),"
+                   "live boolean,"
+                   "latitude real,"
+                   "longitude real"
                    ")");
 
         query.exec("create table settings ("
@@ -132,18 +138,41 @@ bool ChatLogger::init(QString jid)
 
         if (query.next())
         {
-            if (query.value(0).toInt() == 1)
+            int version = query.value(0).toInt();
+
+            if (version == 1)
             {
                 // Upgrade it to version 2
+
+                Utilities::logData("Upgrading log " + jid + " to version 2");
+
+                query.prepare("alter table log add column local_file_uri varchar(512)");
+                query.exec();
+                query.prepare("update settings set version=2");
+                query.exec();
+
+                version = 2;
+            }
+
+            if (version == 2)
+            {
+                // Upgrade it to version 3
 
                 Utilities::logData("Upgrading log " + jid + " to version " +
                                    QString::number(LOG_VERSION));
 
-                query.prepare("alter table log add column local_file_uri varchar(512)");
+                query.prepare("alter table log add column live boolean");
                 query.exec();
+                query.prepare("alter table log add column latitude real");
+                query.exec();
+                query.prepare("alter table log add column longitude real");
+                query.exec();
+
                 query.prepare("update settings set version="+
                               QString::number(LOG_VERSION));
                 query.exec();
+
+                version = LOG_VERSION;
             }
         }
 
@@ -166,11 +195,13 @@ void ChatLogger::logMessage(FMessage message)
     query.prepare("insert into log (name, from_me, timestamp, "
                   "id, type, data, thumb_image, status, "
                   "media_url, media_mime_type, media_wa_type, media_size, "
-                  "media_name, media_duration_seconds, local_file_uri) "
+                  "media_name, media_duration_seconds, local_file_uri,"
+                  "live, latitude, longitude) "
                   "values (:name, :from_me, :timestamp, :id, "
                   ":type, :data, :thumb_image, :status, "
                   ":media_url, :media_mime_type, :media_wa_type, :media_size, "
-                  ":media_name, :media_duration_seconds, :local_file_uri"
+                  ":media_name, :media_duration_seconds, :local_file_uri,"
+                  ":live, :latitude, :longitude"
                   ")");
 
     query.bindValue(":name",message.notify_name);
@@ -194,6 +225,10 @@ void ChatLogger::logMessage(FMessage message)
     query.bindValue(":media_name",message.media_name);
     query.bindValue(":media_duration_seconds",message.media_duration_seconds);
     query.bindValue(":local_file_uri", message.local_file_uri);
+
+    query.bindValue(":live", message.live);
+    query.bindValue(":latitude", message.latitude);
+    query.bindValue(":longitude", message.longitude);
 
     query.exec();
 
@@ -223,6 +258,11 @@ FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
     msg.media_name = query.value(LOG_MEDIA_NAME).toString();
     msg.media_duration_seconds = query.value(LOG_MEDIA_DURATION_SECONDS).toInt();
     msg.local_file_uri = query.value(LOG_LOCAL_FILE_URI).toString();
+
+    msg.live = query.value(LOG_LIVE).toBool();
+    msg.latitude = query.value(LOG_LATITUDE).toDouble();
+    msg.longitude = query.value(LOG_LONGITUDE).toDouble();
+
 
     if (msg.type == FMessage::MediaMessage)
         msg.setData(QByteArray::fromBase64(query.value(LOG_DATA).toString().toUtf8()));

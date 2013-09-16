@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QCryptographicHash>
@@ -126,6 +126,7 @@ void MediaUpload::sendMedia(QString jid, FMessage message)
     descriptor.localFileUri = message.media_name;
     descriptor.url = message.media_url;
     descriptor.upload = (message.status == FMessage::Uploading);
+    descriptor.live = message.live;
 
     switch (descriptor.waType)
     {
@@ -160,6 +161,7 @@ void MediaUpload::sendMedia(QString jid, MediaDescriptor descriptor)
     msg.local_file_uri = descriptor.localFileUri;
     msg.media_name = generateMediaFilename(descriptor.extension);
     msg.media_duration_seconds = descriptor.duration;
+    msg.live = descriptor.live;
 
     // This will be overwritten if a media upload is required with
     // the final URL

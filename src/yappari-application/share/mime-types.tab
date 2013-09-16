@@ -16,5 +16,5 @@ mp3	audio/mpeg
 m4a	audio/mpeg
 wav	audio/wav
 wma	audio/x-ms-wma
-aac	audio/mpeg
+aac	audio/aac
 oga	audio/ogg

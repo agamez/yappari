@@ -23,8 +23,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #ifndef CLIENTTHREAD_H
@@ -64,8 +64,10 @@
     @class      Client
 
     @brief      This is the main class of Yappari.
+
                 It provides interaction between the GUI and the Connection object
                 that keeps the connection to the WhatsApp servers.
+
                 The object from this class is always running in background, and also
                 interacts with the status menu applet.
 */
@@ -211,6 +213,9 @@ public:
     // Enter is Send
     static bool enterIsSend;
 
+    // Voice codec (amr/aac)
+    static QString voiceCodec;
+
     // Main GUI window
     static MainWindow *mainWin;
 
@@ -299,6 +304,7 @@ public slots:
     void setPrivacyList();
     void blockOrUnblockContact(QString jid, bool blocked);
     void privacyListReceived(QStringList list);
+    void sendVoiceNotePlayed(FMessage message);
 
 
 public Q_SLOTS:

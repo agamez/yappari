@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QtGui/QApplication>
@@ -33,6 +33,8 @@
 #include <QtDBus/QDBusReply>
 
 #include <QMessageBox>
+
+#include <gst/gst.h>
 
 #include "Dbus/dbusif.h"
 
@@ -48,6 +50,9 @@ int main(int argc, char *argv[])
     Client *client = 0;
     int retval = 0;
     bool root = false;
+
+    //Initialize GStreamer
+    gst_init(&argc, &argv);
 
     QStringList environment = QProcess::systemEnvironment();
     QRegExp userreg("^USER=([a-z]+)");

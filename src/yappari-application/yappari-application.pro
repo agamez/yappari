@@ -22,8 +22,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # The views and conclusions contained in the software and documentation
-# are those of the authors and should not be interpreted as representing
-# official policies, either expressed or implied, of Eeli Reilin.
+# are those of the author and should not be interpreted as representing
+# official policies, either expressed or implied, of copyright holder.
 #
 
 
@@ -33,7 +33,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network sql maemo5
+QT          += core gui network sql maemo5
+CONFIG      += mobility qtdbus network link_pkgconfig
+MOBILITY     = systeminfo messaging
+PKGCONFIG   += libosso-abook-1.0 libebook-1.2 gtk+-2.0 gstreamer-0.10 libpulse
+INCLUDEPATH += /usr/include/libosso-abook-1.0 /usr/include/evolution-data-server-1.4/ /usr/include/gtk-2.0 /usr/include/gstreamer-0.10
 
 TARGET = Yappari
 TEMPLATE = app
@@ -93,7 +97,6 @@ SOURCES += main.cpp \
     Gui/contactselectionmodel.cpp \
     Gui/contactdisplaydelegate.cpp \
     Gui/contactdisplayitem.cpp \
-    Whatsapp/httprequest.cpp \
     Sql/rosterdbmanager.cpp \
     Gui/selectemojiwidget.cpp \
     Gui/emojibutton.cpp \
@@ -136,7 +139,9 @@ SOURCES += main.cpp \
     Gui/groupparticipantdelegate.cpp \
     Gui/groupinfowindow.cpp \
     Gui/groupsubjectwindow.cpp \
-    Gui/blockedcontactswindow.cpp
+    Gui/blockedcontactswindow.cpp \
+    Multimedia/audioplayer.cpp \
+    Multimedia/audiorecorder.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -204,7 +209,6 @@ HEADERS += \
     Gui/contactselectionmodel.h \
     Gui/contactdisplaydelegate.h \
     Gui/contactdisplayitem.h \
-    Whatsapp/httprequest.h \
     Sql/rosterdbmanager.h \
     Gui/selectemojiwidget.h \
     Gui/emojibutton.h \
@@ -246,12 +250,9 @@ HEADERS += \
     Gui/groupparticipantdelegate.h \
     Gui/groupinfowindow.h \
     Gui/groupsubjectwindow.h \
-    Gui/blockedcontactswindow.h
-
-CONFIG += mobility qtdbus network link_pkgconfig
-MOBILITY = systeminfo messaging
-PKGCONFIG += libosso-abook-1.0 libebook-1.2 gtk+-2.0
-INCLUDEPATH += /usr/include/libosso-abook-1.0 /usr/include/evolution-data-server-1.4/ /usr/include/gtk-2.0
+    Gui/blockedcontactswindow.h \
+    Multimedia/audioplayer.h \
+    Multimedia/audiorecorder.h
 
 FORMS += \
     Gui/ui/mainwindow.ui \
@@ -327,6 +328,8 @@ maemo5 {
   script.path = /etc/event.d
   script.files += event.d/yappari
 }
+
+
 
 
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>530</width>
-    <height>467</height>
+    <height>454</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,8 +42,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>398</width>
-        <height>780</height>
+        <width>397</width>
+        <height>820</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -55,7 +55,7 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>780</height>
+        <height>820</height>
        </size>
       </property>
       <property name="layoutDirection">
@@ -67,7 +67,7 @@
          <x>0</x>
          <y>0</y>
          <width>339</width>
-         <height>305</height>
+         <height>327</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -95,6 +95,13 @@
          <widget class="QMaemo5ValueButton" name="portButton">
           <property name="text">
            <string>Port</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QMaemo5ValueButton" name="voiceCodecButton">
+          <property name="text">
+           <string>Voice Codec</string>
           </property>
          </widget>
         </item>

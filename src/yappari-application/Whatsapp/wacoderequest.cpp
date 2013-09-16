@@ -22,28 +22,29 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include "wacoderequest.h"
 
 #include "util/utilities.h"
 
-WACodeRequest::WACodeRequest(QString cc, QString in, QString method, QObject *parent) :
+WACodeRequest::WACodeRequest(QString cc, QString in, QString method,
+                             QString id, QObject *parent) :
     WARequest(parent)
 {
     this->method = "code";
 
     QSystemNetworkInfo networkInfo(this);
     QSystemInfo systemInfo(this);
-    QSystemDeviceInfo deviceInfo(this);
+    // QSystemDeviceInfo deviceInfo(this);
 
 #ifdef Q_WS_SCRATCHBOX
     QString language = "en";
-    QString country = "US";
-    QString mcc = "000";
-    QString mnc = "000";
+    QString country = "ZZ";
+    QString mcc = "734";
+    QString mnc = "002";
     QString imsi = "000000000000000";
 #else
     QString language = systemInfo.currentLanguage();
@@ -61,14 +62,14 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method, QObject *pa
 
     addParam("cc", cc);
     addParam("in", in);
-    addParam("to", cc + in);
-    addParam("lg", language.isEmpty() ? "zz" : language);
-    addParam("lc", country.isEmpty() ?  "ZZ" : country);
+    addParam("reason","next-method");
+    addParam("method", method);
     addParam("mcc", mcc);
     addParam("mnc", mnc);
-    addParam("method", method);
-    // addParam("imsi", imsi.isEmpty() ? "00000000000000" : imsi);
+    addParam("lg", language.isEmpty() ? "zz" : language);
+    addParam("lc", country.isEmpty() ?  "ZZ" : country);
     addParam("token", Utilities::getToken(in));
-    // addParam("id",Utilities::getChatPassword());
-    addParam("id","acbdef0123456789");
+
+    // addParam("imsi", imsi.isEmpty() ? "00000000000000" : imsi);
+    addParam("id",id);
 }

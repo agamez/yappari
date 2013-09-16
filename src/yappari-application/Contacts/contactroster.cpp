@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include "contactroster.h"
@@ -103,7 +103,7 @@ Contact* ContactRoster::createContact(QString jid)
     c->type = Contact::TypeContact;
     c->photoId = c->name = c->alias = QString();
     roster.insert(jid,c);
-    emit updateContact(c);
+    updateContact(c);
     return c;
 }
 
@@ -117,7 +117,7 @@ Group& ContactRoster::getGroup(QString gjid)
         c->type = Contact::TypeGroup;
         c->jid = gjid;
         roster.insert(gjid,c);
-        emit updateContact(c);
+        updateContact(c);
     }
 
     return *c;
@@ -133,13 +133,13 @@ Group& ContactRoster::getGroup(QString from, QString author, QString newSubject,
         c = createGroup(from, author, newSubject, creation, subjectOwner, subjectTimestamp);
     else
     {
-        Utilities::logData("Group found: " + from);
+        Utilities::logData("Group found: " + from + " - Subject: " + newSubject);
         c->author = author;
         c->creationTimestamp = creation.toLongLong();
         c->name = newSubject;
         c->subjectOwner = subjectOwner;
         c->subjectTimestamp = subjectTimestamp.toLongLong();
-        emit updateContact(c);
+        updateContact(c);
     }
 
     return *c;
@@ -161,7 +161,7 @@ Group* ContactRoster::createGroup(QString from, QString author, QString newSubje
     c->subjectTimestamp = subjectTimestamp.toLongLong();
     c->creationTimestamp = creation.toLongLong();
     roster.insert(from,c);
-    emit updateContact(c);
+    updateContact(c);
     return c;
 }
 

@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <QMaemo5InformationBox>
@@ -138,10 +138,7 @@ void RegistrationWindow::registrationFinished(PhoneRegReply *reply)
 
 void RegistrationWindow::requestCall()
 {
-    QMessageBox msg(this);
-
-    msg.setText("A call will be requested.");
-    msg.exec();
+    QMaemo5InformationBox::information(this,"A call is being requested");
 
     reg->startVoiceRequest();
 }

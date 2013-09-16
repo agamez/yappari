@@ -23,8 +23,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #include <mce/dbus-names.h>
@@ -170,6 +170,9 @@ bool Client::isSynchronizing;
 // Enter is Send
 bool Client::enterIsSend;
 
+// Voice codec (amr/aac)
+QString Client::voiceCodec;
+
 // Main GUI window
 MainWindow *Client::mainWin;
 
@@ -275,6 +278,9 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
 
     connect(mainWin, SIGNAL(requestBlockOrUnblockContact(QString,bool)),
             this, SLOT(blockOrUnblockContact(QString,bool)));
+
+    connect(mainWin,SIGNAL(voiceNotePlayed(FMessage)),
+            this, SLOT(sendVoiceNotePlayed(FMessage)));
 
     if (!minimized)
         mainWin->show();
@@ -455,6 +461,10 @@ void Client::readSettings()
     this->enterIsSend = settings->value(SETTINGS_ENTER_IS_SEND,
                                         QVariant(DEFAULT_ENTER_IS_SEND)).toBool();
 
+    // Voice codec (amr/aac)
+    this->voiceCodec = settings->value(SETTINGS_VOICE_CODEC,
+                                       QVariant(DEFAULT_VOICE_CODEC)).toString();
+
     // Read counters
     dataCounters.readCounters();
     lastCountersWrite = QDateTime::currentMSecsSinceEpoch();
@@ -478,6 +488,7 @@ void Client::updateSettings()
     settings->setValue(SETTINGS_SYNC_FREQ,syncFreq);
     settings->setValue(SETTINGS_START_ON_BOOT,startOnBoot);
     settings->setValue(SETTINGS_ENTER_IS_SEND,enterIsSend);
+    settings->setValue(SETTINGS_VOICE_CODEC,voiceCodec);
 
     QDir home = QDir::home();
     QString startFile = home.path() + START_FILE;
@@ -617,6 +628,18 @@ void Client::registrationSuccessful(QVariantMap result)
     updateStatus();
 
     connectionMutex.unlock();
+
+    while (this->userName.isEmpty())
+    {
+        ChangeUserNameDialog dialog(mainWin);
+
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            this->userName = dialog.getUserName();
+            settings->setValue(SETTINGS_USERNAME,userName);
+        }
+    }
+
     networkStatusChanged(isNetworkAvailable());
 }
 
@@ -730,7 +753,7 @@ void Client::connected()
                                 ? Utilities::getChatPassword().toUtf8()
                                 : QByteArray::fromBase64(this->password.toUtf8());
 
-    Utilities::logData("Password: " + password);
+    // Utilities::logData("Password: " + password);
 
     connection = new Connection(socket,JID_DOMAIN,RESOURCE,phoneNumber,
                                 userName,password,&dataCounters,this);
@@ -738,7 +761,7 @@ void Client::connected()
     QByteArray nextChallenge = QByteArray::fromBase64(settings->value(SETTINGS_NEXTCHALLENGE).toByteArray());
     settings->remove(SETTINGS_NEXTCHALLENGE);
 
-    Utilities::logData("Challenge: " + QString::fromLatin1(nextChallenge.toHex()));
+    // Utilities::logData("Challenge: " + QString::fromLatin1(nextChallenge.toHex()));
 
     try
     {
@@ -807,8 +830,8 @@ void Client::connected()
     connect(connection,SIGNAL(available(QString,bool)),
             mainWin,SLOT(available(QString,bool)));
 
-    connect(connection,SIGNAL(composing(QString)),
-            mainWin,SLOT(composing(QString)));
+    connect(connection,SIGNAL(composing(QString,QString)),
+            mainWin,SLOT(composing(QString,QString)));
 
     connect(connection,SIGNAL(paused(QString)),
             mainWin,SLOT(paused(QString)));
@@ -1433,7 +1456,6 @@ void Client::groupInfoFromList(QString id, QString from, QString author,
     if (groups.contains(id))
     {
         Group *group = groups.value(id);
-
         QString creationStr = QString::number(group->creationTimestamp);
 
         g = &(roster->getGroup(from, group->author, group->name,
@@ -1618,3 +1640,8 @@ void Client::privacyListReceived(QStringList list)
     mainWin->refreshPrivacyList();
 }
 
+void Client::sendVoiceNotePlayed(FMessage message)
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendVoiceNotePlayed(message);
+}

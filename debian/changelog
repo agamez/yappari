@@ -1,3 +1,16 @@
+yappari (1.1.39) stable; urgency=low
+
+  * Fixed registration: chnaged id to be 20 bytes of size.
+  * Registration now uses HttpRequestv2.  HttpRequest was removed.
+  * Fixed bug where ChangeUserNameDialog wasn't being called after
+    a successful registration.
+  * Fixed reception of location messages with no URL.
+  * Fixed bug where groups and contacts weren't being updated in DB.
+  * Fixed margins of the ChatImageItem widget.
+  * Implemented proper reception of push-to-talk messages.
+
+ -- Scorpius <naikel@gmail.com>  Mon, 16 Sep 2013 14:38:11 -0430
+
 yappari (1.0.38) stable; urgency=low
 
   * Added new option to use Enter as a Send Key (default enabled).

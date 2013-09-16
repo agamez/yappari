@@ -1,4 +1,4 @@
-/* Copyright 2012 Naikel Aparicio. All rights reserved.
+/* Copyright 2013 Naikel Aparicio. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -22,8 +22,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Eeli Reilin.
+ * are those of the author and should not be interpreted as representing
+ * official policies, either expressed or implied, of the copyright holder.
  */
 
 #ifndef MAINWINDOW_H
@@ -91,7 +91,7 @@ public slots:
     void lockModeChanged(QString lockMode);
     void available(QString jid, bool online);
     void available(QString jid, qint64 lastSeen);
-    void composing(QString jid);
+    void composing(QString jid, QString media);
     void paused(QString jid);
     void showDonate();
     void groupLeft(QString jid);
@@ -105,6 +105,7 @@ public slots:
     void requestChangeStatus(QString status);
     void requestPhotoRefresh(QString jid, QString photoId, bool largeFormat);
     void requestContactStatus(QString jid);
+    void sendVoiceNotePlayed(FMessage message);
     void showStatusWindow();
     void photoReceived(Contact& c, QImage photo, QString photoId);
     void viewContact(Contact *c);
@@ -169,6 +170,7 @@ signals:
     void requestPrivacyList();
     void requestBlockOrUnblockContact(QString jid, bool blocked);
     void privacyListRefreshed();
+    void voiceNotePlayed(FMessage message);
 };
 
 #endif // MAINWINDOW_H

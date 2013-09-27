@@ -53,6 +53,12 @@ AudioRecorder::AudioRecorder(QString codec, QObject *parent) :
     QObject(parent)
 {
     this->codec = codec;
+
+    // Check the directories are created
+    QDir home = QDir::home();
+    QString folder = home.path() + CACHE_DIR "/" AUDIO_DIR;
+    if (!home.exists(folder))
+        home.mkpath(folder);
 }
 
 /**

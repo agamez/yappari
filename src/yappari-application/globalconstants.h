@@ -233,7 +233,7 @@
 #define VERSION_CHECK_URL   "version.txt"
 #define WHATS_NEW_URL       "changelog.txt"
 #define DONATE_URL          "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER        568647972
+#define MAGIC_NUMBER        969175617
 
 // Codecs
 

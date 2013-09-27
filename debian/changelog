@@ -1,13 +1,22 @@
+yappari (1.1.40) stable; urgency=low
+
+  * Fixed bug where voice notes weren't being created because the 
+    cache/sounds folders didn't exist.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Fri, 27 Sep 2013 02:42:27 -0430
+
 yappari (1.1.39) stable; urgency=low
 
-  * Fixed registration: chnaged id to be 20 bytes of size.
+  * Fixed registration: changed id to be 20 bytes of size.
   * Registration now uses HttpRequestv2.  HttpRequest was removed.
   * Fixed bug where ChangeUserNameDialog wasn't being called after
     a successful registration.
   * Fixed reception of location messages with no URL.
   * Fixed bug where groups and contacts weren't being updated in DB.
   * Fixed margins of the ChatImageItem widget.
-  * Implemented proper reception of push-to-talk messages.
+  * Implemented push-to-talk messages.
+  * Added an option to select the voice notes codec. Users can select
+    between AAC (default) and AMR.
 
  -- Scorpius <naikel@gmail.com>  Mon, 16 Sep 2013 14:38:11 -0430
 

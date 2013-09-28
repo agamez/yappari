@@ -1,6 +1,9 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.40:</b><br>
+<b>New in this version 1.1.41:</b><br>
+<li>&bull; Fixed bug: All media was being shown as <i>[voice note]<i> in the open conversations list.</li>
+<br>
+<b>New in 1.1.40:</b><br>
 <li>&bull; Fixed bug: Cache folder where voice notes are stored weren't being created automatically.</li>
 <br>
 <b>New in 1.1.39:</b><br>

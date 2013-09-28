@@ -103,6 +103,9 @@ void ChatDisplayItem::updateData()
     }
 
     lastLine.replace("\n"," ");
+    if (lastLine.length() > 80)
+        lastLine = lastLine.left(80) + "...";
+
     do {
         htmlLastLine = "<div style=\"font-size:18px;color:" + color.name() + "\">" +
                        lastLine + "</div>";

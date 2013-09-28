@@ -43,13 +43,13 @@
 /*
 #define USER_AGENT_VERSION  "2.10.773"
 #define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" Android/2.3.4 Device/samsung-GT-I9100"
-#define RESOURCE	    "Android-"USER_AGENT_VERSION"-443"
+#define RESOURCE            "Android-"USER_AGENT_VERSION"-443"
 */
 
 
-#define USER_AGENT_VERSION  "2.11.1"
+#define USER_AGENT_VERSION  "2.11.4"
 #define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/gadCEX3.60 Device/Nokia305"
-#define RESOURCE	    "S40-"USER_AGENT_VERSION"-443"
+#define RESOURCE            "S40-"USER_AGENT_VERSION"-443"
 
 
 /*
@@ -72,7 +72,7 @@
 
 
 #define BUILD_KEY   "PdA2DJyKoUrwLw1Bg6EIhzh502dF9noR9uFCllGk"
-#define BUILD_HASH  "1377032097395"
+#define BUILD_HASH  "1380568664606"
 
 
 /*
@@ -233,7 +233,7 @@
 #define VERSION_CHECK_URL   "version.txt"
 #define WHATS_NEW_URL       "changelog.txt"
 #define DONATE_URL          "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER        969175617
+#define MAGIC_NUMBER        824177453
 
 // Codecs
 

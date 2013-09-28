@@ -464,7 +464,10 @@ void ContactSyncer::syncNextPhone()
 
         if (w)
         {
+            // Original Number
             QString phone = e.value("p").toString();
+
+            // Normalized Number
             QString jid = e.value("n").toString() + "@" + JID_DOMAIN;
 
             Contact *c = abook.value(phone);
@@ -506,12 +509,16 @@ void ContactSyncer::syncNextPhone()
                     contact->photoId = QString();
                 }
 
+                // Status Timestamp
                 qint64 statusTimestamp = e.value("t").toLongLong();
                 if (contact->statusTimestamp != statusTimestamp)
                 {
                     updated = true;
                     contact->statusTimestamp = statusTimestamp;
+
+                    // Status
                     contact->status = e.value("s").toString();
+
                     emit statusChanged(contact->jid, contact->status);
                 }
 

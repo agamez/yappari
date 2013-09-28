@@ -1,3 +1,9 @@
+yappari (1.1.41) stable; urgency=low
+
+  * Fixed bug: All media was shown as [voice note] in MainWindow's QListView.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Sat, 28 Sep 2013 12:24:48 -0430
+
 yappari (1.1.40) stable; urgency=low
 
   * Fixed bug where voice notes weren't being created because the 

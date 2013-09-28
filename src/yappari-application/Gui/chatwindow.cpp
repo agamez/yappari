@@ -418,8 +418,7 @@ void ChatWindow::sendMultimediaMessage(QString fileName, int waType, bool live)
     msg.remote_resource = contact->jid;
     msg.media_wa_type = waType;
     msg.media_name = fileName;
-    if (live)
-        msg.live = true;
+    msg.live = live;
 
     // We still don't know the duration in seconds
     msg.media_duration_seconds = 0;

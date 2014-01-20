@@ -116,8 +116,8 @@ GroupInfoWindow::GroupInfoWindow(Group *group, ContactRoster *roster, QWidget *p
     connect(Client::mainWin,SIGNAL(groupSubjectUpdated(QString)),
             this,SLOT(groupSubjectUpdated(QString)));
 
-    connect(this,SIGNAL(photoRefresh(QString,QString,bool)),
-            Client::mainWin,SLOT(requestPhotoRefresh(QString,QString,bool)));
+    connect(this,SIGNAL(photoUpdate(QString,QString,bool)),
+            Client::mainWin,SLOT(requestPhotoUpdate(QString,QString,bool)));
 
     connect(this,SIGNAL(requestLeaveGroup(QString)),
             Client::mainWin,SLOT(requestLeaveGroupFromChat(QString)));
@@ -213,7 +213,7 @@ void GroupInfoWindow::showPhoto()
     else if (!photoDownloaded)
     {
         setAttribute(Qt::WA_Maemo5ShowProgressIndicator, Qt::Checked);
-        emit photoRefresh(group->jid, QString(), true);
+        emit photoUpdate(group->jid, QString(), true);
         isDownloading = true;
         QMaemo5InformationBox::information(this,"Downloading group icon");
     }
@@ -465,7 +465,7 @@ bool GroupInfoWindow::eventFilter(QObject *obj, QEvent *event)
                     ContactInfoWindow *window = new ContactInfoWindow(&c,this);
 
                     Client::mainWin->requestContactStatus(c.jid);
-                    Client::mainWin->requestPhotoRefresh(c.jid, c.photoId, false);
+                    Client::mainWin->requestPhotoUpdate(c.jid, c.photoId, false);
                     // emit queryLastOnline(c->jid);
 
                     window->setAttribute(Qt::WA_Maemo5StackedWindow);

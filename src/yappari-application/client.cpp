@@ -146,7 +146,7 @@ int Client::automaticDownloadBytes;
 // Import media into gallery
 bool Client::importMediaToGallery;
 
-// Last time address book synchronizarion was performed
+// Last time address book synchronization was performed
 qint64 Client::lastSync;
 
 // What's new window magic number
@@ -178,6 +178,15 @@ MainWindow *Client::mainWin;
 
 // Roster
 ContactRoster *Client::roster;
+
+// Last audio folder used
+QString Client::lastAudioDir;
+
+// Last video folder used
+QString Client::lastVideoDir;
+
+// Last image folder used
+QString Client::lastImageDir;
 
 /**
     Constructs a Client object.
@@ -253,7 +262,7 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
             this,SLOT(requestPresenceUnsubscription(QString)));
 
     connect(mainWin,SIGNAL(photoRequest(QString,QString,bool)),
-            this,SLOT(photoRefresh(QString,QString,bool)));
+            this,SLOT(updatePhoto(QString,QString,bool)));
 
     connect(mainWin,SIGNAL(requestStatus(QString)),
             this,SLOT(requestContactStatus(QString)));
@@ -281,6 +290,9 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
 
     connect(mainWin,SIGNAL(voiceNotePlayed(FMessage)),
             this, SLOT(sendVoiceNotePlayed(FMessage)));
+
+    connect(mainWin,SIGNAL(updateLastDir(int,QString)),
+            this, SLOT(updateLastDir(int,QString)));
 
     if (!minimized)
         mainWin->show();
@@ -340,6 +352,27 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     }
     else
         connectionStatus = Disconnected;
+
+    // Contacts syncer
+    syncer = new ContactSyncer(roster, this);
+
+    connect(syncer,SIGNAL(phoneListReady(QStringList)),
+            this, SLOT(sendSyncContacts(QStringList)));
+
+    connect(syncer,SIGNAL(statusListReady(QStringList)),
+            this, SLOT(sendGetStatus(QStringList)));
+
+    connect(syncer,SIGNAL(progress(int)),
+            this, SLOT(syncProgress(int)));
+
+    connect(syncer,SIGNAL(updatePhoto(QString,QString,bool)),
+            this,SLOT(updatePhoto(QString,QString,bool)));
+
+    connect(syncer,SIGNAL(updateStatus(QString,qint64)),
+            this,SLOT(sendGetStatus(QString,qint64)));
+
+    connect(syncer,SIGNAL(syncFinished()),
+            this,SLOT(syncFinished()));
 
     isSynchronizing = false;
     updateStatus();
@@ -464,6 +497,17 @@ void Client::readSettings()
     // Voice codec (amr/aac)
     this->voiceCodec = settings->value(SETTINGS_VOICE_CODEC,
                                        QVariant(DEFAULT_VOICE_CODEC)).toString();
+
+    // Last folders
+    this->lastAudioDir = settings->value(SETTINGS_LAST_AUDIO_DIR,
+                                         Utilities::getPathFor(FMessage::Audio,
+                                                               true)).toString();
+    this->lastVideoDir = settings->value(SETTINGS_LAST_VIDEO_DIR,
+                                         Utilities::getPathFor(FMessage::Video,
+                                                               true)).toString();
+    this->lastImageDir = settings->value(SETTINGS_LAST_IMAGE_DIR,
+                                         Utilities::getPathFor(FMessage::Image,
+                                                               true)).toString();
 
     // Read counters
     dataCounters.readCounters();
@@ -872,6 +916,18 @@ void Client::connected()
     connect(connection,SIGNAL(privacyListReceived(QStringList)),
             this,SLOT(privacyListReceived(QStringList)));
 
+    connect(connection,SIGNAL(contactSync(QString,QString)),
+            syncer, SLOT(syncPhone(QString, QString)));
+
+    connect(connection,SIGNAL(statusChanged(QString,qint64,QString)),
+            this,SLOT(statusChanged(QString,qint64,QString)));
+
+    connect(connection,SIGNAL(contactDeleted(QString,QString)),
+            syncer, SLOT(deletePhone(QString, QString)));
+
+    connect(connection,SIGNAL(syncError()),
+            syncer, SLOT(finishSync()));
+
 
     // Update participating groups
     connection->updateGroupChats();
@@ -900,23 +956,19 @@ void Client::connected()
 
 void Client::synchronizeContacts()
 {
-    // Contacts syncer
-    syncer = new ContactSyncer(roster, this);
+    QTimer::singleShot(0,syncer,SLOT(syncContacts()));
+}
 
-    connect(syncer,SIGNAL(syncFinished()),this,SLOT(syncFinished()));
-    connect(syncer,SIGNAL(progress(int)),this,SLOT(syncProgress(int)));
-    connect(syncer,SIGNAL(photoRefresh(QString,QString,bool)),
-            this,SLOT(photoRefresh(QString,QString,bool)));
+void Client::sendSyncContacts(QStringList numbers)
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendSyncContacts(numbers);
+}
 
-    connect(syncer,SIGNAL(httpError(int)),
-            this,SLOT(syncHttpError(int)));
-
-    connect(syncer,SIGNAL(sslError()),
-            this,SLOT(synSslError()));
-
-    isSynchronizing = true;
-    QTimer::singleShot(0,syncer,SLOT(sync()));
-
+void Client::sendGetStatus(QStringList jids)
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendGetStatus(jids);
 }
 
 void Client::syncHttpError(int error)
@@ -949,12 +1001,7 @@ void Client::syncFinished()
 {
     Utilities::logData("Synchronization finished");
     isSynchronizing = false;
-    syncer->deleteLater();
     updateStatus();
-
-    // Get all the photo ids
-    //ContactList contactList = roster->getContactList();
-    //connection->sendGetPhotoIds(contactList.toJidList());
 }
 
 void Client::changeStatus(QString newStatus)
@@ -1311,7 +1358,7 @@ void Client::photoReceived(QString from, QByteArray data,
     }
 }
 
-void Client::photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat)
+void Client::updatePhoto(QString jid, QString expectedPhotoId, bool largeFormat)
 {
     if (connectionStatus == LoggedIn)
         connection->sendGetPhoto(jid, expectedPhotoId, largeFormat);
@@ -1350,33 +1397,22 @@ void Client::photoDeleted(QString jid, QString alias)
 
 void Client::requestContactStatus(QString jid)
 {
-    // This method is obsolete
-    /*
     if (connectionStatus == LoggedIn)
-        connection->sendGetStatus(jid);
-    */
+        connection->sendGetStatus(QStringList(jid));
+}
 
-    if (connectionStatus == LoggedIn)
+void Client::statusChanged(QString jid, qint64 t, QString status)
+{
+    Contact &c = roster->getContact(jid);
+
+    if (c.statusTimestamp != t)
     {
-        // Contact syncer
-        syncer = new ContactSyncer(roster, this);
+        c.status = status;
+        c.statusTimestamp = t;
 
-        connect(syncer,SIGNAL(syncFinished()),this,SLOT(syncFinished()));
+        roster->updateStatus(&c);
 
-        connect(syncer,SIGNAL(statusChanged(QString,QString)),
-                mainWin,SLOT(statusChanged(QString,QString)));
-
-        connect(syncer,SIGNAL(photoRefresh(QString,QString,bool)),
-                this,SLOT(photoRefresh(QString,QString,bool)));
-
-        connect(syncer,SIGNAL(httpError(int)),
-                this,SLOT(syncHttpError(int)));
-
-        connect(syncer,SIGNAL(sslError()),
-                this,SLOT(synSslError()));
-
-        isSynchronizing = true;
-        syncer->syncContact(&(roster->getContact(jid)));
+        mainWin->statusChanged(jid, status);
     }
 }
 
@@ -1531,7 +1567,7 @@ void Client::createMyJidContact()
             contact.photo = image.scaled(QSize(64,64), Qt::KeepAspectRatio,
                                          Qt::SmoothTransformation);
 
-            // This will force a refresh in the next synchronization
+            // This will force an update in the next synchronization
             contact.photoId = "invalid";
             roster->updatePhoto(&contact);
         }
@@ -1644,4 +1680,29 @@ void Client::sendVoiceNotePlayed(FMessage message)
 {
     if (connectionStatus == LoggedIn)
         connection->sendVoiceNotePlayed(message);
+}
+
+void Client::updateLastDir(int waType, QString dir)
+{
+    switch (waType)
+    {
+        case FMessage::Video:
+            lastVideoDir = dir;
+            settings->setValue(SETTINGS_LAST_VIDEO_DIR,lastVideoDir);
+            break;
+
+        case FMessage::Audio:
+            lastAudioDir = dir;
+            settings->setValue(SETTINGS_LAST_AUDIO_DIR,lastAudioDir);
+            break;
+
+        case FMessage::Image:
+            lastImageDir = dir;
+            settings->setValue(SETTINGS_LAST_IMAGE_DIR,lastImageDir);
+            break;
+
+        default:
+            return;
+
+    }
 }

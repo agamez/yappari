@@ -135,6 +135,7 @@ bool Connection::read()
 {
     ProtocolTreeNode node;
     bool pictureReceived = false;
+    bool synchronization = false;
 
     if (in->nextTree(node))
     {
@@ -290,6 +291,84 @@ bool Connection::read()
                         emit groupUser(from, participant);
                     }
 
+                    else if (child.getTag() == "sync")
+                    {
+                        synchronization = true;
+                        ProtocolTreeNodeListIterator j(child.getChildren());
+                        while (j.hasNext())
+                        {
+                            ProtocolTreeNode syncIn = j.next().value();
+                            if (syncIn.getTag() == "in")
+                            {
+                                ProtocolTreeNodeListIterator k(syncIn.getChildren());
+                                while (k.hasNext())
+                                {
+                                    ProtocolTreeNode user = k.next().value();
+                                    if (user.getTag() == "user")
+                                    {
+                                        QString jid = user.getAttributeValue("jid");
+                                        QString phone = user.getDataString();
+
+                                        emit contactSync(jid, phone);
+                                    }
+
+                                }
+                            }
+                            else if (syncIn.getTag() == "out")
+                            {
+                                ProtocolTreeNodeListIterator k(syncIn.getChildren());
+                                while (k.hasNext())
+                                {
+                                    ProtocolTreeNode user = k.next().value();
+                                    if (user.getTag() == "user")
+                                    {
+                                        QString jid = user.getAttributeValue("jid");
+                                        QString phone = user.getDataString();
+
+                                        Utilities::logData("Contact deleted: " + jid + " "  + phone);
+
+                                        emit contactDeleted(jid, phone);
+                                    }
+                                }
+                            }
+                            else if (syncIn.getTag() == "invalid")
+                            {
+                                ProtocolTreeNodeListIterator k(syncIn.getChildren());
+                                while (k.hasNext())
+                                {
+                                    ProtocolTreeNode user = k.next().value();
+                                    if (user.getTag() == "user")
+                                    {
+                                        QString jid = user.getAttributeValue("jid");
+                                        QString phone = user.getDataString();
+
+                                        Utilities::logData("Contact invalid: " + jid + " "  + phone);
+
+                                        emit contactDeleted(jid, phone);
+                                    }
+                                }
+                            }
+                        }
+
+                        counters->increaseCounter(DataCounters::SyncBytes, node.getSize(), 0);
+                    }
+
+                    else if (child.getTag() == "status")
+                    {
+                        ProtocolTreeNodeListIterator j(child.getChildren());
+                        while (j.hasNext())
+                        {
+                            ProtocolTreeNode user = j.next().value();
+                            if (user.getTag() == "user")
+                            {
+                                QString jid = user.getAttributeValue("jid");
+                                qint64 t = user.getAttributeValue("t").toLongLong();
+                                QString status = user.getDataString();
+
+                                emit statusChanged(jid, t, status);
+                            }
+                        }
+                    }
                 }
 
                 if (id.left(10) == "set_photo_" && from == myJid &&
@@ -308,6 +387,9 @@ bool Connection::read()
                    emit photoDeleted(from, QString());
                else if (id.left(11) == "privacylist")
                    emit privacyListReceived(QStringList());
+               else if (id.left(5) == "sync_")
+                   emit syncError();
+
             }
         }
 
@@ -340,7 +422,7 @@ bool Connection::read()
             parseMessageInitialTagAlreadyChecked(node);
 
         // Update counters
-        if (tag != "message" && !pictureReceived)
+        if (tag != "message" && !pictureReceived && !synchronization)
             counters->increaseCounter(DataCounters::ProtocolBytes, node.getSize(), 0);
 
         return true;
@@ -1143,34 +1225,80 @@ void Connection::sendQueryLastOnline(QString jid)
 }
 
 /**
+    Sends a contact synchronization request.
+
+    @param jid           Destination jid.
+*/
+void Connection::sendSyncContacts(QStringList numbers)
+{
+    QString id = makeId("sync_");
+
+    AttributeList attrs;
+
+    ProtocolTreeNode syncNode("sync");
+    attrs.clear();
+    attrs.insert("context", "background");
+    attrs.insert("index", "0");
+    attrs.insert("mode", "delta");
+    attrs.insert("request", "all");
+    attrs.insert("sid", "sync");
+    attrs.insert("xmlns", "urn:xmpp:whatsapp:sync");
+    syncNode.setAttributes(attrs);
+
+    foreach (QString number, numbers) {
+        ProtocolTreeNode userNode("user");
+        userNode.setData(number.split("@").first().toUtf8());
+        syncNode.addChild(userNode);
+    }
+
+    ProtocolTreeNode iqNode("iq");
+    attrs.clear();
+    attrs.insert("id", id);
+    attrs.insert("type", "get");
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(syncNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::SyncBytes, 0, bytes);
+}
+
+/**
     Sends a query to get the current status of a user.
 
     @param jid           Destination jid.
 */
-void Connection::sendGetStatus(QString jid)
+void Connection::sendGetStatus(QStringList jids)
 {
-    int index = jid.indexOf('@');
-    if (index > 0)
-    {
-        jid = jid.left(index + 1) + "s.us";
-        QString id = makeId(QString::number(QDateTime::currentMSecsSinceEpoch() / 1000) + "-");
+    QString id = makeId("getstatus_");
 
-        AttributeList attrs;
+    AttributeList attrs;
 
-        ProtocolTreeNode actionNode("action");
-        attrs.insert("type","get");
-        actionNode.setAttributes(attrs);
+    ProtocolTreeNode statusNode("status");
+    attrs.clear();
+    attrs.insert("xmlns", "status");
+    statusNode.setAttributes(attrs);
 
-        ProtocolTreeNode node("message");
-        attrs.clear();
-        attrs.insert("to",jid);
-        attrs.insert("type","action");
-        attrs.insert("id",id);
-        node.setAttributes(attrs);
-
-        int bytes = out->write(node);
-        counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+    foreach (QString jid, jids) {
+        if (jid.contains("@"))
+        {
+            ProtocolTreeNode userNode("user");
+            attrs.clear();
+            attrs.insert("jid", jid);
+            userNode.setAttributes(attrs);
+            statusNode.addChild(userNode);
+        }
     }
+
+    ProtocolTreeNode iqNode("iq");
+    attrs.clear();
+    attrs.insert("id", id);
+    attrs.insert("to", "s.whatsapp.net");
+    attrs.insert("type", "get");
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(statusNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
 }
 
 /**

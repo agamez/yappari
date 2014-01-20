@@ -62,7 +62,7 @@
      <item>
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Copyright © 2013 Scorpius</string>
+        <string>Copyright © 2014 Scorpius</string>
        </property>
       </widget>
      </item>

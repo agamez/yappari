@@ -82,7 +82,7 @@ void ChatArea::sliderRangeChanged(int min, int max)
 {
     Q_UNUSED(min);
 
-    if (!loadingMessages)
+    if (!loadingMessages && atBottom)
     {
         Utilities::logData("Autoscrolling");
         verticalScrollBar()->setValue(max);
@@ -101,6 +101,8 @@ void ChatArea::insertMessageAtBottom(FMessage message)
 
 void ChatArea::insertMessage(FMessage message, bool atTop)
 {
+    atBottom = (verticalScrollBar()->value() == verticalScrollBar()->maximum());
+
     if (message.type == FMessage::BodyMessage)
         insertBodyMessage(message,atTop);
     if (message.type == FMessage::MediaMessage)

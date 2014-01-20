@@ -49,103 +49,11 @@
 
 ContactSyncer::ContactSyncer(ContactRoster* roster,
                              QObject *parent)
-    : HttpRequestv2(parent)
+    : QObject(parent)
 {
     isSyncing = false;
 
     this->roster = roster;
-
-    connect(this,SIGNAL(headersReceived(qint64)),
-            this,SLOT(increaseDownloadCounter(qint64)));
-
-    connect(this,SIGNAL(requestSent(qint64)),
-            this,SLOT(increaseUploadCounter(qint64)));
-
-}
-
-QString ContactSyncer::getAuthResponse(QString nonce)
-{
-    // New contact synchronization method
-
-    QtMD5Digest digest;
-
-    qint64 clock = QDateTime::currentMSecsSinceEpoch();
-
-    QString cnonce = QString::number(clock,36);
-    QString nc = "00000001";
-    QString digestUri = "WAWA/" JID_DOMAIN;
-
-    // Login information
-    QByteArray password = (Client::password.isEmpty())
-                                ? Utilities::getChatPassword().toUtf8()
-                                : QByteArray::fromBase64(Client::password.toUtf8());
-
-    QString loginStr = Client::phoneNumber + ":" + JID_DOMAIN + ":";
-    QByteArray bArray = loginStr.toUtf8();
-    bArray.append(password);
-    digest.update(bArray);
-    QByteArray loginArray = digest.digest();
-    digest.reset();
-
-    // Nonce and Cnonce information
-    QString nonceStr = ":" + nonce + ":" + cnonce;
-    loginArray.append(nonceStr.toUtf8());
-    digest.update(loginArray);
-    QByteArray authentication = encode(digest.digest());
-    digest.reset();
-
-    QString nonceauthStr = ":" + nonce + ":" + nc + ":" + cnonce + ":auth:";
-    authentication.append(nonceauthStr.toUtf8());
-
-    // Authentication information
-    QString authStr = "AUTHENTICATE:" + digestUri;
-    digest.update(authStr.toUtf8());
-    authentication.append(encode(digest.digest()));
-    digest.reset();
-
-    digest.update(authentication);
-
-    QString response = "X-WAWA: username=\"";
-
-    response.append(Client::phoneNumber);
-    response.append("\",realm=\"");
-    response.append(JID_DOMAIN);
-    response.append("\",nonce=\"");
-    response.append(nonce);
-    response.append("\",cnonce=\"");
-    response.append(cnonce);
-    response.append("\",nc=\"");
-    response.append(nc);
-    response.append("\",qop=\"auth\",digest-uri=\"");
-    response.append(digestUri);
-    response.append("\",response=\"");
-    response.append(QUrl::toPercentEncoding(QString::fromUtf8(encode(digest.digest()))));
-    //response.append(QString::fromUtf8(encode(digest.digest())));
-    response.append("\",charset=\"utf-8\"");
-
-    return response;
-}
-
-QByteArray ContactSyncer::encode(QByteArray bytes)
-{
-    QByteArray result;
-
-    for (int j = 0; j < bytes.length(); j++)
-    {
-        int k = bytes.at(j);
-        if (k < 0)
-            k += 256;
-
-        result.append(encodeByte(k >> 4));
-        result.append(encodeByte(k % 16));
-    }
-
-    return result;
-}
-
-int ContactSyncer::encodeByte(int c)
-{
-    return (c < 10) ? c + 48 : c + 87;
 }
 
 void ContactSyncer::freeAddressBook()
@@ -160,6 +68,7 @@ void ContactSyncer::freeAddressBook()
     }
 
     abook.clear();
+    totalPhones = currentPhone = 0;
 }
 
 void ContactSyncer::getAddressBook()
@@ -231,29 +140,23 @@ void ContactSyncer::getAddressBook()
                        " milliseconds.");
 }
 
-void ContactSyncer::sync()
+void ContactSyncer::syncContacts()
 {
     if (!isSyncing && Client::connectionStatus == Client::LoggedIn)
     {
         Utilities::logData("syncer: Synchronizing contacts...");
 
         isSyncing = true;
-        syncDataReceived = false;
         emit progress(0);
 
-        deletedJids.clear();
+        freeAddressBook();
+
         ContactList list = roster->getContactList();
         foreach (Contact *c, list.values())
         {
-            if (c->type == Contact::TypeContact)
+            if (c->type == Contact::TypeContact && c->jid != Client::myJid)
             {
-                if (c->fromAddressBook)
-                {
-                    // Save the JID to check if it was
-                    // removed from the phone address book later
-                    deletedJids.insert(c->jid,true);
-                }
-                else
+                if (!c->fromAddressBook)
                 {
                     // If it's a temporal contact include it to the
                     // address book to synchronize it.
@@ -281,13 +184,13 @@ void ContactSyncer::syncContact(Contact *c)
     if (!isSyncing && Client::connectionStatus == Client::LoggedIn)
     {
         Utilities::logData("syncer: Synchronizing contact: " + c->jid);
-        deletedJids.clear();
+
         isSyncing = true;
-        syncDataReceived = false;
 
         // Only include a copy of the contact in the abook
         // It is gonna be freed later
         Contact *cc = roster->cloneContact(c);
+        abook.clear();
         abook.insert(cc->phone,cc);
 
         syncAddressBook();
@@ -296,316 +199,166 @@ void ContactSyncer::syncContact(Contact *c)
 
 void ContactSyncer::syncAddressBook()
 {
-    QString response = getAuthResponse("0");
+    totalPhones = currentPhone = 0;
 
-    connect(this,SIGNAL(finished()),this,SLOT(authResponse()));
-    connect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
-            this,SLOT(errorHandler(QAbstractSocket::SocketError)));
+    QStringList numbers;
 
-    setHeader("Authorization", response);
-
-    Utilities::logData("syncer: Authenticating...");
-    post(QUrl(URL_CONTACTS_AUTH), writeBuffer.constData(), writeBuffer.length());
-}
-
-void ContactSyncer::authResponse()
-{
-    Utilities::logData("syncer: authResponse()");
-    QString result = QString::fromUtf8(socket->readAll().constData());
-    disconnect(this, SIGNAL(finished()), this, SLOT(authResponse()));
-
-    // Utilities::logData("Reply: " + result);
-
-    QString authData = getHeader("WWW-Authenticate");
-    // Utilities::logData("authData: " + authData);
-    QString nonce;
-
-    clearHeaders();
-
-    bool ok;
-    QVariantMap mapResult = QtJson::parse(result, ok).toMap();
-
-    QString message = mapResult.value("message").toString();
-
-    if (message == "next token")
+    if (abook.size() > 0)
     {
-        // Get nonce
-        QRegExp noncereg("nonce=\"([^\"]+)\"");
-
-        int pos = noncereg.indexIn(authData,0);
-
-        if (pos != -1)
-        {
-            nonce = noncereg.cap(1);
-        }
-
-        Utilities::logData("syncer: Authentication successful");
-        Utilities::logData("nonce: " + nonce);
-
-        QString response = getAuthResponse(nonce);
-
-        connect(this,SIGNAL(finished()),this,SLOT(onResponse()));
-
-        setHeader("Authorization", response);
-
-        Utilities::logData("syncer: Sending contacts info...");
-
-        // Synchronize all contacts
-
-        if (abook.size() > 0)
-        {
-            writeBuffer.clear();
-            addParam("ut","wa");
-            addParam("t", "c");
-
-            foreach (Contact *c, abook.values())
+        foreach(Contact *c, abook.values())
+            if (c->type == Contact::TypeContact && c->jid != Client::myJid)
             {
-                if (c->type == Contact::TypeContact)
-                    addParam("u[]",c->phone);
+                totalPhones++;
+                numbers << c->phone;
             }
 
-            post(QUrl(URL_CONTACTS_SYNC),writeBuffer.constData(), writeBuffer.length());
-        }
-    }
-    else
-    {
-        Utilities::logData("syncer: Authentication failed.");
-
-        // Free everything
-        freeAddressBook();
-        isSyncing = false;
-        emit syncFinished();
+        emit phoneListReady(numbers);
     }
 }
 
-void ContactSyncer::onResponse()
+void ContactSyncer::syncPhone(QString jid, QString phone)
 {
-    if (errorCode != 200)
+    Contact *c = abook.value(phone);
+
+    Contact *contact;
+
+    if (c)
     {
-        emit httpError(errorCode);
-        return;
-    }
+        bool exists = roster->isContactInRoster(jid);
+        bool updated = false;
 
-    totalLength = getHeader("Content-Length").toLongLong();
-
-    Utilities::logData("syncer: Content-Length: " + QString::number(totalLength));
-
-    if (socket->bytesAvailable())
-        fillBuffer();
-
-    connect(socket,SIGNAL(readyRead()),this,SLOT(fillBuffer()));
-}
-
-void ContactSyncer::fillBuffer()
-{
-    Utilities::logData("syncer: fillBuffer()");
-
-    qint64 bytesToRead = socket->bytesAvailable();
-
-    Utilities::logData("syncer: bytesAvailable(): " + QString::number(bytesToRead));
-
-    readBuffer.append(socket->read(bytesToRead));
-
-    Utilities::logData("syncer: readBuffer.size(): " + QString::number(readBuffer.size()));
-
-    if (readBuffer.size() == totalLength)
-    {
-        Utilities::logData("syncer: Read " + QString::number(totalLength) + " bytes.");
-
-        increaseDownloadCounter(totalLength);
-
-        disconnect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
-                   this,SLOT(errorHandler(QAbstractSocket::SocketError)));
-
-        syncDataReceived = true;
-        socket->close();
-
-        parseResponse();
-    }
-}
-
-
-void ContactSyncer::parseResponse()
-{
-    QString jsonStr = QString::fromUtf8(readBuffer.constData());
-    Utilities::logData("syncer: Response received");
-
-    // Utilities::logData("Reply: " + jsonStr);
-
-    bool ok;
-    QVariantMap mapResult = QtJson::parse(jsonStr, ok).toMap();
-
-    if (mapResult.contains("c"))
-    {
-        phoneList = mapResult.value("c").toList();
-        totalPhones = phoneList.length();
-        nextSignal = totalPhones * 10 / 100;
-        emit progress(5);
-        QTimer::singleShot(100,this,SLOT(syncNextPhone()));
-    }
-    else
-    {
-        Utilities::logData("syncer: Synchronization failed");
-
-        // Free everything
-        freeAddressBook();
-        isSyncing = false;
-        emit syncFinished();
-    }
-}
-
-void ContactSyncer::syncNextPhone()
-{
-    if (!phoneList.isEmpty())
-    {
-        QVariant element = phoneList.takeFirst();
-        QVariantMap e = element.toMap();
-        int w = e.value("w").toInt();
-
-        if (w)
+        if (exists)
         {
-            // Original Number
-            QString phone = e.value("p").toString();
+            Contact &d = roster->getContact(jid);
+            contact = &d;
 
-            // Normalized Number
-            QString jid = e.value("n").toString() + "@" + JID_DOMAIN;
-
-            Contact *c = abook.value(phone);
-
-            Contact *contact;
-
-            if (c)
+            // Check if the name was changed in the address book
+            if (contact->name != c->name)
             {
-                bool exists = roster->isContactInRoster(jid);
-                bool updated = false;
+                updated = true;
+                contact->name = c->name;
+            }
 
-                if (exists)
-                {
-                    Contact &d = roster->getContact(jid);
-                    contact = &d;
+            // Check if this contact wasn't in the address book
+            // before but now it is
+            if (contact->fromAddressBook != c->fromAddressBook)
+            {
+                updated = true;
+                contact->fromAddressBook = c->fromAddressBook;
+            }
+        }
+        else
+        {
+            contact = new Contact();
+            contact->fromAddressBook = true;
+            contact->name = c->name;
+            contact->phone = c->phone;
+            contact->jid = jid;
+            contact->photoId = QString();
+        }
 
-                    // Check if the name was changed in the address book
-                    if (contact->name != c->name)
-                    {
-                        updated = true;
-                        contact->name = c->name;
-                    }
+        if (exists && updated)
+            roster->updateContact(contact);
+        else if (!exists)
+            roster->insertContact(contact);
 
-                    // Check if this contact wasn't in the address book
-                    // before but now it is
-                    if (contact->fromAddressBook != c->fromAddressBook)
-                    {
-                        updated = true;
-                        contact->fromAddressBook = c->fromAddressBook;
-                    }
-                }
-                else
-                {
-                    contact = new Contact();
-                    contact->fromAddressBook = true;
-                    contact->name = c->name;
-                    contact->phone = c->phone;
-                    contact->jid = jid;
-                    contact->photoId = QString();
-                }
+        // emit updateStatus(jid, contact->statusTimestamp);
+        // emit updatePhoto(jid, contact->photoId, false);
 
-                // Status Timestamp
-                qint64 statusTimestamp = e.value("t").toLongLong();
-                if (contact->statusTimestamp != statusTimestamp)
-                {
-                    updated = true;
-                    contact->statusTimestamp = statusTimestamp;
+        /*
+        Utilities::logData("Synchronized contact:\n"
+                           "Name: " + c->name +
+                           "\nPhone: " + c->phone +
+                           "\njid: " + c->jid +
+                           "\nStatus: " + c->status);
+        */
 
-                    // Status
-                    contact->status = e.value("s").toString();
+        //Utilities::logData("syncPhone(): " + jid + " " + QString::number(currentPhone)
+        //                    + " " + QString::number(totalPhones));
 
-                    emit statusChanged(contact->jid, contact->status);
-                }
+        if (++currentPhone < totalPhones)
+        {
+            if (currentPhone % (totalPhones / 10) == 0)
+                emit progress((int)((currentPhone*50) / totalPhones));
+        }
+        else
+            syncStatusAndPhotos();
+    }
+}
 
-                if (exists && updated)
-                    roster->updateContact(contact);
-                else if (!exists)
-                    roster->insertContact(contact);
+void ContactSyncer::deletePhone(QString jid, QString phone)
+{
+    if (roster->isContactInRoster(jid))
+        roster->deleteContact(jid);
 
-                deletedJids.remove(jid);
+    if (abook.contains(phone))
+    {
+        Contact *c = abook.value(phone);
+        abook.remove(phone);
+        delete c;
+    }
 
-                // if (contact->photoId.isEmpty() || contact->photoId == "abook")
-                    emit photoRefresh(jid, contact->photoId, false);
+    // Utilities::logData("deletePhone(): " + jid + " " + QString::number(currentPhone)
+    //                    + " " + QString::number(totalPhones));
 
-                /*
-                Utilities::logData("Synchronized contact:\n"
-                                   "Name: " + c->name +
-                                   "\nPhone: " + c->phone +
-                                   "\njid: " + c->jid +
-                                   "\nStatus: " + c->status);
-                */
+    if (++currentPhone < totalPhones)
+    {
+        if (currentPhone % (totalPhones / 10) == 0)
+            emit progress((int)((currentPhone*50) / totalPhones));
+    }
+    else
+        syncStatusAndPhotos();
+}
+
+void ContactSyncer::syncStatusAndPhotos()
+{
+    totalPhones = abook.size();
+    currentPhone = 0;
+
+    QTimer::singleShot(1000,this,SLOT(syncNextChunk()));
+}
+
+void ContactSyncer::syncNextChunk()
+{
+    QStringList jids;
+
+    QList<Contact *> list = abook.values();
+
+    if (currentPhone >= totalPhones)
+        finishSync();
+    else
+    {
+        emit progress((int)((currentPhone*50) / totalPhones) + 50);
+
+        int max = currentPhone + 5;
+        while (currentPhone < max && currentPhone < totalPhones)
+        {
+            Contact *c = list.at(currentPhone++);
+            Contact &d = roster->getContact(c->jid);
+            if (d.type == Contact::TypeContact && !d.jid.isEmpty() && d.jid != Client::myJid)
+            {
+                jids << d.jid;
+
+                emit updatePhoto(d.jid, d.photoId, false);
             }
         }
 
-        if (--nextSignal == 0)
-        {
-            emit progress(((totalPhones-phoneList.length())*100) / totalPhones);
-            nextSignal = totalPhones * 10 / 100;
-        }
+        emit updateStatus(jids);
 
-        QTimer::singleShot(50,this,SLOT(syncNextPhone()));
-    }
-    else
-    {
-        // Remove contacts that were deleted from the address book
-        foreach (QString jid, deletedJids.keys())
-            roster->deleteContact(jid);
-        Utilities::logData("syncer: Contacts synchronization successful");
-
-        // Free everything
-        freeAddressBook();
-        isSyncing = false;
-        emit syncFinished();
+        QTimer::singleShot(1000,this,SLOT(syncNextChunk()));
     }
 }
 
 
-void ContactSyncer::addParam(QString name, QString value)
+void ContactSyncer::finishSync()
 {
-    writeBuffer.append(QUrl::toPercentEncoding(name));
-    writeBuffer.append('=');
-    writeBuffer.append(QUrl::toPercentEncoding(value));
-    writeBuffer.append('&');
+    freeAddressBook();
+    isSyncing = false;
+
+    emit syncFinished();
 }
 
 bool ContactSyncer::isSynchronizing()
 {
     return isSyncing;
-}
-
-void ContactSyncer::errorHandler(QAbstractSocket::SocketError error)
-{
-    // If all the synchronization data has been received ignore
-    // the socket errors.  It looks like QSslSocket will still send
-    // socket errors even if the socket has been closed.
-    // Not sure if a bug or a feature but this way we avoid false positives
-    if (!syncDataReceived)
-    {
-        if (error == QAbstractSocket::SslHandshakeFailedError)
-        {
-            // SSL error is a fatal error
-            emit sslError();
-        }
-        else
-        {
-            // ToDo: Retry here
-            Utilities::logData("syncer: Socket error while trying to get synchronization data.  Error: " + QString::number(error));
-            emit httpError((int)error);
-        }
-    }
-}
-
-void ContactSyncer::increaseUploadCounter(qint64 bytes)
-{
-    Client::dataCounters.increaseCounter(DataCounters::SyncBytes, 0, bytes);
-}
-
-void ContactSyncer::increaseDownloadCounter(qint64 bytes)
-{
-    Client::dataCounters.increaseCounter(DataCounters::SyncBytes, bytes, 0);
 }

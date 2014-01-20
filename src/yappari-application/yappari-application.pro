@@ -252,7 +252,8 @@ HEADERS += \
     Gui/groupsubjectwindow.h \
     Gui/blockedcontactswindow.h \
     Multimedia/audioplayer.h \
-    Multimedia/audiorecorder.h
+    Multimedia/audiorecorder.h \
+    qt-json/json.h
 
 FORMS += \
     Gui/ui/mainwindow.ui \

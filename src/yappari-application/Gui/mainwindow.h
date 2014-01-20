@@ -103,7 +103,7 @@ public slots:
     void requestChangeUserName(QString newUserName);
     void requestSetPhoto(QString jid, QImage photo);
     void requestChangeStatus(QString status);
-    void requestPhotoRefresh(QString jid, QString photoId, bool largeFormat);
+    void requestPhotoUpdate(QString jid, QString photoId, bool largeFormat);
     void requestContactStatus(QString jid);
     void sendVoiceNotePlayed(FMessage message);
     void showStatusWindow();
@@ -120,6 +120,7 @@ public slots:
     void showBlockedContactsWindow();
     void blockOrUnblockContact(QString jid, bool blocked);
     void refreshPrivacyList();
+    void requestUpdateLastDir(int waType, QString dir);
 
 private:
     Ui::MainWindow *ui;
@@ -171,6 +172,7 @@ signals:
     void requestBlockOrUnblockContact(QString jid, bool blocked);
     void privacyListRefreshed();
     void voiceNotePlayed(FMessage message);
+    void updateLastDir(int waType, QString dir);
 };
 
 #endif // MAINWINDOW_H

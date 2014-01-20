@@ -222,6 +222,16 @@ public:
     // Roster
     static ContactRoster *roster;
 
+    // Last audio folder used
+    static QString lastAudioDir;
+
+    // Last video folder used
+    static QString lastVideoDir;
+
+    // Last image folder used
+    static QString lastImageDir;
+
+
 
     /** ***********************************************************************
      ** Constructors and destructors
@@ -275,16 +285,19 @@ public slots:
     void changeStatus(QString newStatus);
     void changeUserName(QString newUserName);
     void synchronizeContacts();
+    void sendSyncContacts(QStringList numbers);
+    void sendGetStatus(QStringList jids);
     void syncHttpError(int error);
     void syncSslError();
     void syncFinished();
     void syncProgress(int progress);
-    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
+    void updatePhoto(QString jid, QString expectedPhotoId, bool largeFormat);
     void photoDeleted(QString jid, QString alias);
     void photoIdReceived(QString jid, QString name, QString pictureId);
     void photoReceived(QString from, QByteArray data,
                        QString photoId, bool largeFormat);
     void requestContactStatus(QString jid);
+    void statusChanged(QString jid, qint64 t, QString status);
     void setPhoto(QString jid, QImage image);
     void requestPresenceSubscription(QString jid);
     void requestPresenceUnsubscription(QString jid);
@@ -305,6 +318,7 @@ public slots:
     void blockOrUnblockContact(QString jid, bool blocked);
     void privacyListReceived(QStringList list);
     void sendVoiceNotePlayed(FMessage message);
+    void updateLastDir(int waType, QString dir);
 
 
 public Q_SLOTS:

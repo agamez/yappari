@@ -1,6 +1,13 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.41:</b><br>
+<b>New in this version 1.1.42:</b><br>
+<li>&bull; Fixed contact synchronization.</li>
+<li>&bull; Fixed registration.</li>
+<li>&bull; Now when a message is received and the scroll bar of the chat window is not at the bottom then autoscrolling is disabled.</li>
+<li>&bull; Fixed bug: Input field were not being resized after deleting more than 5 lines of text.</li>
+<li>&bull; Last folder used to send multimedia is now remembered.</li>
+<br>
+<b>New in 1.1.41:</b><br>
 <li>&bull; Fixed bug: All media was being shown as <i>[voice note]<i> in the open conversations list.</li>
 <br>
 <b>New in 1.1.40:</b><br>

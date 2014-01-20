@@ -64,6 +64,7 @@ private:
     quint64 lastKeyPressed;
     QTimer composingTimer;
     QWidget *mainWindow;
+    int lines;
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event);

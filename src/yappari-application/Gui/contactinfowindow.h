@@ -31,7 +31,7 @@ public slots:
     void userStatusUpdated(QString jid);
 
 signals:
-    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
+    void photoUpdate(QString jid, QString expectedPhotoId, bool largeFormat);
 
 private:
     Ui::ContactInfoWindow *ui;

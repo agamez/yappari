@@ -32,11 +32,10 @@
 #include <QByteArray>
 #include <QMap>
 
-#include "Whatsapp/httprequestv2.h"
 #include "contactlist.h"
 #include "contactroster.h"
 
-class ContactSyncer : public HttpRequestv2
+class ContactSyncer : public QObject
 {
     Q_OBJECT
 
@@ -47,47 +46,32 @@ public:
     bool isSynchronizing();
 
 public slots:
-    void sync();
+    void syncContacts();
     void syncContact(Contact *c);
-    void onResponse();
-    void fillBuffer();
-    void parseResponse();
-    void authResponse();
-    void errorHandler(QAbstractSocket::SocketError error);
-    void syncNextPhone();
-    void increaseUploadCounter(qint64 bytes);
-    void increaseDownloadCounter(qint64 bytes);
+    void syncPhone(QString jid, QString phone);
+    void deletePhone(QString jid, QString phone);
+    void syncStatusAndPhotos();
+    void syncNextChunk();
+    void finishSync();
 
 private:
     ContactRoster *roster;
     ContactList abook;
-    QMap<QString,bool> deletedJids;
-    QVariantList phoneList;
-    int totalPhones, nextSignal;
+    int totalPhones, currentPhone;
     bool isSyncing;
-    bool syncDataReceived;
-
-    QByteArray readBuffer;
-    QByteArray writeBuffer;
-    qint64 totalLength;
 
     void syncAddressBook();
-
-    QByteArray encode(QByteArray bytes);
-    int encodeByte(int c);
-    QString getAuthResponse(QString nonce);
-
     void freeAddressBook();
     void getAddressBook();
-    void addParam(QString name, QString value);
 
 signals:
-    void statusChanged(QString jid, QString status);
-    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
+    void updateStatus(QStringList jids);
+    void updatePhoto(QString jid, QString expectedPhotoId, bool largeFormat);
     void syncFinished();
     void progress(int);
-    void httpError(int);
-    void sslError();
+
+    void phoneListReady(QStringList numbers);
+    void statusListReady(QStringList jids);
 };
 
 #endif // CONTACTSYNCER_H

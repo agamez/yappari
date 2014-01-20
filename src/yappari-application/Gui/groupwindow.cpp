@@ -124,7 +124,7 @@ void GroupWindow::viewGroup()
 
     GroupInfoWindow *groupInfoWindow = new GroupInfoWindow(group, Client::roster, this);
 
-    emit photoRefresh(group->jid, group->photoId, false);
+    emit photoUpdate(group->jid, group->photoId, false);
     emit getParticipants(group->jid);
 
     groupInfoWindow->setAttribute(Qt::WA_Maemo5StackedWindow);

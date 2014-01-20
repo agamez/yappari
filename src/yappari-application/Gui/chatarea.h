@@ -80,7 +80,7 @@ private:
     QWidget* widgetAtBottom;
     QHash<Key,QWidget *> widgets;
     QList<QWidget *> widgetList;
-    bool loadingMessages;
+    bool loadingMessages, atBottom;
 
     void insertMessage(FMessage message, bool loadingMessages);
     void insertBodyMessage(FMessage message,bool loadingMessages);

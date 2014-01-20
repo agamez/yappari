@@ -52,6 +52,8 @@
 ChatTextEdit::ChatTextEdit(QWidget *parent) :
     QTextEdit(parent)
 {
+    lines = 1;
+
     QFontMetrics metrics(currentFont());
     fontHeight = metrics.height();
 
@@ -74,7 +76,35 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
     {
         QKeyEvent *keyEvent = (QKeyEvent *) event;
 
-        if (keyEvent->nativeScanCode() == 36)
+        if (keyEvent->nativeScanCode() == 80 || keyEvent->nativeScanCode() == 111)
+        {
+
+            // Key up
+            QTextCursor cursor = textCursor();
+            int pos = cursor.position();
+            cursor.movePosition(QTextCursor::Up, QTextCursor::KeepAnchor);
+
+            if (pos == cursor.position())
+                cursor.movePosition(QTextCursor::Start, QTextCursor::KeepAnchor);
+
+            setTextCursor(cursor);
+
+            return true;
+        }
+        else  if (keyEvent->nativeScanCode() == 88 || keyEvent->nativeScanCode() == 116)
+        {
+            // Key down
+            QTextCursor cursor = textCursor();
+            int pos = cursor.position();
+            cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor);
+
+            if (pos == cursor.position())
+                cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
+
+            setTextCursor(cursor);
+            return true;
+        }
+        else if (keyEvent->nativeScanCode() == 36)
         {
             // Return pressed
             if (Client::enterIsSend)
@@ -214,21 +244,19 @@ void ChatTextEdit::textChanged()
     int editHeight = size().height();
     double textLines = (editHeight - 39) / fontHeight;
 
-    if (textLines < MAX_LINES)
+    int docHeight = document()->size().height();
+
+    QFontMetrics metrics(currentFont());
+
+    fontHeight = metrics.height();
+
+    double docLines = (docHeight - 8) / fontHeight;
+
+    if (abs(docLines) < MAX_LINES && abs(docLines) != abs(textLines))
     {
-        int docHeight = document()->size().height();
-
-        QFontMetrics metrics(currentFont());
-
-        fontHeight = metrics.height();
-
-        double docLines = (docHeight - 8) / fontHeight;
-
-        if (abs(docLines) != abs(textLines))
-        {
-            setFixedHeight((docLines * fontHeight) + 39);
-            update();
-        }
+        setFixedHeight((docLines * fontHeight) + 39);
+        lines = docLines;
+        update();
     }
 }
 
@@ -267,6 +295,8 @@ void ChatTextEdit::openEmojiWidget()
     isEmojiWidgetOpen = true;
 
     emojiWidget->show();
+
+    setFocus();
 }
 
 void ChatTextEdit::closeEmojiWidget()
@@ -276,5 +306,6 @@ void ChatTextEdit::closeEmojiWidget()
         emojiWidget->hide();
         emojiWidget->deleteLater();
         isEmojiWidgetOpen = false;
+        setFocus();
     }
 }

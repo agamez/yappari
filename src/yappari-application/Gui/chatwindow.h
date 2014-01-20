@@ -88,7 +88,7 @@ public slots:
     void unmute();
     void increaseUploadCounter(qint64 bytes);
     void increaseDownloadCounter(qint64 bytes);
-    void requestPhotoRefresh(QString jid, QString photoId, bool largeFormat);
+    void requestPhotoUpdate(QString jid, QString photoId, bool largeFormat);
     void viewContact();
     void photoReceivedHandler(QImage photo, QString photoId);
     void statusChanged(QString status);
@@ -106,13 +106,14 @@ signals:
     void updateDuration(FMessage message);
     void sendMessage(FMessage message);
     void mute(QString jid,bool muted,qint64 muteExpireTimestamp);
-    void photoRefresh(QString jid, QString photoId, bool largeFormat);
+    void photoUpdate(QString jid, QString photoId, bool largeFormat);
     void photoReceived(QImage photo, QString photoId);
     void lastSeenUpdated();
     void requestStatus(QString jid);
     void userStatusChanged();
     void blockOrUnblockContact(QString jid, bool blocked);
     void voiceNotePlayed(FMessage message);
+    void updateLastDir(int waType, QString dir);
 
 private:
     bool isPeerComposing;

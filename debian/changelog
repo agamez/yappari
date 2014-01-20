@@ -1,3 +1,18 @@
+yappari (1.1.42) stable; urgency=low
+
+  * Fixed contacts synchronization.
+  * When the scroll bar is not at the bottom and a message is received the
+    auto scroll is disabled.
+  * Fixed bug: Input field were not being resized after deleting more than 5
+    lines of text.
+  * Last folder used to send multimedia is now remembered.
+  * Removed menu bar from the Account Info window.
+  * Fixed lost of focus in the input field when the emoji button is pressed.
+  * Fixed bug: cursor didn't move to the start or the end of the input field
+    when pressing up and/or down keys and there were nowhere else to move to.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Mon, 20 Jan 2014 07:28:45 -0430
+
 yappari (1.1.41) stable; urgency=low
 
   * Fixed bug: All media was shown as [voice note] in MainWindow's QListView.

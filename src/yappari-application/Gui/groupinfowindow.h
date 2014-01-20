@@ -65,7 +65,7 @@ public slots:
     void addParticipant();
 
 signals:
-    void photoRefresh(QString jid, QString expectedPhotoId, bool largeFormat);
+    void photoUpdate(QString jid, QString expectedPhotoId, bool largeFormat);
     void requestLeaveGroup(QString gjid);
 
 private:

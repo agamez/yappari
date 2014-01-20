@@ -60,8 +60,8 @@ ContactInfoWindow::ContactInfoWindow(Contact *contact, QWidget *parent) :
     connect(Client::mainWin,SIGNAL(userStatusUpdated(QString)),
             this,SLOT(userStatusUpdated(QString)));
 
-    connect(this,SIGNAL(photoRefresh(QString,QString,bool)),
-            Client::mainWin,SLOT(requestPhotoRefresh(QString,QString,bool)));
+    connect(this,SIGNAL(photoUpdate(QString,QString,bool)),
+            Client::mainWin,SLOT(requestPhotoUpdate(QString,QString,bool)));
 }
 
 ContactInfoWindow::~ContactInfoWindow()
@@ -121,7 +121,7 @@ void ContactInfoWindow::showPhoto()
     else if (!photoDownloaded)
     {
         setAttribute(Qt::WA_Maemo5ShowProgressIndicator, Qt::Checked);
-        emit photoRefresh(contact->jid, QString(), true);
+        emit photoUpdate(contact->jid, QString(), true);
         isDownloading = true;
         QMaemo5InformationBox::information(this,"Downloading photo");
         ui->messageLabel->setText("Please wait while the photo is being downloaded...");
@@ -167,6 +167,7 @@ void ContactInfoWindow::showPhotoInImageViewer()
                                NOKIA_IMAGEVIEWER_DBUS_PATH,
                                dbus,this);
 
+    Utilities::logData("Opening file: " + fileName);
     imageViewerBus->mime_open("file://" + fileName);
 }
 

@@ -160,8 +160,11 @@ public slots:
     // Sends a query to request the time when a user was last seen online.
     void sendQueryLastOnline(QString jid);
 
+    // Sends a Synchronization request
+    void sendSyncContacts(QStringList numbers);
+
     // Sends a query to get the current status of a user
-    void sendGetStatus(QString jid);
+    void sendGetStatus(QStringList jids);
 
     // Sends a query to request a subscription to a user
     void sendPresenceSubscriptionRequest(QString jid);
@@ -448,6 +451,17 @@ signals:
     // User status update
     void userStatusUpdated(FMessage message);
 
+    // Contact synchronized
+    void contactSync(QString jid, QString phone);
+
+    // Contact deleted
+    void contactDeleted(QString jid, QString phone);
+
+    // Contact Synchronization failed
+    void syncError();
+
+    // Status
+    void statusChanged(QString jid, qint64 t, QString status);
 
     /** ***********************************************************************
      ** Picture handling

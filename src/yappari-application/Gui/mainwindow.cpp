@@ -292,14 +292,17 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
         connect(chat,SIGNAL(blockOrUnblockContact(QString,bool)),
                 this,SLOT(blockOrUnblockContact(QString,bool)));
 
-        connect(chat,SIGNAL(photoRefresh(QString,QString,bool)),
-                this,SLOT(requestPhotoRefresh(QString,QString,bool)));
+        connect(chat,SIGNAL(photoUpdate(QString,QString,bool)),
+                this,SLOT(requestPhotoUpdate(QString,QString,bool)));
 
         connect(chat,SIGNAL(requestStatus(QString)),
                 this,SLOT(requestContactStatus(QString)));
 
         connect(chat,SIGNAL(voiceNotePlayed(FMessage)),
                 this,SLOT(sendVoiceNotePlayed(FMessage)));
+
+        connect(chat,SIGNAL(updateLastDir(int,QString)),
+                this,SLOT(requestUpdateLastDir(int,QString)));
 
         if (contact.type == Contact::TypeGroup)
         {
@@ -983,7 +986,7 @@ void MainWindow::requestChangeStatus(QString status)
     emit changeStatus(status);
 }
 
-void MainWindow::requestPhotoRefresh(QString jid, QString photoId, bool largeFormat)
+void MainWindow::requestPhotoUpdate(QString jid, QString photoId, bool largeFormat)
 {
     emit photoRequest(jid, photoId, largeFormat);
 }
@@ -1132,5 +1135,10 @@ void MainWindow::blockOrUnblockContact(QString jid, bool blocked)
 void MainWindow::refreshPrivacyList()
 {
     emit privacyListRefreshed();
+}
+
+void MainWindow::requestUpdateLastDir(int waType, QString dir)
+{
+    emit updateLastDir(waType, dir);
 }
 

@@ -350,21 +350,24 @@ void ChatWindow::selectMultimediaMessage()
 
         int waType = dialog.getMediaSelected();
 
-        QString mediaFolder = Utilities::getPathFor(waType, true);
+        QString mediaFolder;
         QString fileExtensions;
 
         switch (waType)
         {
             case FMessage::Video:
                 fileExtensions = EXTENSIONS_VIDEO;
+                mediaFolder = Client::lastVideoDir;
                 break;
 
             case FMessage::Audio:
                 fileExtensions = EXTENSIONS_AUDIO;
+                mediaFolder = Client::lastAudioDir;
                 break;
 
             case FMessage::Image:
                 fileExtensions = EXTENSIONS_IMAGE;
+                mediaFolder = Client::lastImageDir;
                 break;
 
             default:
@@ -375,6 +378,8 @@ void ChatWindow::selectMultimediaMessage()
         QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
                                                         mediaFolder,
                                                         fileExtensions);
+
+        emit updateLastDir(waType, fileName.left(fileName.lastIndexOf("/")));
 
         if (!fileName.isNull())
         {
@@ -684,17 +689,17 @@ void ChatWindow::increaseDownloadCounter(qint64 bytes)
     Client::dataCounters.increaseCounter(DataCounters::ProtocolBytes, bytes, 0);
 }
 
-void ChatWindow::requestPhotoRefresh(QString jid, QString photoId, bool largeFormat)
+void ChatWindow::requestPhotoUpdate(QString jid, QString photoId, bool largeFormat)
 {
-    emit photoRefresh(jid, photoId, largeFormat);
+    emit photoUpdate(jid, photoId, largeFormat);
 }
 
 void ChatWindow::viewContact()
 {
     ContactInfoWindow *window = new ContactInfoWindow(contact,this);
 
-    connect(window,SIGNAL(photoRefresh(QString,QString,bool)),
-            this,SLOT(requestPhotoRefresh(QString,QString,bool)));
+    connect(window,SIGNAL(photoUpdate(QString,QString,bool)),
+            this,SLOT(requestPhotoUpdate(QString,QString,bool)));
 
     emit requestStatus(contact->jid);
 

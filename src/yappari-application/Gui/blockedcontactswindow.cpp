@@ -117,7 +117,7 @@ bool BlockedContactsWindow::eventFilter(QObject *obj, QEvent *event)
                     ContactInfoWindow *window = new ContactInfoWindow(&c,this);
 
                     Client::mainWin->requestContactStatus(c.jid);
-                    Client::mainWin->requestPhotoRefresh(c.jid, c.photoId, false);
+                    Client::mainWin->requestPhotoUpdate(c.jid, c.photoId, false);
 
                     window->setAttribute(Qt::WA_Maemo5StackedWindow);
                     window->setAttribute(Qt::WA_DeleteOnClose);

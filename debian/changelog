@@ -1,3 +1,14 @@
+yappari (1.1.43) stable; urgency=low
+
+  * Fixed bug in profile pictures synchronization.
+  * Fixed bug: Wrong detection of arrow keys in Non-english keyboards.
+  * Fixed bug: Ghosts contacts with empty jid couldn't be removed from the
+    database.
+  * Added EXIF data to JPEGs without it so Image Viewer doesn't complain about
+    them.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Wed, 22 Jan 2014 11:14:15 -0430
+
 yappari (1.1.42) stable; urgency=low
 
   * Fixed contacts synchronization.

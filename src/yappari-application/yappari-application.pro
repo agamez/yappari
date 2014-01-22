@@ -141,7 +141,8 @@ SOURCES += main.cpp \
     Gui/groupsubjectwindow.cpp \
     Gui/blockedcontactswindow.cpp \
     Multimedia/audioplayer.cpp \
-    Multimedia/audiorecorder.cpp
+    Multimedia/audiorecorder.cpp \
+    Exif/qexifimageheader.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -253,7 +254,8 @@ HEADERS += \
     Gui/blockedcontactswindow.h \
     Multimedia/audioplayer.h \
     Multimedia/audiorecorder.h \
-    qt-json/json.h
+    qt-json/json.h \
+    Exif/qexifimageheader.h
 
 FORMS += \
     Gui/ui/mainwindow.ui \

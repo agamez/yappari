@@ -52,8 +52,6 @@
 ChatTextEdit::ChatTextEdit(QWidget *parent) :
     QTextEdit(parent)
 {
-    lines = 1;
-
     QFontMetrics metrics(currentFont());
     fontHeight = metrics.height();
 
@@ -76,30 +74,31 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
     {
         QKeyEvent *keyEvent = (QKeyEvent *) event;
 
-        if (keyEvent->nativeScanCode() == 80 || keyEvent->nativeScanCode() == 111)
+        if (keyEvent->key() == Qt::Key_Up)
         {
-
             // Key up
             QTextCursor cursor = textCursor();
             int pos = cursor.position();
-            cursor.movePosition(QTextCursor::Up, QTextCursor::KeepAnchor);
+            bool sel = keyEvent->modifiers() == Qt::ShiftModifier;
+            cursor.movePosition(QTextCursor::Up, (sel ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor));
 
             if (pos == cursor.position())
-                cursor.movePosition(QTextCursor::Start, QTextCursor::KeepAnchor);
+                cursor.movePosition(QTextCursor::Start, (sel ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor));
 
             setTextCursor(cursor);
 
             return true;
         }
-        else  if (keyEvent->nativeScanCode() == 88 || keyEvent->nativeScanCode() == 116)
+        else  if (keyEvent->key() == Qt::Key_Down)
         {
             // Key down
             QTextCursor cursor = textCursor();
             int pos = cursor.position();
-            cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor);
+            bool sel = keyEvent->modifiers() == Qt::ShiftModifier;
+            cursor.movePosition(QTextCursor::Down, (sel ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor));
 
             if (pos == cursor.position())
-                cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
+                cursor.movePosition(QTextCursor::End, (sel ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor));
 
             setTextCursor(cursor);
             return true;
@@ -255,7 +254,6 @@ void ChatTextEdit::textChanged()
     if (abs(docLines) < MAX_LINES && abs(docLines) != abs(textLines))
     {
         setFixedHeight((docLines * fontHeight) + 39);
-        lines = docLines;
         update();
     }
 }

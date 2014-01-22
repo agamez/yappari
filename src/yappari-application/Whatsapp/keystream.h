@@ -46,7 +46,6 @@ public:
     void encodeMessage(QByteArray& buffer, int macOffset, int offset, int length);
 
     static QByteArray keyFromPasswordAndNonce(QByteArray& pass, QByteArray& nonce);
-    static QByteArray deriveBytes(QByteArray& password, QByteArray& salt, int iterations);
 
 private:
     RC4 *rc4;

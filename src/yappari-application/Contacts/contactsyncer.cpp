@@ -218,6 +218,9 @@ void ContactSyncer::syncAddressBook()
 
 void ContactSyncer::syncPhone(QString jid, QString phone)
 {
+    Utilities::logData("syncPhone(): " + jid + " " + QString::number(currentPhone)
+                        + " " + QString::number(totalPhones));
+
     Contact *c = abook.value(phone);
 
     Contact *contact;
@@ -278,8 +281,8 @@ void ContactSyncer::syncPhone(QString jid, QString phone)
 
         if (++currentPhone < totalPhones)
         {
-            if (currentPhone % (totalPhones / 10) == 0)
-                emit progress((int)((currentPhone*50) / totalPhones));
+            //if (currentPhone % ((int)(totalPhones / 10)) == 0)
+            //    emit progress((int)(((currentPhone*50) / totalPhones));
         }
         else
             syncStatusAndPhotos();
@@ -298,13 +301,13 @@ void ContactSyncer::deletePhone(QString jid, QString phone)
         delete c;
     }
 
-    // Utilities::logData("deletePhone(): " + jid + " " + QString::number(currentPhone)
-    //                    + " " + QString::number(totalPhones));
+    Utilities::logData("deletePhone(): " + jid + " " + QString::number(currentPhone)
+                        + " " + QString::number(totalPhones));
 
     if (++currentPhone < totalPhones)
     {
-        if (currentPhone % (totalPhones / 10) == 0)
-            emit progress((int)((currentPhone*50) / totalPhones));
+        //if (currentPhone % ((int)(totalPhones / 10)) == 0)
+        //    emit progress((int)((currentPhone*50) / totalPhones));
     }
     else
         syncStatusAndPhotos();
@@ -312,8 +315,11 @@ void ContactSyncer::deletePhone(QString jid, QString phone)
 
 void ContactSyncer::syncStatusAndPhotos()
 {
-    totalPhones = abook.size();
+    totalPhones = roster->size();
     currentPhone = 0;
+
+    Utilities::logData("syncStatusAndPhotos(): " + QString::number(currentPhone)
+                        + " " + QString::number(totalPhones));
 
     QTimer::singleShot(1000,this,SLOT(syncNextChunk()));
 }
@@ -322,7 +328,7 @@ void ContactSyncer::syncNextChunk()
 {
     QStringList jids;
 
-    QList<Contact *> list = abook.values();
+    QList<Contact *> list = roster->getContactList().values();
 
     if (currentPhone >= totalPhones)
         finishSync();
@@ -334,12 +340,12 @@ void ContactSyncer::syncNextChunk()
         while (currentPhone < max && currentPhone < totalPhones)
         {
             Contact *c = list.at(currentPhone++);
-            Contact &d = roster->getContact(c->jid);
-            if (d.type == Contact::TypeContact && !d.jid.isEmpty() && d.jid != Client::myJid)
+            Utilities::logData("syncNextChunk(): " + c->jid);
+            if (c->type == Contact::TypeContact && !c->jid.isEmpty() && c->jid != Client::myJid)
             {
-                jids << d.jid;
+                jids << c->jid;
 
-                emit updatePhoto(d.jid, d.photoId, false);
+                emit updatePhoto(c->jid, c->photoId, false);
             }
         }
 

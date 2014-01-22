@@ -33,6 +33,7 @@
 // #include <phonon/AudioOutput>
 
 #include <QDesktopServices>
+#include <QImageReader>
 #include <QPainter>
 
 #include "Whatsapp/util/datetimeutilities.h"
@@ -41,6 +42,8 @@
 #include "Dbus/dbusnokiaimageviewerif.h"
 #include "Dbus/dbusnokiamediaplayerif.h"
 
+#include "Exif/qexifimageheader.h"
+
 #include "Multimedia/audioplayer.h"
 
 #include "globalconstants.h"
@@ -48,6 +51,7 @@
 
 #include "chatimageitem.h"
 #include "ui_chatimageitem.h"
+
 
 ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
     QWidget(parent),
@@ -331,6 +335,23 @@ void ChatImageItem::downloadOrViewImage()
 
             case FMessage::Image:
                 {
+                    // The following is to avoid an Image Viewer bug where files without
+                    // EXIF data can't be opened.
+
+                    QImageReader image(message.local_file_uri);
+
+                    Utilities::logData("Format : " + image.format());
+                    if (image.format() == "jpeg")
+                    {
+                        QExifImageHeader exif;
+                        if (!exif.loadFromJpeg(message.local_file_uri))
+                        {
+                            exif.clear();
+                            exif.setValue(QExifImageHeader::ImageDescription,QExifValue(message.media_name));
+                            exif.saveToJpeg(message.local_file_uri);
+                        }
+                    }
+
                     DBusNokiaImageViewerIf *imageViewerBus =
                     new DBusNokiaImageViewerIf(NOKIA_IMAGEVIEWER_DBUS_NAME,
                                                NOKIA_IMAGEVIEWER_DBUS_PATH,

@@ -1055,6 +1055,9 @@ void Client::connectionClosed()
         socket->deleteLater();
     }
 
+    if (isSynchronizing)
+        syncer->finishSync();
+
     // Sometimes the network is available but there was an error
     // because a DNS problem or can't reach the server at the moment.
     // In these cases the client should retry

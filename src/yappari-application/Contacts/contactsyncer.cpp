@@ -218,9 +218,6 @@ void ContactSyncer::syncAddressBook()
 
 void ContactSyncer::syncPhone(QString jid, QString phone)
 {
-    Utilities::logData("syncPhone(): " + jid + " " + QString::number(currentPhone)
-                        + " " + QString::number(totalPhones));
-
     Contact *c = abook.value(phone);
 
     Contact *contact;
@@ -301,8 +298,8 @@ void ContactSyncer::deletePhone(QString jid, QString phone)
         delete c;
     }
 
-    Utilities::logData("deletePhone(): " + jid + " " + QString::number(currentPhone)
-                        + " " + QString::number(totalPhones));
+    // Utilities::logData("deletePhone(): " + jid + " " + QString::number(currentPhone)
+    //                    + " " + QString::number(totalPhones));
 
     if (++currentPhone < totalPhones)
     {
@@ -318,8 +315,8 @@ void ContactSyncer::syncStatusAndPhotos()
     totalPhones = roster->size();
     currentPhone = 0;
 
-    Utilities::logData("syncStatusAndPhotos(): " + QString::number(currentPhone)
-                        + " " + QString::number(totalPhones));
+    // Utilities::logData("syncStatusAndPhotos(): " + QString::number(currentPhone)
+    //                     + " " + QString::number(totalPhones));
 
     QTimer::singleShot(1000,this,SLOT(syncNextChunk()));
 }
@@ -340,16 +337,17 @@ void ContactSyncer::syncNextChunk()
         while (currentPhone < max && currentPhone < totalPhones)
         {
             Contact *c = list.at(currentPhone++);
-            Utilities::logData("syncNextChunk(): " + c->jid);
-            if (c->type == Contact::TypeContact && !c->jid.isEmpty() && c->jid != Client::myJid)
+            // Utilities::logData("syncNextChunk(): " + c->jid);
+            if (/*c->type == Contact::TypeContact && */!c->jid.isEmpty() && c->jid != Client::myJid)
             {
                 jids << c->jid;
 
                 emit updatePhoto(c->jid, c->photoId, false);
             }
         }
+        Utilities::logData("syncNextChunk(): Requesting status of " + jids.join(" "));
 
-        emit updateStatus(jids);
+        emit statusListReady(jids);
 
         QTimer::singleShot(1000,this,SLOT(syncNextChunk()));
     }

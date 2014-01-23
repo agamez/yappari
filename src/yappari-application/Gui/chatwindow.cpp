@@ -703,6 +703,8 @@ void ChatWindow::viewContact()
 
     emit requestStatus(contact->jid);
 
+    requestPhotoUpdate(contact->jid, contact->photoId, false);
+
     window->setAttribute(Qt::WA_Maemo5StackedWindow);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->setWindowFlags(window->windowFlags() | Qt::Window);

@@ -36,7 +36,7 @@
 QT          += core gui network sql maemo5
 CONFIG      += mobility qtdbus network link_pkgconfig
 MOBILITY     = systeminfo messaging
-PKGCONFIG   += libosso-abook-1.0 libebook-1.2 gtk+-2.0 gstreamer-0.10 libpulse
+PKGCONFIG   += libosso-abook-1.0 libebook-1.2 gtk+-2.0 gstreamer-0.10 libpulse libexif
 INCLUDEPATH += /usr/include/libosso-abook-1.0 /usr/include/evolution-data-server-1.4/ /usr/include/gtk-2.0 /usr/include/gstreamer-0.10
 
 TARGET = Yappari
@@ -142,7 +142,9 @@ SOURCES += main.cpp \
     Gui/blockedcontactswindow.cpp \
     Multimedia/audioplayer.cpp \
     Multimedia/audiorecorder.cpp \
-    Exif/qexifimageheader.cpp
+    libjpeg/jpeg-marker.c \
+    libjpeg/jpeg-data.c \
+    libjpeg/exif-i18n.c
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -255,7 +257,9 @@ HEADERS += \
     Multimedia/audioplayer.h \
     Multimedia/audiorecorder.h \
     qt-json/json.h \
-    Exif/qexifimageheader.h
+    libjpeg/jpeg-marker.h \
+    libjpeg/jpeg-data.h \
+    libjpeg/exif-i18n.h
 
 FORMS += \
     Gui/ui/mainwindow.ui \

@@ -42,8 +42,6 @@
 #include "Dbus/dbusnokiaimageviewerif.h"
 #include "Dbus/dbusnokiamediaplayerif.h"
 
-#include "Exif/qexifimageheader.h"
-
 #include "Multimedia/audioplayer.h"
 
 #include "globalconstants.h"
@@ -51,6 +49,8 @@
 
 #include "chatimageitem.h"
 #include "ui_chatimageitem.h"
+
+#include "libjpeg/jpeg-data.h"
 
 
 ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
@@ -340,16 +340,34 @@ void ChatImageItem::downloadOrViewImage()
 
                     QImageReader image(message.local_file_uri);
 
-                    Utilities::logData("Format : " + image.format());
                     if (image.format() == "jpeg")
                     {
-                        QExifImageHeader exif;
-                        if (!exif.loadFromJpeg(message.local_file_uri))
+                        ExifData *ed = exif_data_new_from_file(message.local_file_uri.toUtf8().constData());
+
+                        if (!ed)
                         {
-                            exif.clear();
-                            exif.setValue(QExifImageHeader::ImageDescription,QExifValue(message.media_name));
-                            exif.saveToJpeg(message.local_file_uri);
+                            ed = exif_data_new();
+                            if (ed)
+                            {
+                                Utilities::logData("Creating default Exif data.");
+                                ExifEntry *entry = exif_entry_new();
+
+                                exif_content_add_entry(ed->ifd[EXIF_IFD_0], entry);
+
+                                exif_entry_initialize(entry, EXIF_TAG_IMAGE_DESCRIPTION);
+                                entry->data = (unsigned char *) YAPPARI_APPLICATION_NAME;
+
+                                JPEGData *jpeg = jpeg_data_new_from_file(message.local_file_uri.toUtf8().constData());
+
+                                jpeg_data_set_exif_data(jpeg, ed);
+
+                                jpeg_data_save_file(jpeg, message.local_file_uri.toUtf8().constData());
+                                jpeg_data_unref(jpeg);
+                            }
                         }
+
+                        if (ed)
+                            exif_data_unref(ed);
                     }
 
                     DBusNokiaImageViewerIf *imageViewerBus =

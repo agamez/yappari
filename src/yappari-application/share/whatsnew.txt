@@ -1,6 +1,10 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.43:</b><br>
+<b>New in this version 1.1.44:</b><br>
+<li>&bull; Fixed bug: Status and group icons were not being synchronized.</li>
+<li>&bull; Fixed a weird bug were Yappari was unable to open some JPEG files.</li>
+<br>
+<b>New in 1.1.43:</b><br>
 <li>&bull; Fixed bug: Photos were not being synchronized.</li>
 <li>&bull; Fixed bug: Wrong detection of arrow keys in Non-english keyboards.</li>
 <li>&bull; Fixed bug: If ghost contact + is removed it won' t appear again.</li>

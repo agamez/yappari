@@ -1,3 +1,10 @@
+yappari (1.1.44) stable; urgency=low
+
+  * Fixed bug: Status and group icons were not being synchronized.
+  * Fixed bug: EXIF info corrupted JPEG files. Now libexif is used.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Thu, 23 Jan 2014 11:59:49 -0430
+
 yappari (1.1.43) stable; urgency=low
 
   * Fixed bug in profile pictures synchronization.

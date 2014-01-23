@@ -65,11 +65,9 @@ private:
     void getAddressBook();
 
 signals:
-    void updateStatus(QStringList jids);
     void updatePhoto(QString jid, QString expectedPhotoId, bool largeFormat);
     void syncFinished();
     void progress(int);
-
     void phoneListReady(QStringList numbers);
     void statusListReady(QStringList jids);
 };

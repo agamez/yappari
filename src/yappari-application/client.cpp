@@ -368,14 +368,11 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(syncer,SIGNAL(updatePhoto(QString,QString,bool)),
             this,SLOT(updatePhoto(QString,QString,bool)));
 
-    connect(syncer,SIGNAL(updateStatus(QString,qint64)),
-            this,SLOT(sendGetStatus(QString,qint64)));
-
     connect(syncer,SIGNAL(syncFinished()),
             this,SLOT(syncFinished()));
 
     isSynchronizing = false;
-    updateStatus();
+    sendGetStatus();
 
     // Network Manager Configutarion
     manager = new QNetworkConfigurationManager(this);
@@ -640,7 +637,7 @@ void Client::startRegistration()
 {
     connectionMutex.lock();
     connectionStatus = Registering;
-    updateStatus();
+    sendGetStatus();
 
     RegistrationWindow *regWindow = new RegistrationWindow(mainWin);
 
@@ -669,7 +666,7 @@ void Client::registrationSuccessful(QVariantMap result)
     settings->setValue(SETTINGS_PASSWORD,password);
 
     connectionStatus = Disconnected;
-    updateStatus();
+    sendGetStatus();
 
     connectionMutex.unlock();
 
@@ -747,13 +744,13 @@ void Client::connectToServer()
     {
         Utilities::logData("No network available. Waiting for a connection...");
         connectionStatus = WaitingForConnection;
-        updateStatus();
+        sendGetStatus();
         connectionMutex.unlock();
         return;
     }
 
     connectionStatus = Connecting;
-    updateStatus();
+    sendGetStatus();
 
     // If there's a network mode change it will never reach this point
     // so it's safe to unlock de mutex here
@@ -788,7 +785,7 @@ void Client::connected()
     setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &optval, optlen);
 
     connectionStatus = Connected;
-    updateStatus();
+    sendGetStatus();
     Utilities::logData("Connected successfully");
 
     // QString password = Utilities::getChatPassword();
@@ -849,7 +846,7 @@ void Client::connected()
     }
 
     connectionStatus = LoggedIn;
-    updateStatus();
+    sendGetStatus();
 
     // Shouldn't these be in a function instead?
 
@@ -967,6 +964,8 @@ void Client::sendSyncContacts(QStringList numbers)
 
 void Client::sendGetStatus(QStringList jids)
 {
+    Utilities::logData("sendGetStatus(): Requesting status of " + jids.join(" "));
+
     if (connectionStatus == LoggedIn)
         connection->sendGetStatus(jids);
 }
@@ -1001,7 +1000,7 @@ void Client::syncFinished()
 {
     Utilities::logData("Synchronization finished");
     isSynchronizing = false;
-    updateStatus();
+    sendGetStatus();
 }
 
 void Client::changeStatus(QString newStatus)
@@ -1083,7 +1082,7 @@ void Client::connectionClosed()
         connectionStatus = WaitingForConnection;
     }
 
-    updateStatus();
+    sendGetStatus();
     connectionMutex.unlock();
 }
 
@@ -1261,7 +1260,7 @@ QString Client::parseStatus()
     return status;
 }
 
-void Client::updateStatus()
+void Client::sendGetStatus()
 {
     QString status = parseStatus();
 

@@ -276,7 +276,7 @@ public slots:
     void keepAlive();
     void queueMessage(FMessage message);
     void sendMessagesInQueue();
-    void updateStatus();
+    void sendGetStatus();
     void registrationSuccessful(QVariantMap result);
     void sendSetGroupSubject(QString gjid, QString subject);
     void requestLeaveGroup(QString jid);

@@ -46,6 +46,7 @@ public:
 private:
     Ui::SelectEmojiWidget *ui;
     bool tabSetup[5];
+    QList<QString> recentEmojiList;
 
     void setupEmojiIcons();
     void setupEmojiButtons();

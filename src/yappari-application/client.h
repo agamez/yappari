@@ -231,6 +231,9 @@ public:
     // Last image folder used
     static QString lastImageDir;
 
+    // Auto close emoji dialog on selection
+    static bool autoCloseEmoji;
+
 
 
     /** ***********************************************************************

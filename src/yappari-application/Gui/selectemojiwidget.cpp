@@ -36,8 +36,11 @@
 
 #include "emojibutton.h"
 
-#define TABS                5
-#define ROWS                6
+#include "client.h"
+#include "globalconstants.h"
+
+#define TABS                6
+#define COLS                7
 
 SelectEmojiWidget::SelectEmojiWidget(QWidget *parent) :
     QTabWidget(parent),
@@ -45,9 +48,11 @@ SelectEmojiWidget::SelectEmojiWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    recentEmojiList = Client::settings->value(SETTINGS_RECENT_EMOJI).toStringList();
+
     setupEmojiIcons();
 
-    for (int i=0; i < 5; i++)
+    for (int i=0; i < TABS; i++)
         tabSetup[i] = false;
 
     QString stylesheet = " QTabWidget::pane { border: 2px solid #C2C7CB; }";
@@ -75,24 +80,28 @@ void SelectEmojiWidget::tabSelected(int index)
 void SelectEmojiWidget::setupEmojiIcons()
 {
     QIcon icon;
-    icon.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/81-23.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/80-43.png"), QSize(), QIcon::Normal, QIcon::Off);
     setTabIcon(0,icon);
 
     QIcon icon1;
-    icon1.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/80-48.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon1.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/81-23.png"), QSize(), QIcon::Normal, QIcon::Off);
     setTabIcon(1,icon1);
 
     QIcon icon2;
-    icon2.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/8c-37.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon2.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/80-48.png"), QSize(), QIcon::Normal, QIcon::Off);
     setTabIcon(2,icon2);
 
     QIcon icon3;
-    icon3.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/90-46.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon3.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/8c-37.png"), QSize(), QIcon::Normal, QIcon::Off);
     setTabIcon(3,icon3);
 
     QIcon icon4;
-    icon4.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/88-16.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon4.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/90-46.png"), QSize(), QIcon::Normal, QIcon::Off);
     setTabIcon(4,icon4);
+
+    QIcon icon5;
+    icon5.addFile(QString::fromUtf8("/usr/share/yappari/icons/48x48/88-16.png"), QSize(), QIcon::Normal, QIcon::Off);
+    setTabIcon(5,icon5);
 }
 
 void SelectEmojiWidget::setupEmojiTab(int index)
@@ -106,10 +115,16 @@ void SelectEmojiWidget::setupEmojiTab(int index)
     emojiWidgetVector.append(ui->emoji3);
     emojiWidgetVector.append(ui->emoji4);
     emojiWidgetVector.append(ui->emoji5);
+    emojiWidgetVector.append(ui->emoji6);
 
     QList<QString> emojiList;
 
     if (index == 0)
+    {
+        for (int i = recentEmojiList.size() -1 ; i >= 0; i--)
+            emojiList << recentEmojiList.at(i);
+    }
+    else if (index == 1)
     {
         emojiList << "90-24" << "90-23" << "9f-9897" << "9f-9899" << "84-5" << "90-9"
                   << "9f-989b" << "90-21" << "81-23" << "9f-9880" << "81-22" << "90-20"
@@ -145,7 +160,7 @@ void SelectEmojiWidget::setupEmojiTab(int index)
                   << "8c-41" << "9f-928c" << "80-3" << "80-52" << "80-53"
                   << "9f-91a4" << "9f-91a5" << "9f-92ac" << "94-54" << "9f-92ad";
     }
-    else if (index == 1)
+    else if (index == 2)
     {
         emojiList << "81-18" << "94-42" << "81-15" << "81-19" << "94-36" << "94-44"
                   << "94-49" << "81-16" << "94-39" << "81-17" << "84-11" << "9f-90bd"
@@ -170,7 +185,7 @@ void SelectEmojiWidget::setupEmojiTab(int index)
                   << "91-3" << "9f-8c81" << "91-12" << "90-62";
 
     }
-    else if (index == 2)
+    else if (index == 3)
     {
         emojiList << "90-54" << "90-55" << "90-56" << "90-58" << "90-57" << "90-59"
                   << "84-23" << "91-0" << "91-2" << "91-6" << "91-5" << "84-27" << "91-8"
@@ -215,7 +230,7 @@ void SelectEmojiWidget::setupEmojiTab(int index)
                   << "8d-10" << "8d-9" << "9f-8cbd";
 
     }
-    else if (index == 3)
+    else if (index == 4)
     {
         emojiList << "80-54" << "9f-8fa1" << "85-23" << "80-56" << "85-19" << "85-21"
                   << "85-13" << "85-22" << "94-1" << "85-24" << "90-61" << "80-55"
@@ -237,7 +252,7 @@ void SelectEmojiWidget::setupEmojiTab(int index)
                   << "94-16";
 
     }
-    else if (index == 4)
+    else if (index == 5)
     {
         emojiList << "88-28" << "88-29" << "88-30" << "88-31" << "88-32" << "88-33"
                   << "88-34" << "88-35" << "88-36" << "88-37" << "9f-949f" << "9f-94a2"
@@ -279,7 +294,7 @@ void SelectEmojiWidget::setupEmojiTab(int index)
     }
 
     QScrollArea *scrollArea = new QScrollArea(emojiWidgetVector.at(index));
-    scrollArea->setGeometry(QRect(0, 0, 520, 255));
+    scrollArea->setGeometry(QRect(0, 0, 605, 255));
     QSizePolicy sizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
@@ -301,7 +316,7 @@ void SelectEmojiWidget::setupEmojiTab(int index)
 
     int i = 0;
     for (int row = 0; i < emojiList.length(); row ++)
-        for (int col = 0; i < emojiList.length() && col < ROWS; col ++)
+        for (int col = 0; i < emojiList.length() && col < COLS; col ++)
         {
             EmojiButton *emoji = new EmojiButton(emojiList.at(i),layoutWidget);
             emoji->setObjectName("e" + emojiList.at(i++));
@@ -321,5 +336,15 @@ void SelectEmojiWidget::setupEmojiTab(int index)
 
 void SelectEmojiWidget::sendEmojiSelected(QString path)
 {
+    if (!recentEmojiList.contains(path))
+    {
+        recentEmojiList << path;
+        QVariantList list;
+        foreach (QString s, recentEmojiList)
+            list << s;
+        Client::settings->setValue(SETTINGS_RECENT_EMOJI,list);
+        if (tabSetup[0])
+            tabSetup[0] = false;
+    }
     emit emojiSelected(path);
 }

@@ -188,6 +188,9 @@ QString Client::lastVideoDir;
 // Last image folder used
 QString Client::lastImageDir;
 
+// Auto close emoji dialog on selection
+bool Client::autoCloseEmoji;
+
 /**
     Constructs a Client object.
 
@@ -506,6 +509,10 @@ void Client::readSettings()
                                          Utilities::getPathFor(FMessage::Image,
                                                                true)).toString();
 
+    // Auto close emoji dialog on selection
+    this->autoCloseEmoji = settings->value(SETTINGS_AUTO_CLOSE_EMOJI,
+                                           QVariant(DEFAULT_AUTO_CLOSE_EMOJI)).toBool();
+
     // Read counters
     dataCounters.readCounters();
     lastCountersWrite = QDateTime::currentMSecsSinceEpoch();
@@ -530,6 +537,7 @@ void Client::updateSettings()
     settings->setValue(SETTINGS_START_ON_BOOT,startOnBoot);
     settings->setValue(SETTINGS_ENTER_IS_SEND,enterIsSend);
     settings->setValue(SETTINGS_VOICE_CODEC,voiceCodec);
+    settings->setValue(SETTINGS_AUTO_CLOSE_EMOJI,autoCloseEmoji);
 
     QDir home = QDir::home();
     QString startFile = home.path() + START_FILE;

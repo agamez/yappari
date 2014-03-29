@@ -362,16 +362,18 @@ void RosterDBManager::removeContact(QString jid)
     // Delete contact
     QString queryStr = "delete from roster where jid";
 
-    if (jid.isEmpty())
+    if (jid.isEmpty()) {
         queryStr += " is null";
-
-    query.prepare(queryStr);
-
-    if (!jid.isEmpty())
+        query.prepare(queryStr);
+    }
+    else
     {
-        queryStr += " jid=:jid";
+        queryStr += "=:jid";
+        query.prepare(queryStr);
         query.bindValue(":jid",jid);
     }
+
+    // Utilities::logData(queryStr);
 
     query.exec();
 }

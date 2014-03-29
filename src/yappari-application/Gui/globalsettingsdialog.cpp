@@ -126,6 +126,7 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
     ui->importCheckbox->setChecked(Client::importMediaToGallery);
     ui->startOnBootCheckBox->setChecked(Client::startOnBoot);
     ui->enterIsSendCheckbox->setChecked(Client::enterIsSend);
+    ui->autoCloseEmoji->setChecked(Client::autoCloseEmoji);
 
     // Configure automatic download bytes
 
@@ -190,6 +191,11 @@ bool GlobalSettingsDialog::getStartOnBoot()
 bool GlobalSettingsDialog::getEnterIsSend()
 {
     return ui->enterIsSendCheckbox->isChecked();
+}
+
+bool GlobalSettingsDialog::getAutoCloseEmoji()
+{
+    return ui->autoCloseEmoji->isChecked();
 }
 
 int GlobalSettingsDialog::getAutomaticDownloadBytes()

@@ -1,6 +1,12 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.44:</b><br>
+<b>New in this version 1.1.45:</b><br>
+<li>&bull; Fixed bug: Removing contacts wasn't working.</li>
+<li>&bull; Fixed bug: Some emoji weren't properly displayed.</li>
+<li>&bull; Added option to auto-close the emoji dialog after selection. The default is now <b>false</b> so you can select several emojis at the same time.</li>
+<li>&bull; Added a recent emoji tab in the emoji selection dialog.</li>
+<br>
+<b>New in 1.1.44:</b><br>
 <li>&bull; Fixed bug: Status and group icons were not being synchronized.</li>
 <li>&bull; Fixed a weird bug were Yappari was unable to open some JPEG files.</li>
 <br>

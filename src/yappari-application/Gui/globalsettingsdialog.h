@@ -55,6 +55,7 @@ public:
     bool getStartOnBoot();
     bool getEnterIsSend();
     QString getVoiceCodec();
+    bool getAutoCloseEmoji();
 
 private:
     Ui::GlobalSettingsDialog *ui;

@@ -260,7 +260,7 @@ void ChatTextEdit::textChanged()
 
 void ChatTextEdit::addEmoji(QString emojiName)
 {
-    if (isEmojiWidgetOpen)
+    if (isEmojiWidgetOpen && Client::autoCloseEmoji)
         closeEmojiWidget();
 
     QTextCursor cursor = textCursor();

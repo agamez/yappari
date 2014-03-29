@@ -161,6 +161,8 @@
 #define SETTINGS_LAST_AUDIO_DIR             "lastaudiodir"
 #define SETTINGS_LAST_VIDEO_DIR             "lastvideodir"
 #define SETTINGS_LAST_IMAGE_DIR             "lastimagedir"
+#define SETTINGS_AUTO_CLOSE_EMOJI           "autocloseemoji"
+#define SETTINGS_RECENT_EMOJI               "recentemoji"
 
 #define SETTINGS_WHATSNEW                   "whatsnew"
 
@@ -176,6 +178,7 @@
 #define DEFAULT_START_ON_BOOT               false
 #define DEFAULT_ENTER_IS_SEND               true
 #define DEFAULT_VOICE_CODEC                 "aac"
+#define DEFAULT_AUTO_CLOSE_EMOJI            false
 
 // Synchronization options
 
@@ -236,7 +239,7 @@
 #define VERSION_CHECK_URL   "version.txt"
 #define WHATS_NEW_URL       "changelog.txt"
 #define DONATE_URL          "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER        866411841
+#define MAGIC_NUMBER        3344693
 
 // Codecs
 

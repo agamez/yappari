@@ -740,6 +740,7 @@ void MainWindow::showGlobalSettingsDialog()
         Client::syncFreq = dialog.getSyncFrequency();
         Client::startOnBoot = dialog.getStartOnBoot();
         Client::enterIsSend = dialog.getEnterIsSend();
+        Client::autoCloseEmoji = dialog.getAutoCloseEmoji();
         Client::voiceCodec = dialog.getVoiceCodec();
 
         emit settingsUpdated();

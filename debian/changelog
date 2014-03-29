@@ -1,3 +1,13 @@
+yappari (1.1.45) stable; urgency=low
+
+  * Fixed bug: SQL query for deleting contacts was a total mess.
+  * Fixed bug: Some emoji weren't properly displayed.
+  * Added option to auto-close the emoji selection dialog after select. The
+    default is false to select several emojis at the same time.
+  * Added a recent emoji tab in the emoji selection dialog.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Sat, 29 Mar 2014 11:37:53 -0430
+
 yappari (1.1.44) stable; urgency=low
 
   * Fixed bug: Status and group icons were not being synchronized.

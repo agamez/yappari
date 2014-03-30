@@ -79,6 +79,8 @@ public:
     FMessage(QString remote_jid, QString data, QString thumb_image);
 
     void setKey(Key k);
+    void generateTimestamp();
+    void generateID();
     void setRemoteJid(QString remote_jid);
     void setData(QByteArray data);
     void setData(QString data);
@@ -115,8 +117,6 @@ private:
     static QMutex mutex;
 
     void init(QString remote_jid, bool from_me);
-    void generateTimestamp();
-    void generateID();
 };
 
 

@@ -9,8 +9,8 @@
  * before re-generating it.
  */
 
-#ifndef DBUSIFADAPTOR_H_1368489962
-#define DBUSIFADAPTOR_H_1368489962
+#ifndef DBUSIFADAPTOR_H_1396374440
+#define DBUSIFADAPTOR_H_1396374440
 
 #include <QtCore/QObject>
 #include <QtDBus/QtDBus>

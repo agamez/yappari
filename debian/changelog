@@ -1,3 +1,15 @@
+yappari (1.1.46) stable; urgency=low
+
+  * Fixed maximum size of media sharing. It is now 16 MB.
+  * Fixed bug where Download button wasn't re-enabled if a socket error
+    occurred.
+  * New feature: Shift-Enter via physical keyboard adds a new line.
+  * Implemented retry button for failed uploads.
+  * Last folder used to select profile picture is now remembered.
+  * Implemented forward of text and multimedia messages.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Sun, 30 Mar 2014 15:13:51 -0430
+
 yappari (1.1.45) stable; urgency=low
 
   * Fixed bug: SQL query for deleting contacts was a total mess.

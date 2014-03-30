@@ -68,6 +68,7 @@ public:
     QImage photo;
     QString photoId;
     bool blocked;
+    bool hasOpenChat;
 
     void setOnlineStatus(bool isOnline);
 };

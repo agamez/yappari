@@ -113,6 +113,9 @@
 #define NOKIA_IMAGEVIEWER_DBUS_NAME             "com.nokia.image_viewer"
 #define NOKIA_IMAGEVIEWER_DBUS_PATH             "/com/nokia/image_viewer"
 
+#define NOKIA_OSSO_BROWSER_DBUS_NAME            "com.nokia.osso_browser"
+#define NOKIA_OSSO_BROWSER_DBUS_PATH            "/com/nokia/osso_viewer"
+
 #define NOKIA_CSD_CALL_SERVICE                  "com.nokia.csd.Call"
 #define NOKIA_CSD_CALL_OBJECT                   "/com/nokia/csd/call"
 
@@ -161,6 +164,7 @@
 #define SETTINGS_LAST_AUDIO_DIR             "lastaudiodir"
 #define SETTINGS_LAST_VIDEO_DIR             "lastvideodir"
 #define SETTINGS_LAST_IMAGE_DIR             "lastimagedir"
+#define SETTINGS_LAST_PROFILE_DIR           "lastprofiledir"
 #define SETTINGS_AUTO_CLOSE_EMOJI           "autocloseemoji"
 #define SETTINGS_RECENT_EMOJI               "recentemoji"
 
@@ -239,7 +243,7 @@
 #define VERSION_CHECK_URL   "version.txt"
 #define WHATS_NEW_URL       "changelog.txt"
 #define DONATE_URL          "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER        3344693
+#define MAGIC_NUMBER        246275139
 
 // Codecs
 

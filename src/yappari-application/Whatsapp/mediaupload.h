@@ -55,6 +55,7 @@ class MediaUpload : public QObject
 public:
     explicit MediaUpload(QObject *parent = 0);
 
+    FMessage getMessage();
     void sendPicture(QString jid, MediaDescriptor descriptor);
     void sendVideo(QString jid, MediaDescriptor descriptor);
     void sendMedia(QString jid, FMessage message);
@@ -66,7 +67,7 @@ signals:
     void readyToSendMessage(MediaUpload *obj, FMessage msg);
     void sslError(MediaUpload *obj);
     void progress(FMessage msg, float p);
-    void httpError(MediaUpload *obj);
+    void httpError(MediaUpload *obj, QString error);
     void requestSent(qint64 bytes);
     void headersReceived(qint64 bytes);
 

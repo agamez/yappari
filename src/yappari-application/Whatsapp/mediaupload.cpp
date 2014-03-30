@@ -30,6 +30,7 @@
 #include <QImage>
 #include <QBuffer>
 
+#include "ioexception.h"
 #include "mediaupload.h"
 #include "formdata.h"
 #include "client.h"
@@ -41,6 +42,11 @@
 MediaUpload::MediaUpload(QObject *parent) :
     QObject(parent)
 {
+}
+
+FMessage MediaUpload::getMessage()
+{
+    return msg;
 }
 
 QString MediaUpload::generateMediaFilename(QString extension)
@@ -116,14 +122,16 @@ void MediaUpload::sendMedia(QString jid, FMessage message)
 {
     MediaDescriptor descriptor;
 
+    msg = message;
+
     descriptor.waType = (FMessage::MediaWAType) message.media_wa_type;
-    descriptor.extension = Utilities::getExtension(message.media_name);
+    descriptor.extension = Utilities::getExtension(message.local_file_uri);
     descriptor.duration = message.media_duration_seconds;
     descriptor.contentType =
             message.media_mime_type.isEmpty() ?
                 Utilities::guessMimeType(descriptor.extension) :
                 message.media_mime_type;
-    descriptor.localFileUri = message.media_name;
+    descriptor.localFileUri = message.local_file_uri;
     descriptor.url = message.media_url;
     descriptor.upload = (message.status == FMessage::Uploading);
     descriptor.live = message.live;
@@ -148,10 +156,12 @@ void MediaUpload::sendMedia(QString jid, FMessage message)
 
 void MediaUpload::sendMedia(QString jid, MediaDescriptor descriptor)
 {
-    msg = FMessage(jid, true);
+    // msg = FMessage(jid, true);
 
     QFile file(descriptor.localFileUri);
 
+    msg.key.remote_jid = jid;
+    msg.key.from_me = true;
     msg.type = FMessage::MediaMessage;
     msg.data = descriptor.data;
     msg.media_size =  file.size();
@@ -220,8 +230,6 @@ void MediaUpload::uploadMedia()
     connect(uploader,SIGNAL(requestSent(qint64)),
             this,SLOT(requestSentHandler(qint64)));
 
-
-    // uploader->open("https://mms.whatsapp.net/client/iphone/upload.php", formData);
     uploader->open(msg.media_url, formData);
 }
 
@@ -247,8 +255,9 @@ void MediaUpload::finished(MultiPartUploader *uploader, QVariantMap dictionary)
     }
     else if (dictionary.contains("error"))
     {
-        Utilities::logData("Upload failed: " + dictionary.value("error").toString());
-        emit httpError(this);
+        QString text = dictionary.value("error").toString();
+        Utilities::logData("Upload failed: " + text);
+        emit httpError(this, text);
     }
 }
 
@@ -262,9 +271,12 @@ void MediaUpload::errorHandler(QAbstractSocket::SocketError error)
     }
     else
     {
-        // ToDo: Retry here
-        Utilities::logData("Upload failed: Socket error " + QString::number(error));
-        emit httpError(this);
+        IOException e((QAbstractSocket::SocketError)error);
+
+        QString text = e.toString();
+
+        Utilities::logData("Upload failed: " + text);
+        emit httpError(this, text);
     }
 }
 

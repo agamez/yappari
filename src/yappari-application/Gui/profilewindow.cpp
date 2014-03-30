@@ -121,7 +121,7 @@ void ProfileWindow::verifyUserName()
 
 void ProfileWindow::selectPicture()
 {
-    QString mediaFolder = Utilities::getPathFor(FMessage::Image, true);
+    QString mediaFolder = Client::lastProfileDir;
 
     photoFileName = QFileDialog::getOpenFileName(this, tr("Open File"),
                                                  mediaFolder,
@@ -129,6 +129,8 @@ void ProfileWindow::selectPicture()
 
     if (!photoFileName.isNull())
     {
+        emit updateLastDir(-1, photoFileName.left(photoFileName.lastIndexOf("/")));
+
         QMaemo5InformationBox::information(this,"Loading image");
 
         QTimer::singleShot(100,this,SLOT(createProfilePictureWindow()));

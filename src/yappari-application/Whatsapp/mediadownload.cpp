@@ -20,6 +20,9 @@ void MediaDownload::backgroundTransfer(FMessage message)
     connect(this,SIGNAL(finished()),
             this,SLOT(onResponse()));
 
+    connect(this,SIGNAL(socketError(QAbstractSocket::SocketError)),
+            this,SLOT(downloadError(QAbstractSocket::SocketError)));
+
     get(message.media_url);
 }
 
@@ -110,4 +113,9 @@ QString MediaDownload::getFileNameForMessage(FMessage message)
         file.setFileName(fileName.left(pos) + "_" + QString::number(count) + extension);
 
     return file.fileName();
+}
+
+void MediaDownload::downloadError(QAbstractSocket::SocketError error)
+{
+    emit httpError(this, message, error);
 }

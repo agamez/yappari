@@ -188,6 +188,9 @@ QString Client::lastVideoDir;
 // Last image folder used
 QString Client::lastImageDir;
 
+// Last profile picture folder used
+QString Client::lastProfileDir;
+
 // Auto close emoji dialog on selection
 bool Client::autoCloseEmoji;
 
@@ -508,6 +511,10 @@ void Client::readSettings()
     this->lastImageDir = settings->value(SETTINGS_LAST_IMAGE_DIR,
                                          Utilities::getPathFor(FMessage::Image,
                                                                true)).toString();
+
+    this->lastProfileDir = settings->value(SETTINGS_LAST_PROFILE_DIR,
+                                           Utilities::getPathFor(FMessage::Image,
+                                                                 true)).toString();
 
     // Auto close emoji dialog on selection
     this->autoCloseEmoji = settings->value(SETTINGS_AUTO_CLOSE_EMOJI,
@@ -1696,6 +1703,11 @@ void Client::updateLastDir(int waType, QString dir)
 {
     switch (waType)
     {
+        case -1:
+            lastProfileDir = dir;
+            settings->setValue(SETTINGS_LAST_PROFILE_DIR,lastProfileDir);
+            break;
+
         case FMessage::Video:
             lastVideoDir = dir;
             settings->setValue(SETTINGS_LAST_VIDEO_DIR,lastVideoDir);

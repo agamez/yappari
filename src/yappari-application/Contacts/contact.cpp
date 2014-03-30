@@ -32,6 +32,7 @@
 
 Contact::Contact()
 {
+    hasOpenChat = false;
     isOnline = false;
     lastSeen = 0;
     blocked = false;

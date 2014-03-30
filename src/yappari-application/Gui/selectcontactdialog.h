@@ -34,8 +34,6 @@
 
 #include "contactselectionmodel.h"
 
-#include "mainwindow.h"
-
 #include <QDialog>
 
 namespace Ui {
@@ -47,17 +45,15 @@ class SelectContactDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SelectContactDialog(ContactRoster *roster, QWidget *parent = 0,
-                                 bool contextMenuEnabled = true);
+    explicit SelectContactDialog(ContactList list, QWidget *parent = 0,
+                                 bool contextMenuEnabled = true, bool includeGroups = false);
     ~SelectContactDialog();
     Contact& getSelectedContact();
 
 private:
     Ui::SelectContactDialog *ui;
-    ContactRoster *roster;
-    Contact contact;
+    ContactList contactList;
     ContactSelectionModel *model;
-    MainWindow *mw;
 
     QString searchStr;
 
@@ -71,6 +67,7 @@ public slots:
 signals:
     void sendRightButtonClicked(const QPoint& p);
     void showContactInfo(Contact *contact);
+    void deleteContact(QString jid);
 };
 
 #endif // SELECTCONTACTDIALOG_H

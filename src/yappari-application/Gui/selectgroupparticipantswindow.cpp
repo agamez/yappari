@@ -122,7 +122,7 @@ void SelectGroupParticipantsWindow::addParticipant()
     }
     else
     {
-        SelectContactDialog selectContactDialog(roster,this,false);
+        SelectContactDialog selectContactDialog(roster->getContactList(),this,false);
 
         //connect(&selectContactDialog,SIGNAL(showContactInfo(Contact*)),
         //        this,SLOT(viewContact(Contact*)));

@@ -59,7 +59,7 @@ ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    waiting = false;
+    waiting = retryButton = false;
     this->message = message;
 
     setImage();
@@ -78,6 +78,11 @@ ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
 
     setNickname(message);
     setTimestamp(message);
+}
+
+FMessage ChatImageItem::getMessage()
+{
+    return message;
 }
 
 void ChatImageItem::setImage()
@@ -272,7 +277,15 @@ void ChatImageItem::setButton()
     else
     {
         if (message.media_wa_type == FMessage::Image)
-            ui->viewImageButton->setText("View");
+        {
+            if (message.key.from_me == true && message.status == FMessage::Unsent)
+            {
+                retryButton = true;
+                ui->viewImageButton->setText("Retry");
+            }
+            else
+                ui->viewImageButton->setText("View");
+        }
         else
             ui->viewImageButton->setText("Play");
         ui->viewImageButton->setEnabled(true);
@@ -286,7 +299,15 @@ ChatImageItem::~ChatImageItem()
 
 void ChatImageItem::downloadOrViewImage()
 {
-    if (message.media_wa_type == FMessage::Location)
+    if (retryButton)
+    {
+        message.status = FMessage::Uploading;
+        retryButton = false;
+        setButton();
+
+        emit mediaUpload(message);
+
+    } else if (message.media_wa_type == FMessage::Location)
     {
         QString url = (message.media_url.isEmpty())
                 ? URL_LOCATION_SHARING +
@@ -435,6 +456,13 @@ void ChatImageItem::updateUri(QString uri)
 
 void ChatImageItem::resetButton()
 {
+    if (message.key.from_me)
+    {
+        // This is a request for a retry button
+        ui->viewImageButton->setText("Retry");
+        retryButton = true;
+    }
+
     ui->progressBar->hide();
     ui->viewImageButton->setEnabled(true);
 }

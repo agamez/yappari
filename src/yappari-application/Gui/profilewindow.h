@@ -46,6 +46,7 @@ public:
 signals:
     void changeUserName(QString newUserName);
     void photoSelected(QString jid, QImage photo);
+    void updateLastDir(int waType, QString dir);
 
 private:
     Ui::ProfileWindow *ui;

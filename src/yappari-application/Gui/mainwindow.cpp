@@ -163,6 +163,7 @@ void MainWindow::loadOpenChats()
         {
             // Create the open chats item
             Contact& contact = roster->getContact(entry.jid);
+            contact.hasOpenChat = true;
             ChatDisplayItem *item = new ChatDisplayItem(&contact);
             lastContactsList.insert(entry.jid,item);
             item->muted = entry.muted;
@@ -193,10 +194,12 @@ void MainWindow::createChatWindow()
     }
     else
     {
-        SelectContactDialog selectContactDialog(roster,this);
+        SelectContactDialog selectContactDialog(roster->getContactList(),this);
 
         connect(&selectContactDialog,SIGNAL(showContactInfo(Contact*)),
                 this,SLOT(viewContact(Contact*)));
+        connect(&selectContactDialog,SIGNAL(deleteContact(QString)),
+                roster,SLOT(deleteContact(QString)));
 
         if (selectContactDialog.exec() == QDialog::Accepted)
         {
@@ -241,6 +244,9 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
             ChatDisplayItem *item = new ChatDisplayItem(&contact);
             lastContactsList.insert(jid,item);
             model->appendRow(item);
+
+            // This contact now has an open chat
+            contact.hasOpenChat = true;
 
             // Set the last line logged in the item
             FMessage msg = chat->lastMessage();
@@ -304,6 +310,9 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
         connect(chat,SIGNAL(updateLastDir(int,QString)),
                 this,SLOT(requestUpdateLastDir(int,QString)));
 
+        connect(chat,SIGNAL(forwardMessage(FMessage)),
+                this,SLOT(forwardMessage(FMessage)));
+
         if (contact.type == Contact::TypeGroup)
         {
             GroupWindow *groupChat = (GroupWindow *) chat;
@@ -324,9 +333,7 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
         Utilities::logData("There's an open chat window for " + jid);
 
         chat = chatWindowList.value(jid);
-        chat->show();
-        chat->activateWindow();
-        emit activeChatChanged(jid);
+        setActiveChat(jid);
     }
 
     Utilities::logData("Setting chat window title");
@@ -343,7 +350,6 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
 void MainWindow::deleteChat(QObject *obj)
 {
     QString jid = ((ChatWindow *)obj)->getContact().jid;
-
     chatWindowList.remove(jid);
 }
 
@@ -848,6 +854,7 @@ void MainWindow::contextMenu(QPoint p)
                     chatsDB.removeChat(jid);
 
                     Contact& c = roster->getContact(jid);
+                    c.hasOpenChat = false;
                     if (c.type == Contact::TypeContact)
                         emit unsubscribe(jid);
                 }
@@ -874,9 +881,9 @@ void MainWindow::mute(QString jid, bool muted, qint64 muteExpireTimestamp)
     }
 }
 
-bool MainWindow::hasChatOpen(Contact& c)
+bool MainWindow::hasChatOpen(Contact *c)
 {
-    return lastContactsList.contains(c.jid);
+    return lastContactsList.contains(c->jid);
 }
 
 void MainWindow::updateTimestamps()
@@ -954,6 +961,10 @@ void MainWindow::showProfileWindow()
 
     connect(window,SIGNAL(changeUserName(QString)),
             this,SLOT(requestChangeUserName(QString)));
+
+    connect(window,SIGNAL(updateLastDir(int,QString)),
+            this,SLOT(requestUpdateLastDir(int,QString)));
+
 
     showWindow(window);
 }
@@ -1143,3 +1154,46 @@ void MainWindow::requestUpdateLastDir(int waType, QString dir)
     emit updateLastDir(waType, dir);
 }
 
+void MainWindow::forwardMessage(FMessage message)
+{
+    ContactList list;
+
+    foreach (QString jid, lastContactsList.keys())
+    {
+        Contact& c = roster->getContact(jid);
+        list.insert(jid, &c);
+    }
+
+    SelectContactDialog selectContactDialog(list, this, false, true);
+
+    if (selectContactDialog.exec() == QDialog::Accepted)
+    {
+        Contact& contact = selectContactDialog.getSelectedContact();
+
+        // This will re-open the chat window if it wasn't open yet
+        ChatWindow *chat = createChatWindow(contact, true);
+
+        // Generate a new ID
+        message.generateID();
+        message.key.remote_jid = contact.jid;
+
+        switch(message.type)
+        {
+            case FMessage::BodyMessage:
+                chat->sendTextMessage(message);
+                break;
+
+            case FMessage::MediaMessage:
+                if (message.media_wa_type == FMessage::Audio ||
+                    message.media_wa_type == FMessage::Image ||
+                    message.media_wa_type == FMessage::Video ||
+                    message.media_wa_type == FMessage::Voice)
+                    chat->sendMultimediaMessage(message.local_file_uri, message.media_wa_type, message.live);
+                break;
+
+            default:
+                break;
+
+        }
+    }
+}

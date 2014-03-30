@@ -44,9 +44,12 @@ class ChatImageItem : public QWidget
 public:
     explicit ChatImageItem(FMessage message, QWidget *parent = 0);
 
+    FMessage getMessage();
+
     ~ChatImageItem();
 
 signals:
+    void mediaUpload(FMessage message);
     void mediaDownload(FMessage message);
     void voiceNotePlayed(FMessage message);
 
@@ -66,7 +69,7 @@ public slots:
 
 private:
     Ui::ChatImageItem *ui;
-    bool waiting;
+    bool waiting, retryButton;
 
     FMessage message;
 };

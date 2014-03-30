@@ -8,8 +8,8 @@
  * Do not edit! All changes made to it will be lost.
  */
 
-#ifndef DBUSAPPLETIF_H_1368489962
-#define DBUSAPPLETIF_H_1368489962
+#ifndef DBUSAPPLETIF_H_1396374440
+#define DBUSAPPLETIF_H_1396374440
 
 #include <QtCore/QObject>
 #include <QtCore/QByteArray>

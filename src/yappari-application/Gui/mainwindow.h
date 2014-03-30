@@ -62,7 +62,7 @@ public:
     ~MainWindow();
 
     void setActiveChat(QString jid);
-    bool hasChatOpen(Contact& c);
+    bool hasChatOpen(Contact *c);
     void statusChanged(FMessage message);
 
 protected:
@@ -121,11 +121,19 @@ public slots:
     void blockOrUnblockContact(QString jid, bool blocked);
     void refreshPrivacyList();
     void requestUpdateLastDir(int waType, QString dir);
+    void forwardMessage(FMessage message);
 
 private:
     Ui::MainWindow *ui;
+
+    // This is the list of the lastContactList contacts that have an
+    // chat window open
     QMap<QString,ChatWindow *> chatWindowList;
+
+    // This is the list of the contacts with ongoing conversations
+    // aka the contact list in the MainWindow
     QMap<QString,ChatDisplayItem *> lastContactsList;
+
     ContactRoster *roster;
     bool isScreenLocked;
     NotifyObject *notifyObject;
@@ -173,6 +181,7 @@ signals:
     void privacyListRefreshed();
     void voiceNotePlayed(FMessage message);
     void updateLastDir(int waType, QString dir);
+
 };
 
 #endif // MAINWINDOW_H

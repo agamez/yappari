@@ -45,7 +45,8 @@ ContactDisplayItem::ContactDisplayItem(Contact *c) :
             ? (contact->name.isEmpty() ? contact->phone : contact->name)
             : contact->alias;
 
-    QString status = c->status.replace("<","&lt;").replace(">","&gt;");
+    QString status = (c->type == Contact::TypeGroup)
+                            ? QString() : c->status.replace("<","&lt;").replace(">","&gt;");
 
     QString html = "<table width=\"100%\"><tr><td>" +
                    Utilities::WATextToHtml(name,32) + "</td>"
@@ -53,7 +54,7 @@ ContactDisplayItem::ContactDisplayItem(Contact *c) :
 
     QColor color = QMaemo5Style::standardColor("SecondaryTextColor");
 
-    if (Client::showNumbers)
+    if (Client::showNumbers && c->type == Contact::TypeContact)
         html.append("<div style=\"font-size:16px;color:" + color.name() + "\">(" +
                     c->phone + ")&nbsp;</div>");
 

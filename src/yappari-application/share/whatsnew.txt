@@ -1,6 +1,14 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.45:</b><br>
+<b>New in this version 1.1.46:</b><br>
+<li>&bull; Fixed bug: Download button wasn't being re-enabled after a socket error occurred.</li>
+<li>&bull; Bumped maximum file of media sharing to 16 MB.</li>
+<li>&bull; You can now press Shift-Enter to add new lines.</li>
+<li>&bull; Implemented retry button for failed uploads.</li>
+<li>&bull; Last folder used to select profile picture is now remembered.</li>
+<li>&bull; Added <b>forward</b> of text and media messages through the context menu (long press).</li>
+<br>
+<b>New in 1.1.45:</b><br>
 <li>&bull; Fixed bug: Removing contacts wasn't working.</li>
 <li>&bull; Fixed bug: Some emoji weren't properly displayed.</li>
 <li>&bull; Added option to auto-close the emoji dialog after selection. The default is now <b>false</b> so you can select several emojis at the same time.</li>

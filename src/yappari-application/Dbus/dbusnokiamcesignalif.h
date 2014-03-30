@@ -8,8 +8,8 @@
  * Do not edit! All changes made to it will be lost.
  */
 
-#ifndef DBUSNOKIAMCESIGNALIF_H_1368489962
-#define DBUSNOKIAMCESIGNALIF_H_1368489962
+#ifndef DBUSNOKIAMCESIGNALIF_H_1396374440
+#define DBUSNOKIAMCESIGNALIF_H_1396374440
 
 #include <QtCore/QObject>
 #include <QtCore/QByteArray>

@@ -23,6 +23,7 @@ signals:
 public slots:
     void onResponse();
     void writeToFile();
+    void downloadError(QAbstractSocket::SocketError error);
 
 private:
     FMessage message;

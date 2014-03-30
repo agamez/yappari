@@ -45,8 +45,8 @@
 #include "globalconstants.h"
 #include "client.h"
 
-SelectContactDialog::SelectContactDialog(ContactRoster *roster, QWidget *parent,
-                                         bool contextMenuEnabled) :
+SelectContactDialog::SelectContactDialog(ContactList list, QWidget *parent,
+                                         bool contextMenuEnabled, bool includeGroups) :
     QDialog(parent),
     ui(new Ui::SelectContactDialog)
 {
@@ -58,14 +58,13 @@ SelectContactDialog::SelectContactDialog(ContactRoster *roster, QWidget *parent,
     ui->searchLabel->setFont(font);
     */
 
-    this->mw = (contextMenuEnabled) ? (MainWindow *)parent : 0;
-
-    this->roster = roster;
     model = new ContactSelectionModel(ui->listView);
     QSortFilterProxyModel *proxy = new QSortFilterProxyModel(this);
     proxy->setSourceModel(model);
     ui->listView->setModel(proxy);
-    ui->listView->installEventFilter(this);
+
+    if (contextMenuEnabled)
+        ui->listView->installEventFilter(this);
 
     proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
@@ -73,10 +72,11 @@ SelectContactDialog::SelectContactDialog(ContactRoster *roster, QWidget *parent,
 
     ui->listView->setItemDelegate(delegate);
 
-    ContactList contactList = roster->getContactList();
+    contactList = list;
     foreach(Contact *contact, contactList)
     {
-        if (contact->type == Contact::TypeContact && contact->jid != Client::myJid)
+        if ((includeGroups || (!includeGroups && contact->type == Contact::TypeContact))
+                && contact->jid != Client::myJid)
             model->appendRow(new ContactDisplayItem(contact));
     }
 
@@ -122,7 +122,7 @@ void SelectContactDialog::accept()
 
 bool SelectContactDialog::eventFilter(QObject *obj, QEvent *event)
 {
-    if (event->type() == QEvent::ContextMenu && mw != 0) {
+    if (event->type() == QEvent::ContextMenu) {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*> (event);
         sendRightButtonClicked(mouseEvent->globalPos());
         return true;
@@ -159,17 +159,17 @@ void SelectContactDialog::contextMenu(QPoint p)
         QAction *action = menu->exec(p);
         if (action == viewContact)
         {
-            Contact& c = roster->getContact(jid);
-            emit showContactInfo(&c);
+            Contact *c = contactList.value(jid);
+            emit showContactInfo(c);
             close();
         }
         else if (action == removeContact)
         {
             QMessageBox msg(this);
 
-            Contact& c = roster->getContact(jid);
+            Contact *c = contactList.value(jid);
 
-            if (mw->hasChatOpen(c))
+            if (c->hasOpenChat)
             {
                 msg.setText("You have an open chat with this contact. Close it first.");
                 msg.exec();
@@ -181,7 +181,7 @@ void SelectContactDialog::contextMenu(QPoint p)
             }
             else
             {
-                QString text = (c.fromAddressBook &&
+                QString text = (c->fromAddressBook &&
                                 (Client::sync == SYNC_ENABLED | Client::sync == SYNC_INTL_ONLY))
                         ? "This contact is from your Address Book and it will reappear "
                           "in this list in the next synchronization."
@@ -193,7 +193,7 @@ void SelectContactDialog::contextMenu(QPoint p)
                 if (msg.exec() == QMessageBox::Yes)
                 {
                     model->removeRow(index.row());
-                    roster->deleteContact(jid);
+                    emit deleteContact(jid);
                 }
             }
         }

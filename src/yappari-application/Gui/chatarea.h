@@ -48,18 +48,22 @@ public:
     void loadLogMessages(QList<FMessage> messages);
     void goToBottom();
     void requestUpdateTimestamps();
+    bool isMessageInUI(FMessage msg);
 
 signals:
     void topReached();
     void updateTimestamps();
+    void mediaUpload(FMessage message);
     void mediaDownload(FMessage message);
     void voiceNotePlayed(FMessage message);
+    void forwardMessage(FMessage message);
     void contextMenuRequested(QPoint p, QObject *obj);
 
 public slots:
     void insertMessageAtTop(FMessage message);
     void insertMessageAtBottom(FMessage message);
     void mediaDownloadHandler(FMessage message);
+    void mediaUploadHandler(FMessage message);
     void voiceNotePlayedHandler(FMessage message);
     void updateStatus(FMessage message);
     void updateProgress(FMessage message, float p);
@@ -83,6 +87,7 @@ private:
     bool loadingMessages, atBottom;
 
     void insertMessage(FMessage message, bool loadingMessages);
+    void insertWidget(Key key, bool atTop, QWidget * label);
     void insertBodyMessage(FMessage message,bool loadingMessages);
     void insertMediaMessage(FMessage message,bool loadingMessages);
     QString processMessage(QString data);

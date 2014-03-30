@@ -43,6 +43,10 @@
 #include "Whatsapp/util/datetimeutilities.h"
 #include "Whatsapp/util/utilities.h"
 
+#include "Dbus/dbusnokiaossobrowserif.h"
+
+#include "globalconstants.h"
+
 ChatArea::ChatArea(QWidget *parent) :
     QScrollArea(parent)
 {
@@ -109,14 +113,8 @@ void ChatArea::insertMessage(FMessage message, bool atTop)
         insertMediaMessage(message,atTop);
 }
 
-void ChatArea::insertBodyMessage(FMessage message, bool atTop)
+void ChatArea::insertWidget(Key key, bool atTop, QWidget *label)
 {
-    ChatTextItem *textItem = new ChatTextItem(message,container);
-    textItem->installEventFilter(this);
-    textItem->setObjectName("ChatTextItem");
-    connect(this,SIGNAL(updateTimestamps()),textItem,SLOT(updateTimestamp()));
-    QWidget *label = textItem;
-
     if (!atTop)
     {
         grid->addWidget(label);
@@ -130,12 +128,21 @@ void ChatArea::insertBodyMessage(FMessage message, bool atTop)
         widgetList.insert(0,label);
     }
 
-    widgets.insert(message.key,label);
+    widgets.insert(key, label);
+}
+
+void ChatArea::insertBodyMessage(FMessage message, bool atTop)
+{
+    ChatTextItem *textItem = new ChatTextItem(message,container);
+    textItem->installEventFilter(this);
+    textItem->setObjectName("ChatTextItem");
+    connect(this,SIGNAL(updateTimestamps()),textItem,SLOT(updateTimestamp()));
+
+    insertWidget(message.key, atTop, textItem);
 }
 
 void ChatArea::insertMediaMessage(FMessage message, bool atTop)
 {
-    QWidget *label = 0;
 
     if (message.media_wa_type == FMessage::Image ||
         message.media_wa_type == FMessage::Video ||
@@ -143,39 +150,31 @@ void ChatArea::insertMediaMessage(FMessage message, bool atTop)
         message.media_wa_type == FMessage::Location)
     {
         ChatImageItem *imageItem = new ChatImageItem(message,container);
+        imageItem->installEventFilter(this);
+        imageItem->setObjectName("ChatImageItem");
+
         connect(this,SIGNAL(updateTimestamps()),imageItem,SLOT(updateTimestamp()));
         connect(imageItem,SIGNAL(mediaDownload(FMessage)),
                 this,SLOT(mediaDownloadHandler(FMessage)));
+        connect(imageItem,SIGNAL(mediaUpload(FMessage)),
+                this,SLOT(mediaUploadHandler(FMessage)));
 
         if (message.live)
             connect(imageItem,SIGNAL(voiceNotePlayed(FMessage)),
                     this,SLOT(voiceNotePlayedHandler(FMessage)));
 
-        label = imageItem;
-    }
-
-    if (label != 0)
-    {
-        if (!atTop)
-        {
-            grid->addWidget(label);
-            widgetList.append(label);
-        }
-        else
-        {
-            if (!widgetAtBottom)
-                widgetAtBottom = label;
-            grid->insertWidget(0,label);
-            widgetList.insert(0,label);
-        }
-
-        widgets.insert(message.key,label);
+        insertWidget(message.key, atTop, imageItem);
     }
 }
 
 void ChatArea::mediaDownloadHandler(FMessage message)
 {
     emit mediaDownload(message);
+}
+
+void ChatArea::mediaUploadHandler(FMessage message)
+{
+    emit mediaUpload(message);
 }
 
 void ChatArea::voiceNotePlayedHandler(FMessage message)
@@ -306,6 +305,11 @@ void ChatArea::requestUpdateTimestamps()
     emit updateTimestamps();
 }
 
+bool ChatArea::isMessageInUI(FMessage msg)
+{
+    return (widgets.contains(msg.key));
+}
+
 /*
 
 bool ChatArea::event(QEvent *e)
@@ -320,7 +324,7 @@ bool ChatArea::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj != container && event->type() == QEvent::ContextMenu)
     {
-        if (obj->objectName() == "ChatTextItem")
+        if (obj->objectName() == "ChatTextItem" || obj->objectName() == "ChatImageItem")
         {
             QMouseEvent *mouseEvent = static_cast<QMouseEvent*> (event);
             emit contextMenuRequested(mouseEvent->globalPos(), obj);
@@ -338,7 +342,22 @@ void ChatArea::contextMenu(QPoint p, QObject *obj)
 
     QMenu *menu = new QMenu(this);
     QAction *copy = new QAction("Copy",this);
-    menu->addAction(copy);
+    QAction *forward = new QAction("Forward", this);
+    QAction *browser = new QAction("Open in browser", this);
+
+    if (obj->objectName() == "ChatTextItem")
+        menu->addAction(copy);
+
+    menu->addAction(forward);
+
+    if (obj->objectName() == "ChatImageItem")
+    {
+        ChatImageItem *item = (ChatImageItem *) obj;
+        FMessage msg = item->getMessage();
+
+        if (!msg.local_file_uri.isEmpty())
+            menu->addAction(browser);
+    }
 
     QAction *action = menu->exec(p);
     if (action == copy)
@@ -349,6 +368,36 @@ void ChatArea::contextMenu(QPoint p, QObject *obj)
         clipboard->setText(QString::fromUtf8(msg.data.constData()));
 
         QMaemo5InformationBox::information(this,"Copied");
+    }
+    else if (action == forward)
+    {
+        FMessage msg;
+        if (obj->objectName() == "ChatTextItem")
+        {
+            ChatTextItem *item = (ChatTextItem *) obj;
+            msg = item->getMessage();
+        }
+        else if (obj->objectName() == "ChatImageItem")
+        {
+            ChatImageItem *item = (ChatImageItem *) obj;
+            msg = item->getMessage();
+        }
+
+        emit forwardMessage(msg);
+    }
+    else if (action == browser)
+    {
+        ChatImageItem *item = (ChatImageItem *) obj;
+        FMessage msg = item->getMessage();
+
+        QDBusConnection dbus = QDBusConnection::sessionBus();
+
+        DBusNokiaOssoBrowserIf *browserBus =
+        new DBusNokiaOssoBrowserIf(NOKIA_OSSO_BROWSER_DBUS_NAME,
+                                   NOKIA_OSSO_BROWSER_DBUS_PATH,
+                                   dbus,this);
+
+        browserBus->load_url("file://" + msg.local_file_uri);
     }
     Utilities::logData("Exit Menu");
 }

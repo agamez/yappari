@@ -56,6 +56,7 @@
 
 #include "Whatsapp/util/utilities.h"
 #include "Whatsapp/util/datetimeutilities.h"
+#include "Whatsapp/ioexception.h"
 
 #include "hildon-input-method/hildon-im-protocol.h"
 
@@ -67,7 +68,7 @@
 #include <X11/Xatom.h>
 
 #define TEXTEDIT_HEIGHT     70
-#define MAX_FILE_SIZE       12582912
+#define MAX_FILE_SIZE       16777216
 
 ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     QMainWindow(parent),
@@ -86,8 +87,12 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
 
     connect(ui->scrollArea,SIGNAL(mediaDownload(FMessage)),
             this,SLOT(mediaDownloadRequested(FMessage)));
+    connect(ui->scrollArea,SIGNAL(mediaUpload(FMessage)),
+            this,SLOT(mediaUploadAccepted(FMessage)));
     connect(ui->scrollArea,SIGNAL(voiceNotePlayed(FMessage)),
             this,SLOT(sendVoiceNotePlayed(FMessage)));
+    connect(ui->scrollArea,SIGNAL(forwardMessage(FMessage)),
+            this,SLOT(forwardMessageRequested(FMessage)));
     connect(ui->sendButton,SIGNAL(clicked()),this,SLOT(sendButtonClicked()));
     connect(ui->sendButton,SIGNAL(pressed()),this,SLOT(startRecording()));
     connect(ui->selectEmojiButton,SIGNAL(clicked()),
@@ -209,15 +214,22 @@ void ChatWindow::sendButtonClicked()
 
         if (isMyselfComposing)
             myselfPaused();
-        emit sendMessage(message);
-        emit logMessage(message);
 
-        showMessageInUI(message);
+        sendTextMessage(message);
+
         ui->textEdit->clear();
         ui->textEdit->setFixedHeight(TEXTEDIT_HEIGHT);
     }
 
     ui->textEdit->setFocus();
+}
+
+void ChatWindow::sendTextMessage(FMessage& message)
+{
+    emit sendMessage(message);
+    emit logMessage(message);
+
+    showMessageInUI(message);
 }
 
 void ChatWindow::showMessageInUI(FMessage& message)
@@ -379,11 +391,11 @@ void ChatWindow::selectMultimediaMessage()
                                                         mediaFolder,
                                                         fileExtensions);
 
-        emit updateLastDir(waType, fileName.left(fileName.lastIndexOf("/")));
-
         if (!fileName.isNull())
         {
             QFile file(fileName);
+
+            emit updateLastDir(waType, fileName.left(fileName.lastIndexOf("/")));
 
             if (file.size() > MAX_FILE_SIZE)
             {
@@ -422,7 +434,7 @@ void ChatWindow::sendMultimediaMessage(QString fileName, int waType, bool live)
     msg.media_size = file.size();
     msg.remote_resource = contact->jid;
     msg.media_wa_type = waType;
-    msg.media_name = fileName;
+    msg.local_file_uri = fileName;
     msg.live = live;
 
     // We still don't know the duration in seconds
@@ -463,8 +475,8 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
     connect(mediaUpload,SIGNAL(sslError(MediaUpload*)),
             this,SLOT(sslErrorHandler(MediaUpload*)));
 
-    connect(mediaUpload,SIGNAL(httpError(MediaUpload*)),
-            this,SLOT(httpErrorHandler(MediaUpload*)));
+    connect(mediaUpload,SIGNAL(httpError(MediaUpload*,QString)),
+            this,SLOT(httpErrorHandler(MediaUpload*,QString)));
 
     connect(mediaUpload,SIGNAL(headersReceived(qint64)),
             this,SLOT(increaseDownloadCounter(qint64)));
@@ -481,11 +493,16 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
 
 void ChatWindow::mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg)
 {
-    emit logMessage(msg);
+    if (!ui->scrollArea->isMessageInUI(msg))
+    {
+        Utilities::logData("Message is not in the UI");
+
+        emit logMessage(msg);
+
+        showMessageInUI(msg);
+    }
 
     Utilities::logData("Message is live: "  + QString(((msg.live) ? "LIVE" : "no")));
-
-    showMessageInUI(msg);
 
     connect(mediaUpload,SIGNAL(progress(FMessage,float)),
             ui->scrollArea,SLOT(updateProgress(FMessage,float)));
@@ -493,6 +510,8 @@ void ChatWindow::mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg)
 
 void ChatWindow::mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg)
 {
+    Utilities::logData("Media Upload Finished");
+
     disconnect(mediaUpload, 0, 0, 0);
     mediaUpload->deleteLater();
 
@@ -529,6 +548,8 @@ void ChatWindow::mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg)
 
 void ChatWindow::sslErrorHandler(MediaUpload *mediaUpload)
 {
+    FMessage msg = mediaUpload->getMessage();
+
     disconnect(mediaUpload, 0, 0, 0);
     mediaUpload->deleteLater();
 
@@ -536,17 +557,27 @@ void ChatWindow::sslErrorHandler(MediaUpload *mediaUpload)
 
     QMaemo5InformationBox::information(this,"There has been an SSL error while trying to upload a multimedia message.\nPlease check your phone has the correct date & time settings.",
                                        QMaemo5InformationBox::NoTimeout);
+
+    msg.status = FMessage::Unsent;
+    messageStatusUpdate(msg);
+    ui->scrollArea->resetButton(msg);
 }
 
-void ChatWindow::httpErrorHandler(MediaUpload *mediaUpload)
+void ChatWindow::httpErrorHandler(MediaUpload *mediaUpload, QString error)
 {
+    FMessage msg = mediaUpload->getMessage();
+
     disconnect(mediaUpload, 0, 0, 0);
     mediaUpload->deleteLater();
 
-    Utilities::logData("HTTP error while trying to upload a picture.");
+    Utilities::logData("Error while trying to upload a picture. " + error);
 
-    QMaemo5InformationBox::information(this,"There has been an HTTP error while trying to upload a multimedia message.\nPlease check your log for more details.",
+    QMaemo5InformationBox::information(this,"There has been an error while trying to upload a multimedia message.\n" + error,
                                        QMaemo5InformationBox::NoTimeout);
+
+    msg.status = FMessage::Unsent;
+    messageStatusUpdate(msg);
+    ui->scrollArea->resetButton(msg);
 }
 
 void ChatWindow::mediaDownloadRequested(FMessage msg)
@@ -613,10 +644,24 @@ void ChatWindow::mediaDownloadError(MediaDownload *mediaDownload, FMessage msg, 
     disconnect(mediaDownload, 0, 0, 0);
     mediaDownload->deleteLater();
 
-    Utilities::logData("There has been an error while trying to download media. Maybe the file is not available in the servers anymore.  Error = " +
-                       QString::number(errorCode));
+    QString text;
 
-    QMaemo5InformationBox::information(this,"There has been an error while trying to download media.\nMaybe the file is not available in the servers anymore.",
+    if (errorCode <= 18)
+    {
+        // This is a QAbstractSocket::SocketError error
+
+        IOException e((QAbstractSocket::SocketError)errorCode);
+
+        text = e.toString();
+    }
+    else
+    {
+        text = "HTTP Error " + QString::number(errorCode);
+    }
+
+    Utilities::logData("There has been an error while trying to download media. " + text);
+
+    QMaemo5InformationBox::information(this,"There has been an error while trying to download media.\n" + text,
                                        QMaemo5InformationBox::NoTimeout);
 
     ui->scrollArea->resetButton(msg);
@@ -826,4 +871,9 @@ void ChatWindow::sendVoiceNotePlayed(FMessage message)
         messageStatusUpdate(message);
         emit voiceNotePlayed(message);
     }
+}
+
+void ChatWindow::forwardMessageRequested(FMessage message)
+{
+    emit forwardMessage(message);
 }

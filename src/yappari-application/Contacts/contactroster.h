@@ -49,8 +49,6 @@ public:
                     QString creation, QString subjectOwner, QString subjectTimestamp);
     const ContactList& getContactList() const;
     void insertContact(Contact *contact);
-    void deleteContact(QString jid);
-    void deleteGroup(QString gjid);
     Contact* cloneContact(Contact *c);
     int size();
     void updateAlias(Contact *contact);
@@ -66,6 +64,9 @@ public:
     ContactList getBlockedJidsList();
     void updateBlock(Contact *contact);
 
+public slots:
+    void deleteContact(QString jid);
+    void deleteGroup(QString gjid);
 
 private:
     ContactList roster;

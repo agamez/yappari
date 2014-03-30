@@ -47,6 +47,8 @@
 #include "client.h"
 #include "globalconstants.h"
 
+#define MAX_GROUP_PARTICIPANTS  50
+
 GroupInfoWindow::GroupInfoWindow(Group *group, ContactRoster *roster, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::GroupInfoWindow)
@@ -382,14 +384,14 @@ void GroupInfoWindow::addParticipant()
         QMaemo5InformationBox::information(this,"Contacts haven't been synchronized yet.",
                                            QMaemo5InformationBox::NoTimeout);
     }
-    else if (participants.size() == 50)
+    else if (participants.size() == MAX_GROUP_PARTICIPANTS)
     {
         QMaemo5InformationBox::information(this,"The maximum number of participants have been reached.",
                                            QMaemo5InformationBox::NoTimeout);
     }
     else
     {
-        SelectContactDialog selectContactDialog(roster,this,false);
+        SelectContactDialog selectContactDialog(roster->getContactList(),this,false);
 
         if (selectContactDialog.exec() == QDialog::Accepted)
         {

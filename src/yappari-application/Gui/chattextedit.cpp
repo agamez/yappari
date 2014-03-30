@@ -106,7 +106,7 @@ bool ChatTextEdit::eventFilter(QObject *obj, QEvent *event)
         else if (keyEvent->nativeScanCode() == 36)
         {
             // Return pressed
-            if (Client::enterIsSend)
+            if (Client::enterIsSend && !(keyEvent->modifiers() & Qt::ShiftModifier))
             {
                 isComposing = false;
                 emit returnPressed();

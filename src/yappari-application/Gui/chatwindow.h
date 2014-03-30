@@ -57,6 +57,7 @@ public:
     ~ChatWindow();
 
     void messageReceived(FMessage& message);
+    void sendTextMessage(FMessage &message);
     void setContact(Contact *contact);
     const Contact& getContact() const;
     void messageStatusUpdate(FMessage& message);
@@ -82,7 +83,7 @@ public slots:
     void mediaDownloadRequested(FMessage msg);
     void mediaDownloadError(MediaDownload *mediaDownload, FMessage msg, int errorCode);
     void sslErrorHandler(MediaUpload *mediaUpload);
-    void httpErrorHandler(MediaUpload *mediaUpload);
+    void httpErrorHandler(MediaUpload *mediaUpload, QString error);
     void deleteAllMessages();
     void mute();
     void unmute();
@@ -98,6 +99,7 @@ public slots:
     void finishedRecording(QString fileName, int lengthInSeconds);
     void updateRecordingTime(int current);
     void sendVoiceNotePlayed(FMessage message);
+    void forwardMessageRequested(FMessage message);
 
 signals:
     void logMessage(FMessage message);
@@ -114,6 +116,7 @@ signals:
     void blockOrUnblockContact(QString jid, bool blocked);
     void voiceNotePlayed(FMessage message);
     void updateLastDir(int waType, QString dir);
+    void forwardMessage(FMessage message);
 
 private:
     bool isPeerComposing;

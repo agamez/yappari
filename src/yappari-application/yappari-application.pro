@@ -144,7 +144,8 @@ SOURCES += main.cpp \
     Multimedia/audiorecorder.cpp \
     libjpeg/jpeg-marker.c \
     libjpeg/jpeg-data.c \
-    libjpeg/exif-i18n.c
+    libjpeg/exif-i18n.c \
+    Dbus/dbusnokiaossobrowserif.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -259,7 +260,8 @@ HEADERS += \
     qt-json/json.h \
     libjpeg/jpeg-marker.h \
     libjpeg/jpeg-data.h \
-    libjpeg/exif-i18n.h
+    libjpeg/exif-i18n.h \
+    Dbus/dbusnokiaossobrowserif.h
 
 FORMS += \
     Gui/ui/mainwindow.ui \

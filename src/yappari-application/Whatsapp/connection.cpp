@@ -1414,18 +1414,16 @@ void Connection::sendSetPhoto(QString jid, QByteArray imageBytes, QByteArray thu
     QString id = makeId("set_photo_");
 
     ProtocolTreeNode pictureNode("picture");
-    attrs.insert("xmlns", "w:profile:picture");
     // attrs.insert("type", "image");
-    pictureNode.setData(imageBytes);
     pictureNode.setAttributes(attrs);
+    pictureNode.setData(imageBytes);
 
-    /*
     attrs.clear();
     ProtocolTreeNode thumbNode("picture");
     attrs.insert("type","preview");
+    attrs.insert("xmlns", "w:profile:picture");
     thumbNode.setData(thumbBytes);
     thumbNode.setAttributes(attrs);
-    */
 
     ProtocolTreeNode iqNode("iq");
 
@@ -1435,7 +1433,7 @@ void Connection::sendSetPhoto(QString jid, QByteArray imageBytes, QByteArray thu
     attrs.insert("to",jid);
     iqNode.setAttributes(attrs);
     iqNode.addChild(pictureNode);
-    // iqNode.addChild(thumbNode);
+    iqNode.addChild(thumbNode);
 
     int bytes = out->write(iqNode);
     counters->increaseCounter(DataCounters::ProfileBytes, 0, bytes);

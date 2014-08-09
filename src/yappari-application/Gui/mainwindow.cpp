@@ -590,9 +590,18 @@ void MainWindow::notify(const Contact& contact, FMessage& message)
 
         if (!item->muted)
         {
-            name = (Client::showNicknames || !contact.fromAddressBook)
-                    ? (contact.alias.isEmpty() ? contact.phone : contact.alias)
-                    : contact.name;
+            // Shows Group name in notifications
+            if (!message.remote_resource.isEmpty())
+            {
+                Group& group = roster->getGroup(message.key.remote_jid);
+                name = group.name;
+            }
+            else
+            {
+                name = (Client::showNicknames || !contact.fromAddressBook)
+                        ? (contact.alias.isEmpty() ? contact.phone : contact.alias)
+                        : contact.name;
+            }
 
             emit sendNotification(name,message);
         }

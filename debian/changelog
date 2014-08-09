@@ -1,3 +1,17 @@
+yappari (1.1.47) stable; urgency=low
+
+  * Fixed bug: Thumbnails now are mandatory when settings a new profile 
+    picture.
+  * Group notifications now indicate the name of the group instead of the
+    participant.
+  * Fixed emojis fom 0xee9180 to 0xee9918f.
+  * Added new emojis.
+  * Buttons to pay subscriptions for 3 and 5 years are now disabled.
+  * Added qApp()->processEvents() in fillArray() to avoid high CPU usage
+    and GUI freezes.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Sat,  9 Aug 2014 11:12:59 -0430
+
 yappari (1.1.46) stable; urgency=low
 
   * Fixed maximum size of media sharing. It is now 16 MB.

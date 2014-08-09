@@ -1,6 +1,12 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.46:</b><br>
+<b>New in this version 1.1.47:</b><br>
+<li>&bull; Setting a profile picture works again. It wasn't working because WhatsApp now wants a thumbnail picture along with the full sized profile picture.</li>
+<li>&bull; Fixed missing emojis.</li>
+<li>&bull; Group notifications now indicate the group name instead of the participant name.</li>
+<li>&bull; Some modifications were made to avoid GUI freezes and high CPU usage.  You would only notice the difference if you have a bad connection.</li>
+<br>
+<b>New in 1.1.46:</b><br>
 <li>&bull; Fixed bug: Download button wasn't being re-enabled after a socket error occurred.</li>
 <li>&bull; Bumped maximum file of media sharing to 16 MB.</li>
 <li>&bull; You can now press Shift-Enter to add new lines.</li>

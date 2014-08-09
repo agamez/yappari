@@ -62,6 +62,10 @@ AccountInfoWindow::AccountInfoWindow(QWidget *parent) :
     connect(ui->pay3Button,SIGNAL(clicked()),this,SLOT(pay3Years()));
     connect(ui->pay5Button,SIGNAL(clicked()),this,SLOT(pay5Years()));
 
+    // These two don't work
+    ui->pay3Button->hide();
+    ui->pay5Button->hide();
+
 }
 
 AccountInfoWindow::~AccountInfoWindow()

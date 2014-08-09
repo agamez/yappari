@@ -249,7 +249,15 @@ void SelectEmojiWidget::setupEmojiTab(int index)
                   << "9f-8fae" << "84-51" << "84-35" << "9f-97bf" << "9f-8eaa"
                   << "9f-8ead" << "9f-938d" << "9f-9aa9" << "94-11" << "94-20" << "94-14"
                   << "94-19" << "94-12" << "94-13" << "94-17" << "94-15" << "94-18"
-                  << "94-16";
+                  << "94-16" << "ec-a6aa" << "ec-a6b7" << "ec-a6b9" << "ec-a6ba" << "ec-a7a6"
+                  << "ec-a7aa" << "ec-a7b7" << "ec-a8a6" << "ec-a8ad" << "ec-a8ae" << "ec-a8b1"
+                  << "ec-a8b2" << "ec-a8b4" << "ec-a8b7" << "ec-a9bf" << "ec-aaa8" << "ec-aaac"
+                  << "ec-acad" << "ec-acb7" << "ec-adb0" << "ec-adb3" << "ec-adb7" << "ec-aea9"
+                  << "ec-aeb1" << "ec-aeb3" << "ec-aeb7" << "ec-afb6" << "ec-b0bf" << "ec-b1a7"
+                  << "ec-b2bd" << "ec-b2be" << "ec-b3ac" << "ec-b3b1" << "ec-b5aa" << "ec-b5b9"
+                  << "ec-b8a6" << "ec-b8ac" << "ec-b8be" << "ec-b9ad" << "ec-b9b7" << "ec-b9bc"
+                  << "ec-baa6" << "ec-babe" << "ec-bbaa" << "ec-bdaa" << "ec-bfa6";
+;
 
     }
     else if (index == 5)

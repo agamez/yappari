@@ -133,6 +133,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="pay3Button">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
          <string>3 Years US$2.67</string>
         </property>
@@ -140,6 +143,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="pay5Button">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
          <string>5 Years US$3.71</string>
         </property>

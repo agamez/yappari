@@ -1,10 +1,16 @@
+yappari (1.1.48) stable; urgency=low
+
+  * Fixed most of the Windows Phone/iPhone emojis.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Sat, 23 Aug 2014 12:17:03 -0430
+
 yappari (1.1.47) stable; urgency=low
 
-  * Fixed bug: Thumbnails now are mandatory when settings a new profile 
+  * Fixed bug: Thumbnails now are mandatory when setting a new profile 
     picture.
   * Group notifications now indicate the name of the group instead of the
     participant.
-  * Fixed emojis fom 0xee9180 to 0xee9918f.
+  * Fixed emojis fom 0xee9180 to 0xee918f.
   * Added new emojis.
   * Buttons to pay subscriptions for 3 and 5 years are now disabled.
   * Added qApp()->processEvents() in fillArray() to avoid high CPU usage

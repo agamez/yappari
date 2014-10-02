@@ -399,7 +399,7 @@ void ChatWindow::selectMultimediaMessage()
 
             if (file.size() > MAX_FILE_SIZE)
             {
-                QMaemo5InformationBox::information(this,"You can't send files bigger than 12 MB",
+                QMaemo5InformationBox::information(this,"You can't send files bigger than 16 MB",
                                                    QMaemo5InformationBox::NoTimeout);
             }
             else

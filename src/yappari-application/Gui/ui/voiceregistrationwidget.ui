@@ -27,7 +27,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>You can try the voice registration method.  Press the 'Call Me' button and enter the 3-digit code that you hear.</string>
+      <string>You can try the voice registration method.  Press the 'Call Me' button and enter the 6-digit code that you hear.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

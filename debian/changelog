@@ -1,3 +1,10 @@
+yappari (1.1.50) stable; urgency=low
+
+  * Fixed a bug in BinTreeNodereader::getOneTopLevelStream where only 16 bits
+    were considered in bufferSize instead of 24.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Thu,  2 Oct 2014 11:26:41 -0430
+
 yappari (1.1.49) stable; urgency=low
 
   * Fixed some bug where numbers disappeared.

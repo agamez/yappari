@@ -1,3 +1,9 @@
+yappari (1.1.51) stable; urgency=low
+
+  * Fixed registration once again and bumped version number.
+
+ -- Naikel Aparicio <naikel@gmail.com>  Sun, 16 Nov 2014 09:55:54 -0430
+
 yappari (1.1.50) stable; urgency=low
 
   * Fixed a bug in BinTreeNodereader::getOneTopLevelStream where only 16 bits

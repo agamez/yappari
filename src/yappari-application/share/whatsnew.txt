@@ -1,6 +1,9 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.50:</b><br>
+<b>New in this version 1.1.51:</b><br>
+<li>&bull; Fixed registration.</li>
+<br>
+<b>New in 1.1.50:</b><br>
 <li>&bull; Fixed some protocol bugs.</li>
 <li>&bull; Fixed the rest of Windows Phone/iPhone emojis that weren't displayed correctly.</li>
 <br>

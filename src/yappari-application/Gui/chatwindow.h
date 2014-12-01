@@ -70,6 +70,7 @@ public:
 
 public slots:
     void readMoreLogLines();
+    void setMessagesAsRead();
     void textChanged();
     void myselfComposing(int waType = -1);
     void myselfPaused();

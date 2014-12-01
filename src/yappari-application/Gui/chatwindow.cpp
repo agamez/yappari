@@ -163,6 +163,9 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     connect(ui->scrollArea,SIGNAL(topReached()),
             this,SLOT(readMoreLogLines()));
 
+    connect(ui->scrollArea,SIGNAL(bottomReached()),
+            this,SLOT(setMessagesAsRead()));
+
     setBlock(contact->blocked);
 
     readMoreLogLines();
@@ -196,6 +199,11 @@ void ChatWindow::readMoreLogLines()
     QList<FMessage> list = logger.lastMessages();
 
     ui->scrollArea->loadLogMessages(list);
+}
+
+void ChatWindow::setMessagesAsRead()
+{
+    QList<FMessage> list = logger.lastMessages();
 }
 
 void ChatWindow::messageReceived(FMessage& message)

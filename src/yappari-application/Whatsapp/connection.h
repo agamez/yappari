@@ -152,6 +152,8 @@ public slots:
     // Sends a FMessage
     void sendMessage(FMessage& message);
 
+    // Send a message read acknowledgement
+    void sendMessageRead(FMessage& message);
 
     /** ***********************************************************************
      ** User handling

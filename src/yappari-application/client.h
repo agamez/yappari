@@ -324,6 +324,7 @@ public slots:
     void blockOrUnblockContact(QString jid, bool blocked);
     void privacyListReceived(QStringList list);
     void sendVoiceNotePlayed(FMessage message);
+    void sendMessageRead(FMessage message);
     void updateLastDir(int waType, QString dir);
 
 

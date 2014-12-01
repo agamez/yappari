@@ -1502,6 +1502,34 @@ void Connection::sendMessageReceived(FMessage &message)
 }
 
 /**
+    Send a message read acknowledgement.
+
+    @param message      FMessage object containing the message to be acknowledged.
+*/
+void Connection::sendMessageRead(FMessage& message)
+{
+    if(message.status != FMessage::ReceivedByTarget) {
+        AttributeList attrs;
+
+        ProtocolTreeNode messageNode("receipt");
+        attrs.insert("to",message.key.remote_jid);
+        attrs.insert("id",message.key.id);
+        attrs.insert("type","read");
+        if (!message.remote_resource.isEmpty()) {
+            attrs.insert("participant", message.remote_resource);
+        }
+
+        messageNode.setAttributes(attrs);
+
+        int bytes = out->write(messageNode);
+        counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+    } else {
+        Utilities::logData("Message already marked as read. Don't send anything new");
+    }
+    message.status = FMessage::ReceivedByTarget;
+}
+
+/**
     Send a notification received acknowledgement.
 
     Notification nodes usually contain profile pictures change notifications.

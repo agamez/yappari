@@ -297,6 +297,9 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(mainWin,SIGNAL(voiceNotePlayed(FMessage)),
             this, SLOT(sendVoiceNotePlayed(FMessage)));
 
+    connect(mainWin,SIGNAL(messageRead(FMessage)),
+            this, SLOT(sendMessageRead(FMessage)));
+
     connect(mainWin,SIGNAL(updateLastDir(int,QString)),
             this, SLOT(updateLastDir(int,QString)));
 
@@ -1697,6 +1700,12 @@ void Client::sendVoiceNotePlayed(FMessage message)
 {
     if (connectionStatus == LoggedIn)
         connection->sendVoiceNotePlayed(message);
+}
+
+void Client::sendMessageRead(FMessage message)
+{
+    if (connectionStatus == LoggedIn)
+        connection->sendMessageRead(message);
 }
 
 void Client::updateLastDir(int waType, QString dir)

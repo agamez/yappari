@@ -307,6 +307,9 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
         connect(chat,SIGNAL(voiceNotePlayed(FMessage)),
                 this,SLOT(sendVoiceNotePlayed(FMessage)));
 
+        connect(chat,SIGNAL(messageRead(FMessage)),
+                this,SLOT(sendMessageRead(FMessage)));
+
         connect(chat,SIGNAL(updateLastDir(int,QString)),
                 this,SLOT(requestUpdateLastDir(int,QString)));
 
@@ -1024,6 +1027,11 @@ void MainWindow::requestContactStatus(QString jid)
 void MainWindow::sendVoiceNotePlayed(FMessage message)
 {
     emit voiceNotePlayed(message);
+}
+
+void MainWindow::sendMessageRead(FMessage message)
+{
+    emit messageRead(message);
 }
 
 void MainWindow::photoReceived(Contact &c, QImage photo, QString photoId)

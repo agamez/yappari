@@ -52,6 +52,7 @@ public:
 
 signals:
     void topReached();
+    void bottomReached();
     void updateTimestamps();
     void mediaUpload(FMessage message);
     void mediaDownload(FMessage message);

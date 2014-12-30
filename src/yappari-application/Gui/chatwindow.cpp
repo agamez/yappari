@@ -203,12 +203,8 @@ void ChatWindow::readMoreLogLines()
 
 void ChatWindow::setMessagesAsRead()
 {
-    QList<FMessage> list = logger.lastMessages();
-
-    for(int i=0; i<list.size(); i++) {
-        emit messageRead(list.at(i));
-        Utilities::logData("Message should be marked as read");
-    }
+    emit messageRead(logger.lastMessage());
+    Utilities::logData("Last message should be marked as read");
 }
 
 void ChatWindow::messageReceived(FMessage& message)

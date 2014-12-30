@@ -224,6 +224,7 @@
 #define GRAYCHECK       "<img src=\"/usr/share/yappari/icons/17x13/yappari-graycheck.png\" />"
 #define CHECK           "<img src=\"/usr/share/yappari/icons/17x13/yappari-greencheck.png\" />"
 #define DOUBLECHECK     "<img src=\"/usr/share/yappari/icons/17x13/yappari-greendoublecheck.png\" />"
+#define DOUBLEBLUECHECK "<img src=\"/usr/share/yappari/icons/17x13/yappari-bluedoublecheck.png\" />"
 #define UPLOADING       "<img src=\"/usr/share/yappari/icons/17x13/yappari-uploading.png\" />"
 
 // Extensions

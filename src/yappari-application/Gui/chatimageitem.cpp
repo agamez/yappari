@@ -226,6 +226,8 @@ void ChatImageItem::setTimestamp(FMessage message)
         }
         else if (message.status == FMessage::ReceivedByTarget)
             html.append(DOUBLECHECK);
+        else if (message.status == FMessage::ReadByTarget)
+            html.append(DOUBLEBLUECHECK);
         else if (message.status == FMessage::Played)
         {
             html.append(VOICEPLAYED);

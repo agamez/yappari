@@ -46,6 +46,7 @@ public:
         SentByClient,
         ReceivedByServer,
         ReceivedByTarget,
+        ReadByTarget,
         NeverSent,
         ServerBounce,
         Played

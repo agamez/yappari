@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<service plugin="libyappari-share-via-service-plugin.so" provider="Yappari">
+
+    <accounts plugInSetup="0" plugInEdit="0">
+      <signup>http://www.whatsapp.com</signup> 
+    </accounts> 
+    
+    <ui>
+        <name>Yappari</name>
+        <options>
+            <option id="privacy" type="enumeration" default="private">
+                <caption domain="osso-sharing-ui" key="share_bd_options_privacy"/>
+                <value id="private" domain="osso-sharing-ui" key="share_fi_options_privacy_private"/>
+                <value id="public" domain="osso-sharing-ui" key="share_fi_options_privacy_public"/>
+            </option>
+        </options>
+    </ui> 
+</service>

@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
-SUBDIRS = yappari-application yappari-status-menu-plugin
+SUBDIRS = yappari-application yappari-status-menu-plugin yappari-share-via-service-plugin
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \

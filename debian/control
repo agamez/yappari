@@ -2,13 +2,13 @@ Source: yappari
 Section: user/network
 Priority: optional
 Maintainer: Alvaro G. M. <alvaro.gamez@hazent.com>
-Build-Depends: debhelper (>= 5), libqt4-dev, libqt4-phonon, libqtm-dev, mce-dev, hildon-input-method-framework-dev, libx11-dev, libgtk2.0-dev, libosso-dev, libosso-abook-dev, libebook-dev, libhildondesktop1-dev, libgstreamer0.10-dev, libpulse-dev, libexif-dev
+Build-Depends: debhelper (>= 5), libqt4-dev, libqt4-phonon, libqtm-dev, mce-dev, hildon-input-method-framework-dev, libx11-dev, libgtk2.0-dev, libosso-dev, libosso-abook-dev, libebook-dev, libhildondesktop1-dev, libgstreamer0.10-dev, libpulse-dev, libexif-dev, libsharing-plugin-dev
 Standards-Version: 3.7.3
 Homepage: http://talk.maemo.org/showthread.php?t=84605
 
 Package: yappari
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, gstreamer0.10-plugins-base, gstreamer0.10-nokia-speech, libqt4-phonon
+Depends: ${shlibs:Depends}, ${misc:Depends}, gstreamer0.10-plugins-base, gstreamer0.10-nokia-speech, libqt4-phonon, sharing-manager, libsharing0
 Description: WhatsApp client written in Qt for the Nokia N900
  Yappari is a WhatsApp client for the Nokia N900.
  .

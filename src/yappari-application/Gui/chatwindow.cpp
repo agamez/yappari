@@ -427,8 +427,9 @@ void ChatWindow::selectMultimediaMessage()
                         caption = QInputDialog::getText(this, "File caption?", "File caption?", QLineEdit::Normal, "", &caption_ok);
                     }
 
-                    Utilities::logData("Caption: " + caption);
-                    sendMultimediaMessage(fileName, waType, false, caption);
+                    QString short_caption = caption.left(160);
+                    Utilities::logData("Caption: " + caption + "shorted to " + short_caption);
+                    sendMultimediaMessage(fileName, waType, false, short_caption);
                 }
             }
         }

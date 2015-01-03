@@ -32,6 +32,7 @@
 #include <QListWidgetItem>
 #include <QTextBrowser>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QDir>
 #include <QDateTime>
@@ -355,6 +356,7 @@ void ChatWindow::selectMultimediaMessage()
 {
     // Select type of media to send
     MediaSelectDialog dialog(this);
+    bool supportsCaption;
 
     if (dialog.exec() == QDialog::Accepted)
     {
@@ -370,16 +372,19 @@ void ChatWindow::selectMultimediaMessage()
             case FMessage::Video:
                 fileExtensions = EXTENSIONS_VIDEO;
                 mediaFolder = Client::lastVideoDir;
+                supportsCaption = true;
                 break;
 
             case FMessage::Audio:
                 fileExtensions = EXTENSIONS_AUDIO;
                 mediaFolder = Client::lastAudioDir;
+                supportsCaption = false;
                 break;
 
             case FMessage::Image:
                 fileExtensions = EXTENSIONS_IMAGE;
                 mediaFolder = Client::lastImageDir;
+                supportsCaption = true;
                 break;
 
             default:
@@ -416,14 +421,21 @@ void ChatWindow::selectMultimediaMessage()
                 {
                     Utilities::logData("File selected: " + fileName);
 
-                    sendMultimediaMessage(fileName, waType, false);
+                    QString caption;
+                    bool caption_ok;
+                    if(supportsCaption) {
+                        caption = QInputDialog::getText(this, "File caption?", "File caption?", QLineEdit::Normal, "", &caption_ok);
+                    }
+
+                    Utilities::logData("Caption: " + caption);
+                    sendMultimediaMessage(fileName, waType, false, caption);
                 }
             }
         }
     }
 }
 
-void ChatWindow::sendMultimediaMessage(QString fileName, int waType, bool live)
+void ChatWindow::sendMultimediaMessage(QString fileName, int waType, bool live, QString caption)
 {
     QFile file(fileName);
 
@@ -436,6 +448,7 @@ void ChatWindow::sendMultimediaMessage(QString fileName, int waType, bool live)
     msg.media_wa_type = waType;
     msg.local_file_uri = fileName;
     msg.live = live;
+    msg.media_caption = caption;
 
     // We still don't know the duration in seconds
     msg.media_duration_seconds = 0;
@@ -857,7 +870,7 @@ void ChatWindow::finishedRecording(QString fileName, int lengthInSeconds)
 
 #ifndef Q_WS_SCRATCHBOX
         // Send media
-        sendMultimediaMessage(fileName, FMessage::Audio, true);
+        sendMultimediaMessage(fileName, FMessage::Audio, true, "");
 #endif
     }
 }

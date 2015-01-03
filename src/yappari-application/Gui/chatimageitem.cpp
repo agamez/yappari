@@ -78,6 +78,11 @@ ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
 
     setNickname(message);
     setTimestamp(message);
+    if(message.media_caption.length()>0) {
+        ui->imageCaption->setText(message.media_caption);
+    } else {
+        ui->imageCaption->hide();
+    }
 }
 
 FMessage ChatImageItem::getMessage()

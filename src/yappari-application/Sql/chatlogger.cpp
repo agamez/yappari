@@ -61,6 +61,7 @@
 #define LOG_LIVE                    16
 #define LOG_LATITUDE                17
 #define LOG_LONGITUDE               18
+#define LOG_MEDIA_CAPTION           19
 
 ChatLogger::ChatLogger(QObject *parent):
     QObject(parent)
@@ -115,7 +116,8 @@ bool ChatLogger::init(QString jid)
                    "local_file_uri varchar(512),"
                    "live boolean,"
                    "latitude real,"
-                   "longitude real"
+                   "longitude real,"
+                   "media_caption varchar(256)"
                    ")");
 
         query.exec("create table settings ("
@@ -214,12 +216,12 @@ void ChatLogger::logMessage(FMessage message)
                   "id, type, data, thumb_image, status, "
                   "media_url, media_mime_type, media_wa_type, media_size, "
                   "media_name, media_duration_seconds, local_file_uri,"
-                  "live, latitude, longitude) "
+                  "live, latitude, longitude, media_caption) "
                   "values (:name, :from_me, :timestamp, :id, "
                   ":type, :data, :thumb_image, :status, "
                   ":media_url, :media_mime_type, :media_wa_type, :media_size, "
                   ":media_name, :media_duration_seconds, :local_file_uri,"
-                  ":live, :latitude, :longitude"
+                  ":live, :latitude, :longitude, :media_caption"
                   ")");
 
     query.bindValue(":name",message.notify_name);
@@ -247,7 +249,7 @@ void ChatLogger::logMessage(FMessage message)
     query.bindValue(":live", message.live);
     query.bindValue(":latitude", message.latitude);
     query.bindValue(":longitude", message.longitude);
-
+    query.bindValue(":media_caption", message.media_caption);	
     query.exec();
 
     Utilities::logData("logMessage(): " + query.lastError().text());
@@ -280,6 +282,7 @@ FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
     msg.live = query.value(LOG_LIVE).toBool();
     msg.latitude = query.value(LOG_LATITUDE).toDouble();
     msg.longitude = query.value(LOG_LONGITUDE).toDouble();
+    msg.media_caption = query.value(LOG_MEDIA_CAPTION).toString();
 
 
     if (msg.type == FMessage::MediaMessage)

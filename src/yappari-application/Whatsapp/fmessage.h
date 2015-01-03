@@ -109,6 +109,7 @@ public:
     QString media_name;
     qint64 media_size;
     QString media_url;
+    QString media_caption;
     int media_wa_type;
 
     QString local_file_uri;

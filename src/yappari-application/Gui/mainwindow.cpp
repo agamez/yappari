@@ -1197,7 +1197,7 @@ void MainWindow::forwardMessage(FMessage message)
                     message.media_wa_type == FMessage::Image ||
                     message.media_wa_type == FMessage::Video ||
                     message.media_wa_type == FMessage::Voice)
-                    chat->sendMultimediaMessage(message.local_file_uri, message.media_wa_type, message.live);
+                    chat->sendMultimediaMessage(message.local_file_uri, message.media_wa_type, message.live, message.media_caption);
                 break;
 
             default:

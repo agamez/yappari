@@ -117,7 +117,7 @@ bool ChatLogger::init(QString jid)
                    "live boolean,"
                    "latitude real,"
                    "longitude real,"
-                   "media_caption varchar(256)"
+                   "media_caption varchar(160)"
                    ")");
 
         query.exec("create table settings ("
@@ -186,7 +186,7 @@ bool ChatLogger::init(QString jid)
                 Utilities::logData("Upgrading log " + jid + " to version " +
                                    QString::number(LOG_VERSION));
 
-                query.prepare("alter table log add column media_caption varchar(256)");
+                query.prepare("alter table log add column media_caption varchar(160)");
                 query.exec();
 
                 version = LOG_VERSION;

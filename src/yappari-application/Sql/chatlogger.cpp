@@ -37,7 +37,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define MAX_MESSAGES               7
-#define LOG_VERSION                3
+#define LOG_VERSION                4
 #define LOG_EXTENSION              ".dblog"
 
 // Column definitions
@@ -152,6 +152,9 @@ bool ChatLogger::init(QString jid)
                 query.exec();
 
                 version = 2;
+                query.prepare("update settings set version="+
+                              QString::number(version));
+                query.exec();
             }
 
             if (version == 2)
@@ -168,11 +171,26 @@ bool ChatLogger::init(QString jid)
                 query.prepare("alter table log add column longitude real");
                 query.exec();
 
+                version = 3;
                 query.prepare("update settings set version="+
-                              QString::number(LOG_VERSION));
+                              QString::number(version));
+                query.exec();
+            }
+
+            if (version == 3)
+            {
+                // Upgrade it to version 3
+
+                Utilities::logData("Upgrading log " + jid + " to version " +
+                                   QString::number(LOG_VERSION));
+
+                query.prepare("alter table log add column media_caption varchar(256)");
                 query.exec();
 
                 version = LOG_VERSION;
+                query.prepare("update settings set version="+
+                              QString::number(version));
+                query.exec();
             }
         }
 

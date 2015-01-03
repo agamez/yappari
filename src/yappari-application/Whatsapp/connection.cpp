@@ -486,6 +486,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
 
                 message.setMediaWAType(child.getAttributeValue("type"));
                 message.media_url = child.getAttributeValue("url");
+                message.media_caption  = child.getAttributeValue("caption");
 
                 if (message.media_wa_type == FMessage::Location)
                 {
@@ -1041,6 +1042,8 @@ void Connection::sendMessageWithMedia(FMessage& message)
         attrs.insert("file", message.media_name);
         attrs.insert("size", QString::number(message.media_size));
         attrs.insert("url", message.media_url);
+        if(message.media_caption.length()>0)
+            attrs.insert("caption", message.media_caption);
         if (message.live)
             attrs.insert("origin","live");
 

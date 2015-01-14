@@ -1,6 +1,7 @@
 #!/bin/sh
-expr $(cat yappari-build) + 1 >yappari-build
-echo \#define BUILD_NUMBER \"$(cat yappari-build)\" > yappari-application/version.h
+OLD_BUILD_NUMBER=$(sed -rn 's/#define BUILD_NUMBER "([0-9]+)"/\1/gp' yappari-application/version.h)
+NEW_BUILD_NUMBER=$(expr $OLD_BUILD_NUMBER + 1)
+echo \#define BUILD_NUMBER \"$NEW_BUILD_NUMBER\" > yappari-application/version.h
 echo \#define VERSION \"$(head -1 ../debian/changelog | sed "s/.*(\(.*\)).*/\1/")\" >> yappari-application/version.h
 echo \#define FULL_VERSION \"$(head -1 ../debian/changelog | sed "s/.*(\(.*\)).*/\1/") Build \" BUILD_NUMBER >> yappari-application/version.h
 

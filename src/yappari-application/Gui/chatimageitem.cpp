@@ -78,6 +78,11 @@ ChatImageItem::ChatImageItem(FMessage message, QWidget *parent) :
 
     setNickname(message);
     setTimestamp(message);
+    if(message.media_caption.length()>0) {
+        ui->imageCaption->setText(message.media_caption);
+    } else {
+        ui->imageCaption->hide();
+    }
 }
 
 FMessage ChatImageItem::getMessage()
@@ -226,6 +231,8 @@ void ChatImageItem::setTimestamp(FMessage message)
         }
         else if (message.status == FMessage::ReceivedByTarget)
             html.append(DOUBLECHECK);
+        else if (message.status == FMessage::ReadByTarget)
+            html.append(DOUBLEBLUECHECK);
         else if (message.status == FMessage::Played)
         {
             html.append(VOICEPLAYED);

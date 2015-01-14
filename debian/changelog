@@ -1,3 +1,11 @@
+yappari (1.1.52) stable; urgency=low
+
+  * First release made by AGM
+  * Implemented rudimentary double blue tick on sent messages to individuals
+  * Implemented send/receive captions associated to multimedia files.
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Tue, 30 Dec 2014 20:11:54 +0100
+
 yappari (1.1.51) stable; urgency=low
 
   * Fixed registration once again and bumped version number.

@@ -54,24 +54,16 @@ int main(int argc, char *argv[])
     //Initialize GStreamer
     gst_init(&argc, &argv);
 
-    QStringList environment = QProcess::systemEnvironment();
-    QRegExp userreg("^USER=([a-z]+)");
-    userreg.setCaseSensitivity(Qt::CaseInsensitive);
-    for (int i = 0; !root && i < environment.size(); ++i)
+    QString username = qgetenv("USER");
+    if (username == "root")
     {
-        if ((userreg.indexIn(environment.at(i),0)) != -1)
-        {
-            if (userreg.cap(1) == "root")
-            {
-                QMessageBox msg;
+        QMessageBox msg;
 
-                msg.setText("You can't run this application as root.");
-                msg.exec();
+        msg.setText("You can't run this application as root.");
+        msg.exec();
 
-                root = true;
-                retval = -1;
-            }
-        }
+        root = true;
+        retval = -1;
     }
 
     if (!root)

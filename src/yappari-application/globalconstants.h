@@ -224,6 +224,7 @@
 #define GRAYCHECK       "<img src=\"/usr/share/yappari/icons/17x13/yappari-graycheck.png\" />"
 #define CHECK           "<img src=\"/usr/share/yappari/icons/17x13/yappari-greencheck.png\" />"
 #define DOUBLECHECK     "<img src=\"/usr/share/yappari/icons/17x13/yappari-greendoublecheck.png\" />"
+#define DOUBLEBLUECHECK "<img src=\"/usr/share/yappari/icons/17x13/yappari-bluedoublecheck.png\" />"
 #define UPLOADING       "<img src=\"/usr/share/yappari/icons/17x13/yappari-uploading.png\" />"
 
 // Extensions
@@ -243,7 +244,7 @@
 #define VERSION_CHECK_URL   "version.txt"
 #define WHATS_NEW_URL       "changelog.txt"
 #define DONATE_URL          "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NVDVRMP4WTFJU&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
-#define MAGIC_NUMBER        278338619
+#define MAGIC_NUMBER        278338621
 
 // Codecs
 

@@ -75,7 +75,7 @@ public slots:
     void myselfPaused();
     void sendButtonClicked();
     void selectMultimediaMessage();
-    void sendMultimediaMessage(QString fileName, int waType, bool live);
+    void sendMultimediaMessage(QString fileName, int waType, bool live, QString caption);
     void mediaUploadAccepted(FMessage msg);
     void mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg);
     void mediaUploadFinished(MediaUpload *mediaUpload, FMessage msg);

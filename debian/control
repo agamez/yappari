@@ -1,7 +1,7 @@
 Source: yappari
 Section: user/network
 Priority: optional
-Maintainer: Scorpius <naikel@gmail.com>
+Maintainer: Alvaro G. M. <alvaro.gamez@hazent.com>
 Build-Depends: debhelper (>= 5), libqt4-dev, libqtm-dev, mce-dev, hildon-input-method-framework-dev, libx11-dev, libgtk2.0-dev, libosso-dev, libosso-abook-dev, libebook-dev, libhildondesktop1-dev, libgstreamer0.10-dev, libpulse-dev, libexif-dev
 Standards-Version: 3.7.3
 Homepage: http://talk.maemo.org/showthread.php?t=84605

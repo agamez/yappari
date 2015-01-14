@@ -486,6 +486,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
 
                 message.setMediaWAType(child.getAttributeValue("type"));
                 message.media_url = child.getAttributeValue("url");
+                message.media_caption  = child.getAttributeValue("caption");
 
                 if (message.media_wa_type == FMessage::Location)
                 {
@@ -555,13 +556,22 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 {
                     message.status = (receipt_type == "played")
                             ? FMessage::Played
-                            : FMessage::ReceivedByTarget;
+                            /* Whatsapp server sends the same "received" message twice:
+                               once when received by the target and the second one when
+                               it has been read (or at least displayed by the app) */
+                            : (message.status == FMessage::ReceivedByTarget)
+                              ? FMessage::ReadByTarget
+                              : FMessage::ReceivedByTarget;
                     msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
 
                     // Remove it from the store if it's not a voice message
                     // Or if it's a voice message already played
                     if ((message.live && receipt_type == "played") || !message.live)
                         store.remove(k);
+
+                    // But restore it if still waiting for ReadByTarget
+                    if (message.status == FMessage::ReceivedByTarget)
+                        store.put(message);
                 }
                 if (receipt_type == "delivered" || receipt_type == "played" ||
                     receipt_type.isEmpty())
@@ -1032,6 +1042,8 @@ void Connection::sendMessageWithMedia(FMessage& message)
         attrs.insert("file", message.media_name);
         attrs.insert("size", QString::number(message.media_size));
         attrs.insert("url", message.media_url);
+        if(message.media_caption.length()>0)
+            attrs.insert("caption", message.media_caption);
         if (message.live)
             attrs.insert("origin","live");
 

@@ -123,6 +123,7 @@ SOURCES += main.cpp \
     Dbus/dbusnokiaimageviewerif.cpp \
     Dbus/dbusnokiamediaplayerif.cpp \
     Gui/mediaselectdialog.cpp \
+    Gui/mediapreviewdialog.cpp \
     Gui/accountinfowindow.cpp \
     Whatsapp/util/datacounters.cpp \
     Gui/networkusagewindow.cpp \
@@ -238,6 +239,7 @@ HEADERS += \
     Dbus/dbusnokiaimageviewerif.h \
     Dbus/dbusnokiamediaplayerif.h \
     Gui/mediaselectdialog.h \
+    Gui/mediapreviewdialog.h \
     Gui/accountinfowindow.h \
     Whatsapp/util/datacounters.h \
     Gui/networkusagewindow.h \
@@ -280,6 +282,7 @@ FORMS += \
     Gui/ui/voiceregistrationwidget.ui \
     Gui/ui/whatsnewwindow.ui \
     Gui/ui/mediaselectdialog.ui \
+    Gui/ui/mediapreviewdialog.ui \
     Gui/ui/accountinfowindow.ui \
     Gui/ui/networkusagewindow.ui \
     Gui/ui/profilewindow.ui \

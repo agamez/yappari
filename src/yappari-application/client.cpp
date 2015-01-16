@@ -228,9 +228,9 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     bool showWhatsNew = false;
 
     // Show Whatsnew window?
-    if (whatsNew != MAGIC_NUMBER)
+    if (whatsNew != BUILD_NUMBER)
     {
-        settings->setValue(SETTINGS_WHATSNEW,MAGIC_NUMBER);
+        settings->setValue(SETTINGS_WHATSNEW,BUILD_NUMBER);
         showWhatsNew = true;
     }
 

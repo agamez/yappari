@@ -50,6 +50,7 @@
 #include "conversationdelegate.h"
 #include "mutedialog.h"
 #include "mediaselectdialog.h"
+#include "mediapreviewdialog.h"
 #include "contactinfowindow.h"
 #include "globalconstants.h"
 
@@ -409,28 +410,31 @@ void ChatWindow::selectMultimediaMessage()
             }
             else
             {
-                // Confirmation dialog
-                QMessageBox msg(this);
-                int index = fileName.lastIndexOf('/');
-                index++;
-                msg.setText("Are you sure you want to send the file " +
-                            fileName.mid(index) + "?");
-                msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+                Utilities::logData("File selected: " + fileName);
 
-                if (msg.exec() == QMessageBox::Yes)
-                {
-                    Utilities::logData("File selected: " + fileName);
-
-                    QString caption;
-                    bool caption_ok;
-                    if(supportsCaption) {
-                        caption = QInputDialog::getText(this, "File caption?", "File caption?", QLineEdit::Normal, "", &caption_ok);
+                QString caption;
+                QString short_caption;
+                if(supportsCaption) {
+                    MediaPreviewDialog mediaPreview(this, fileName);
+                    if (mediaPreview.exec() != QDialog::Accepted) {
+                        return;
                     }
-
-                    QString short_caption = caption.left(160);
-                    Utilities::logData("Caption: " + caption + "shorted to " + short_caption);
-                    sendMultimediaMessage(fileName, waType, false, short_caption);
+                    short_caption = mediaPreview.getCaption().left(160);
+                } else {
+                    // Simple confirmation dialog
+                    QMessageBox msg(this);
+                    int index = fileName.lastIndexOf('/');
+                    index++;
+                    msg.setText("Are you sure you want to send the file " +
+                                fileName.mid(index) + "?");
+                    msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+                    if (msg.exec() == QMessageBox::No) {
+                        return;
+                    }
                 }
+
+                Utilities::logData("Caption: " + caption + "shorted to " + short_caption);
+                sendMultimediaMessage(fileName, waType, false, short_caption);
             }
         }
     }

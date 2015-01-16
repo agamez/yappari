@@ -15,7 +15,9 @@ __EOF__
 mkdir build-scratchbox
 tar cpf - . --exclude=build-scratchbox | tar xpf - -C build-scratchbox
 
-echo DEFINES += Q_WS_SCRATCHBOX=1 >> build-scratchbox/yappari-application/yappari-application.pro
+if [ -z $1 ]; then
+	echo DEFINES += Q_WS_SCRATCHBOX=1 >> build-scratchbox/yappari-application/yappari-application.pro
+fi
 cd build-scratchbox
 qmake yappari.pro
 make

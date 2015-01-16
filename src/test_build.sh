@@ -1,9 +1,16 @@
 #!/bin/sh
-OLD_BUILD_NUMBER=$(sed -rn 's/#define BUILD_NUMBER "([0-9]+)"/\1/gp' yappari-application/version.h)
+OLD_BUILD_NUMBER=$(sed -rn 's/#define BUILD_NUMBER ([0-9]+)/\1/gp' yappari-application/version.h)
 NEW_BUILD_NUMBER=$(expr $OLD_BUILD_NUMBER + 1)
-echo \#define BUILD_NUMBER \"$NEW_BUILD_NUMBER\" > yappari-application/version.h
-echo \#define VERSION \"$(head -1 ../debian/changelog | sed "s/.*(\(.*\)).*/\1/")\" >> yappari-application/version.h
-echo \#define FULL_VERSION \"$(head -1 ../debian/changelog | sed "s/.*(\(.*\)).*/\1/") Build \" BUILD_NUMBER >> yappari-application/version.h
+VERSION=$(head -1 ../debian/changelog | sed 's/.*(\(.*\)).*/\1/')
+
+cat > yappari-application/version.h << __EOF__
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+#define BUILD_NUMBER ${NEW_BUILD_NUMBER}
+#define VERSION "${VERSION}"
+#define FULL_VERSION VERSION "${VERSION_NUMBER} Build " STR(BUILD_NUMBER)
+__EOF__
 
 mkdir build-scratchbox
 tar cpf - . --exclude=build-scratchbox | tar xpf - -C build-scratchbox

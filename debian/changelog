@@ -1,5 +1,6 @@
-yappari (1.1.53) stable; urgency=low
+yappari (1.1.5x) stable; urgency=low
 
+  * Preview images before sending them
   * TODO
 
  -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Fri, 16 Jan 2015 18:11:54 +0100

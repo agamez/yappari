@@ -40,7 +40,8 @@ AudioPreviewDialog::AudioPreviewDialog(QWidget *parent, const QString & media_pa
 {
     ui->setupUi(this);
 
-    ui->audio->play(media_path);
+    ui->audio->load(media_path);
+    finished();
 }
 
 AudioPreviewDialog::~AudioPreviewDialog()
@@ -53,3 +54,24 @@ QString AudioPreviewDialog::getCaption()
     return "";
 }
 
+
+void AudioPreviewDialog::playstop()
+{
+    if(ui->audio->isPlaying())
+    {
+        ui->audio->stop();
+        finished();
+    }
+    else
+    {
+        ui->playstop->setIcon(QIcon("/usr/share/yappari/icons/48x48/stop-icon.png"));
+        ui->audio->play();
+    }
+}
+
+void AudioPreviewDialog::finished()
+{
+    ui->playstop->setIcon(QIcon("/usr/share/yappari/icons/48x48/play-icon.png"));
+    ui->audio->stop();
+    ui->audio->seek(0);
+}

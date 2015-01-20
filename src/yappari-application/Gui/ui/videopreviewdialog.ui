@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>525</width>
-    <height>200</height>
+    <height>353</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,6 +43,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="playstop">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -67,5 +74,42 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>playstop</sender>
+   <signal>clicked()</signal>
+   <receiver>VideoPreviewDialog</receiver>
+   <slot>playstop()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>329</x>
+     <y>330</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>516</x>
+     <y>262</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>video</sender>
+   <signal>finished()</signal>
+   <receiver>VideoPreviewDialog</receiver>
+   <slot>finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>208</x>
+     <y>187</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>playstop()</slot>
+  <slot>finished()</slot>
+ </slots>
 </ui>

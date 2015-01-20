@@ -44,6 +44,10 @@ public:
     ~AudioPreviewDialog();
     QString getCaption();
 
+public slots:
+    void playstop();
+    void finished();
+
 private:
     Ui::AudioPreviewDialog *ui;
 };

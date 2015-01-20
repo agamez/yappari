@@ -44,8 +44,13 @@ public:
     ~VideoPreviewDialog();
     QString getCaption();
 
+public slots:
+    void playstop();
+    void finished();
+
 private:
     Ui::VideoPreviewDialog *ui;
+
 };
 
 #endif // VIDEOPREVIEWDIALOG_H

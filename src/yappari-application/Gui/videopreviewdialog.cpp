@@ -40,8 +40,8 @@ VideoPreviewDialog::VideoPreviewDialog(QWidget *parent, const QString & media_pa
 {
     ui->setupUi(this);
 
-    ui->video->show();
-    ui->video->play(media_path);
+    ui->video->load(media_path);
+    finished();
 }
 
 VideoPreviewDialog::~VideoPreviewDialog()
@@ -54,3 +54,23 @@ QString VideoPreviewDialog::getCaption()
     return ui->caption->text();
 }
 
+void VideoPreviewDialog::playstop()
+{
+    if(ui->video->isPlaying())
+    {
+        ui->video->stop();
+        finished();
+    }
+    else
+    {
+        ui->playstop->setIcon(QIcon("/usr/share/yappari/icons/48x48/stop-icon.png"));
+        ui->video->play();
+    }
+}
+
+void VideoPreviewDialog::finished()
+{
+    ui->playstop->setIcon(QIcon("/usr/share/yappari/icons/48x48/play-icon.png"));
+    ui->video->stop();
+    ui->video->seek(0);
+}

@@ -33,7 +33,7 @@
 #
 #-------------------------------------------------
 
-QT          += core gui network sql maemo5
+QT          += core gui network sql maemo5 phonon
 CONFIG      += mobility qtdbus network link_pkgconfig
 MOBILITY     = systeminfo messaging
 PKGCONFIG   += libosso-abook-1.0 libebook-1.2 gtk+-2.0 gstreamer-0.10 libpulse libexif
@@ -123,7 +123,9 @@ SOURCES += main.cpp \
     Dbus/dbusnokiaimageviewerif.cpp \
     Dbus/dbusnokiamediaplayerif.cpp \
     Gui/mediaselectdialog.cpp \
-    Gui/mediapreviewdialog.cpp \
+    Gui/imagepreviewdialog.cpp \
+    Gui/videopreviewdialog.cpp \
+    Gui/audiopreviewdialog.cpp \
     Gui/accountinfowindow.cpp \
     Whatsapp/util/datacounters.cpp \
     Gui/networkusagewindow.cpp \
@@ -239,7 +241,9 @@ HEADERS += \
     Dbus/dbusnokiaimageviewerif.h \
     Dbus/dbusnokiamediaplayerif.h \
     Gui/mediaselectdialog.h \
-    Gui/mediapreviewdialog.h \
+    Gui/imagepreviewdialog.h \
+    Gui/videopreviewdialog.h \
+    Gui/audiopreviewdialog.h \
     Gui/accountinfowindow.h \
     Whatsapp/util/datacounters.h \
     Gui/networkusagewindow.h \
@@ -282,7 +286,9 @@ FORMS += \
     Gui/ui/voiceregistrationwidget.ui \
     Gui/ui/whatsnewwindow.ui \
     Gui/ui/mediaselectdialog.ui \
-    Gui/ui/mediapreviewdialog.ui \
+    Gui/ui/imagepreviewdialog.ui \
+    Gui/ui/videopreviewdialog.ui \
+    Gui/ui/audiopreviewdialog.ui \
     Gui/ui/accountinfowindow.ui \
     Gui/ui/networkusagewindow.ui \
     Gui/ui/profilewindow.ui \

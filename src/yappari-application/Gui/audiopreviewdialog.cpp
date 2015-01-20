@@ -26,26 +26,30 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#ifndef MEDIAPREVIEWDIALOG_H
-#define MEDIAPREVIEWDIALOG_H
+#include "audiopreviewdialog.h"
+#include "ui_audiopreviewdialog.h"
 
-#include <QDialog>
+#include <QImageReader>
+#include <phonon>
+#include <phonon/VideoPlayer>
+#include "Whatsapp/fmessage.h"
 
-namespace Ui {
-    class MediaPreviewDialog;
+AudioPreviewDialog::AudioPreviewDialog(QWidget *parent, const QString & media_path) :
+    QDialog(parent),
+    ui(new Ui::AudioPreviewDialog)
+{
+    ui->setupUi(this);
+
+    ui->audio->play(media_path);
 }
 
-class MediaPreviewDialog : public QDialog
+AudioPreviewDialog::~AudioPreviewDialog()
 {
-    Q_OBJECT
+    delete ui;
+}
 
-public:
-    explicit MediaPreviewDialog(QWidget *parent, const QString & media_path);
-    ~MediaPreviewDialog();
-    QString getCaption();
+QString AudioPreviewDialog::getCaption()
+{
+    return "";
+}
 
-private:
-    Ui::MediaPreviewDialog *ui;
-};
-
-#endif // MEDIAPREVIEWDIALOG_H

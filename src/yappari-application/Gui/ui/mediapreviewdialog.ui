@@ -30,6 +30,9 @@
        <property name="scaledContents">
         <bool>false</bool>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
      <item>

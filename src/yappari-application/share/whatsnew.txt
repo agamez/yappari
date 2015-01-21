@@ -1,8 +1,7 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 1.1.5x:</b><br>
-<li>&bull; Preview images before sending them.</li>
-<li>&bull; TODO</li>
+<b>New in this version 1.1.53:</b><br>
+<li>&bull; Preview images, video and audio before sending them.</li>
 <br>
 <b>New in this version 1.1.52:</b><br>
 <li>&bull; First release by AGM.</li>

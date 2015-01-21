@@ -1,7 +1,6 @@
 yappari (1.1.5x) stable; urgency=low
 
-  * Preview images before sending them
-  * TODO
+  * Preview images, video and audio before sending them
 
  -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Fri, 16 Jan 2015 18:11:54 +0100
 

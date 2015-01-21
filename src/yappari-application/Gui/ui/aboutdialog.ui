@@ -62,14 +62,15 @@
      <item>
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Copyright © 2014 Scorpius</string>
+        <string>Copyright © 2015 Alvaro Gamez
+Copyright © 2014 Scorpius</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>If you have any questions please go to:&lt;br&gt;&lt;a href=&quot;http://talk.maemo.org/showthread.php?t=84605&quot;&gt;TMO Yappari Thread&lt;/a&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you have any questions please go to:&lt;br/&gt;&lt;a href=&quot;http://talk.maemo.org/showthread.php?t=94465&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;TMO Yappari Thread&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>

@@ -1,3 +1,9 @@
+yappari (1.1.53) stable; urgency=low
+
+  * Preview images, video and audio before sending them
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Fri, 16 Jan 2015 18:11:54 +0100
+
 yappari (1.1.52) stable; urgency=low
 
   * First release made by AGM

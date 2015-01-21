@@ -26,26 +26,31 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#ifndef MEDIAPREVIEWDIALOG_H
-#define MEDIAPREVIEWDIALOG_H
+#ifndef VIDEOPREVIEWDIALOG_H
+#define VIDEOPREVIEWDIALOG_H
 
 #include <QDialog>
 
 namespace Ui {
-    class MediaPreviewDialog;
+    class VideoPreviewDialog;
 }
 
-class MediaPreviewDialog : public QDialog
+class VideoPreviewDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit MediaPreviewDialog(QWidget *parent, const QString & media_path);
-    ~MediaPreviewDialog();
+    explicit VideoPreviewDialog(QWidget *parent, const QString & media_path);
+    ~VideoPreviewDialog();
     QString getCaption();
 
+public slots:
+    void playstop();
+    void finished();
+
 private:
-    Ui::MediaPreviewDialog *ui;
+    Ui::VideoPreviewDialog *ui;
+
 };
 
-#endif // MEDIAPREVIEWDIALOG_H
+#endif // VIDEOPREVIEWDIALOG_H

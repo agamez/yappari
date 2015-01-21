@@ -50,7 +50,9 @@
 #include "conversationdelegate.h"
 #include "mutedialog.h"
 #include "mediaselectdialog.h"
-#include "mediapreviewdialog.h"
+#include "imagepreviewdialog.h"
+#include "videopreviewdialog.h"
+#include "audiopreviewdialog.h"
 #include "contactinfowindow.h"
 #include "globalconstants.h"
 
@@ -357,7 +359,6 @@ void ChatWindow::selectMultimediaMessage()
 {
     // Select type of media to send
     MediaSelectDialog dialog(this);
-    bool supportsCaption;
 
     if (dialog.exec() == QDialog::Accepted)
     {
@@ -373,19 +374,16 @@ void ChatWindow::selectMultimediaMessage()
             case FMessage::Video:
                 fileExtensions = EXTENSIONS_VIDEO;
                 mediaFolder = Client::lastVideoDir;
-                supportsCaption = true;
                 break;
 
             case FMessage::Audio:
                 fileExtensions = EXTENSIONS_AUDIO;
                 mediaFolder = Client::lastAudioDir;
-                supportsCaption = false;
                 break;
 
             case FMessage::Image:
                 fileExtensions = EXTENSIONS_IMAGE;
                 mediaFolder = Client::lastImageDir;
-                supportsCaption = true;
                 break;
 
             default:
@@ -412,28 +410,33 @@ void ChatWindow::selectMultimediaMessage()
             {
                 Utilities::logData("File selected: " + fileName);
 
-                QString caption;
                 QString short_caption;
-                if(supportsCaption) {
-                    MediaPreviewDialog mediaPreview(this, fileName);
-                    if (mediaPreview.exec() != QDialog::Accepted) {
+                if(waType==FMessage::Video)
+                {
+                    VideoPreviewDialog preview(this, fileName);
+                    if (preview.exec() != QDialog::Accepted) {
                         return;
                     }
-                    short_caption = mediaPreview.getCaption().left(160);
-                } else {
-                    // Simple confirmation dialog
-                    QMessageBox msg(this);
-                    int index = fileName.lastIndexOf('/');
-                    index++;
-                    msg.setText("Are you sure you want to send the file " +
-                                fileName.mid(index) + "?");
-                    msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-                    if (msg.exec() == QMessageBox::No) {
+                    short_caption = preview.getCaption().left(160);
+                }
+                else if(waType==FMessage::Audio)
+                {
+                    AudioPreviewDialog preview(this, fileName);
+                    if (preview.exec() != QDialog::Accepted) {
                         return;
                     }
+                    short_caption = preview.getCaption().left(160);
+                }
+                else if(waType==FMessage::Image)
+                {
+                    ImagePreviewDialog preview(this, fileName);
+                    if (preview.exec() != QDialog::Accepted) {
+                        return;
+                    }
+                    short_caption = preview.getCaption().left(160);
                 }
 
-                Utilities::logData("Caption: " + caption + "shorted to " + short_caption);
+                Utilities::logData("Caption shortened to " + short_caption);
                 sendMultimediaMessage(fileName, waType, false, short_caption);
             }
         }

@@ -26,33 +26,51 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#include "mediapreviewdialog.h"
-#include "ui_mediapreviewdialog.h"
+#include "videopreviewdialog.h"
+#include "ui_videopreviewdialog.h"
 
 #include <QImageReader>
+#include <phonon>
+#include <phonon/VideoPlayer>
+#include "Whatsapp/fmessage.h"
 
-
-MediaPreviewDialog::MediaPreviewDialog(QWidget *parent, const QString & media_path) :
+VideoPreviewDialog::VideoPreviewDialog(QWidget *parent, const QString & media_path) :
     QDialog(parent),
-    ui(new Ui::MediaPreviewDialog)
+    ui(new Ui::VideoPreviewDialog)
 {
     ui->setupUi(this);
 
-    QImage image;
-    image.load(media_path);
-
-    QPixmap scaledImage = QPixmap::fromImage(image).scaled(400, 400, Qt::KeepAspectRatio);
-
-    ui->img->setPixmap(scaledImage);
+    ui->video->load(media_path);
+    finished();
 }
 
-MediaPreviewDialog::~MediaPreviewDialog()
+VideoPreviewDialog::~VideoPreviewDialog()
 {
     delete ui;
 }
 
-QString MediaPreviewDialog::getCaption()
+QString VideoPreviewDialog::getCaption()
 {
     return ui->caption->text();
 }
 
+void VideoPreviewDialog::playstop()
+{
+    if(ui->video->isPlaying())
+    {
+        ui->video->stop();
+        finished();
+    }
+    else
+    {
+        ui->playstop->setIcon(QIcon("/usr/share/yappari/icons/48x48/stop-icon.png"));
+        ui->video->play();
+    }
+}
+
+void VideoPreviewDialog::finished()
+{
+    ui->playstop->setIcon(QIcon("/usr/share/yappari/icons/48x48/play-icon.png"));
+    ui->video->stop();
+    ui->video->seek(0);
+}

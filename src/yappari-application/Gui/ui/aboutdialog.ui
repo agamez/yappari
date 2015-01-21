@@ -60,16 +60,10 @@
       </layout>
      </item>
      <item>
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Copyright © 2015 Alvaro Gamez</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Copyright © 2014 Scorpius</string>
+        <string>Copyright © 2015 Alvaro Gamez
+Copyright © 2014 Scorpius</string>
        </property>
       </widget>
      </item>

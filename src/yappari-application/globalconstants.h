@@ -47,7 +47,7 @@
 */
 
 
-#define USER_AGENT_VERSION  "2.12.49"
+#define USER_AGENT_VERSION  "2.12.61"
 #define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/gadCEX3.60 Device/Nokia305"
 #define RESOURCE            "S40-"USER_AGENT_VERSION"-443"
 
@@ -71,8 +71,8 @@
 */
 
 
-#define BUILD_KEY   "PdA2DJyKoUrwLw1Bg6EIhzh502dF9noR9uFCllGk"
-#define BUILD_HASH  "1413401074829"
+#define BUILD_KEY   "CwR!WYjX|Fad_d\"Qt%VZ{i{&#!wU*}|A*fUPTx"
+#define BUILD_HASH  "1419900749520"
 
 
 /*

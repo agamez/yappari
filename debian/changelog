@@ -1,3 +1,9 @@
+yappari (1.1.54) stable; urgency=low
+
+  * Fixed media sending dialogs
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Wed, 21 Jan 2015 16:14:54 +0100
+
 yappari (1.1.53) stable; urgency=low
 
   * Preview images, video and audio before sending them

@@ -1494,7 +1494,7 @@ void Client::createGroupChat(QImage photo, QString subject, QStringList particip
 
     group->participants = participants;
 
-    groups.insert(id,group);
+    groups.insert(subject,group);
 
     if (connectionStatus == LoggedIn)
         connection->sendCreateGroupChat(subject,id);
@@ -1506,9 +1506,9 @@ void Client::groupInfoFromList(QString id, QString from, QString author,
 {
     Group *g;
 
-    if (groups.contains(id))
+    if (groups.contains(newSubject))
     {
-        Group *group = groups.value(id);
+        Group *group = groups.value(newSubject);
         QString creationStr = QString::number(group->creationTimestamp);
 
         g = &(roster->getGroup(from, group->author, group->name,
@@ -1521,7 +1521,7 @@ void Client::groupInfoFromList(QString id, QString from, QString author,
                 setPhoto(from,group->photo);
         }
 
-        groups.remove(id);
+        groups.remove(newSubject);
         delete group;
     }
     else

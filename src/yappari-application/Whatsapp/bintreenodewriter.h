@@ -51,6 +51,7 @@ public:
     // Writer methods
     int write(ProtocolTreeNode& node, bool needsFlush = true);
     int streamStart(QString& domain, QString& resource);
+    int streamEnd();
 
     void setOutputKey(KeyStream *outputKey);
     void setCrypto(bool crypto);
@@ -81,6 +82,7 @@ private:
     void writeInt8(quint8 v, QDataStream& out);
     void writeInt16(quint16 v, QDataStream& out);
     void writeInt24(quint32 v, QDataStream& out);
+
 };
 
 #endif // BINTREENODEWRITER_H

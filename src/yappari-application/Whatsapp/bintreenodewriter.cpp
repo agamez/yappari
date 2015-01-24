@@ -26,14 +26,11 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#include <QDateTime>
-
 #include "util/utilities.h"
 #include "attributelistiterator.h"
 #include "protocoltreenodelistiterator.h"
-#include "protocolexception.h"
 #include "bintreenodewriter.h"
-
+#include "protocolexception.h"
 
 BinTreeNodeWriter::BinTreeNodeWriter(QTcpSocket *socket, QStringList& dictionary,
                                      QObject *parent) : QObject(parent)
@@ -54,13 +51,15 @@ BinTreeNodeWriter::BinTreeNodeWriter(QTcpSocket *socket, QStringList& dictionary
 
 int BinTreeNodeWriter::streamStart(QString& domain, QString& resource)
 {
+    qDebug() << "sending streamStart to" << domain << resource;
+
     startBuffer();
     QDataStream out(&writeBuffer,QIODevice::WriteOnly);
 
     writeInt8(0x57, out);
     writeInt8(0x41, out);
     writeInt8(1, out);
-    writeInt8(2, out);
+    writeInt8(4, out);
 
     AttributeList streamOpenAttributes;
     streamOpenAttributes.insert("resource",resource);
@@ -74,6 +73,24 @@ int BinTreeNodeWriter::streamStart(QString& domain, QString& resource)
     int bytes = writeBuffer.size();
 
     flushBuffer(false);
+
+    return bytes;
+}
+
+int BinTreeNodeWriter::streamEnd()
+{
+    writeMutex.lock();
+    startBuffer();
+    QDataStream out(&writeBuffer,QIODevice::WriteOnly);
+
+    writeDummyHeader(out);
+    writeListStart(1, out);
+    writeInt8(2, out);
+
+    int bytes = writeBuffer.size();
+
+    flushBuffer(true);
+    writeMutex.unlock();
 
     return bytes;
 }
@@ -97,17 +114,19 @@ void BinTreeNodeWriter::startBuffer()
 void BinTreeNodeWriter::processBuffer()
 {
     int num = 0;
+    //qDebug() << ">> " + QString(writeBuffer.toHex());
 
     if (crypto)
     {
         qint64 num2 = writeBuffer.size() + 4;
         writeBuffer.resize(num2);
-        num |= 1;
+        num |= 8;
     }
 
     qint64 num3 = writeBuffer.size() - 3 - dataBegin;
-    if (num3 > 0x1000000)
+    if (num3 > 0x1000000) {
         throw new ProtocolException("Buffer too large: " + QString::number(num3));
+    }
 
     if (crypto)
     {
@@ -127,9 +146,10 @@ void BinTreeNodeWriter::flushBuffer(bool flushNetwork)
     processBuffer();
 
     // Write buffer
-    Utilities::logData(">> " + QString(writeBuffer.toHex()));
-    if ((socket->write(writeBuffer)) == -1)
+    //qDebug() << ">> " + QString(writeBuffer.toHex());
+    if ((socket->write(writeBuffer)) == -1) {
         throw IOException(socket->error());
+    }
 
     if (flushNetwork)
         socket->flush();
@@ -143,9 +163,10 @@ void BinTreeNodeWriter::flushBuffer(bool flushNetwork)
 
 void BinTreeNodeWriter::realWrite8(quint8 c)
 {
-    Utilities::logData(">> " + QString::number(c,16));
-    if ((socket->write((char *)&c,1)) == -1)
+    //qDebug() << ">> " + QString::number(c,16);
+    if ((socket->write((char *)&c,1)) == -1) {
         throw IOException(socket->error());
+    }
 }
 
 void BinTreeNodeWriter::realWrite16(quint16 data)
@@ -167,15 +188,14 @@ int BinTreeNodeWriter::write(ProtocolTreeNode& node, bool needsFlush)
 
     writeDummyHeader(out);
 
-    Utilities::logData(QDateTime::currentDateTime().toString());
     if (node.getTag() == "")
     {
-        Utilities::logData("<noop>");
+        qDebug() << "<noop>";
         writeInt8(0, out);
     }
     else
     {
-        Utilities::logData(node.toString());
+        Utilities::logData("OUTGOING:\n" + node.toString());
         writeInternal(node, out);
     }
 
@@ -249,10 +269,17 @@ void BinTreeNodeWriter::writeString(QString tag, QDataStream& out)
     else {
 
         int key = tokenMap.value(tag,-1);
+        //qDebug() << "token:" << QString::number(key, 16);
 
         if (key != -1)
         {
-            writeToken(key, out);
+            if (key > 235) {
+                writeToken(236, out);
+                writeToken(key - 237, out);
+            }
+            else {
+                writeToken(key, out);
+            }
         }
         else
         {
@@ -283,6 +310,7 @@ void BinTreeNodeWriter::writeJid(QString user, QString server, QDataStream& out)
 
 void BinTreeNodeWriter::writeToken(qint32 intValue, QDataStream& out)
 {
+    //qDebug() << "writeToken:" << QString::number(intValue, 16);
     if (intValue < 245)
         writeInt8(intValue, out);
     else if (intValue <= 500)

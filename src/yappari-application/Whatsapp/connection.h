@@ -363,14 +363,16 @@ private:
     void sendMessageReceived(FMessage& message);
 
     // Send a notification received acknowledgement
-    void sendNotificationReceived(QString to, QString id);
+    void sendNotificationReceived(QString to, QString id, QString from="",
+                                  QString participant="", QString type="",
+                                  ProtocolTreeNode childNode=ProtocolTreeNode());
 
     // Constructs a receipt acknowledge node
     void getReceiptAck(ProtocolTreeNode& node, QString to, QString id,
                        QString receiptType);
 
     // Sends a receipt acknowledging a delivered message notification received
-    void sendDeliveredReceiptAck(QString to, QString id, QString type);
+    void sendDeliveredReceiptAck(QString to, QString id, QString type="", QString participant="");
 
 
     /** ***********************************************************************

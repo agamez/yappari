@@ -30,6 +30,7 @@
 #define BINTREENODEREADER_H
 
 #include <QDataStream>
+#include <QBuffer>
 #include <QStringList>
 #include <QTcpSocket>
 
@@ -51,36 +52,48 @@ public:
     // Reader methods
     int readStreamStart();
     bool nextTree(ProtocolTreeNode& node);
-    QString lastStanza();
 
     void setInputKey(KeyStream *inputKey);
 
 private:
     QStringList dictionary;
     QTcpSocket *socket;
-    QByteArray readBuffer;
     KeyStream *inputKey;
 
+    QByteArray rawBuffer;
+    QByteArray decodedBuffer;
+    QBuffer decodedStream;
+
     // Reader methods
-    int getOneToplevelStream();
-    void decodeStream(qint8 flags, qint32 offset, qint32 length);
-    bool nextTreeInternal(ProtocolTreeNode& node, QDataStream &in);
-    quint32 readListSize(qint32 token, QDataStream& in);
-    void readList(qint32 token,ProtocolTreeNode& node,QDataStream& in);
-    void fillBuffer(quint32 stanzaSize);
-    void fillArray(QByteArray& buffer, quint32 len, QDataStream &in);
-    void fillArray(QByteArray& buffer, quint32 len);
-    bool isListTag(quint32 b);
-    void readAttributes(AttributeList& attribs, quint32 attribCount,
-                        QDataStream& in);
-    bool readString(QByteArray& s, QDataStream& in);
-    bool readString(qint32 token, QByteArray& s, QDataStream& in);
+    int getOneToplevelStreamSize();
+    bool getOneToplevelStream();
+    bool decodeRawStream(qint8 flags, qint32 offset, qint32 length);
+
+    //Raw stream reads
+    bool fillRawBuffer(quint32 stanzaSize);
+    bool fillArrayFromRawStream(QByteArray& buffer, quint32 len);
+
+    qint32 readRawInt16();
+    qint32 readRawInt24();
+
+    //Decoded stream reads
+    bool nextTreeInternal(ProtocolTreeNode& node);
+    bool readListSize(qint32 token, int &size);
+    bool readList(qint32 token,ProtocolTreeNode& node);
+
+    bool fillArray(QByteArray& buffer, quint32 len);
+    bool readAttributes(AttributeList& attribs, int attribCount);
+    bool readString(QByteArray& s);
+    bool readString(qint32 token, QByteArray& s);
     bool getToken(qint32 token, QByteArray &s);
-    quint8 readInt8(QDataStream& in);
-    qint32 readInt16();
-    qint32 readInt24();
-    qint16 readInt16(QDataStream& in);
-    qint32 readInt24(QDataStream& in);
+
+    bool readInt8(quint8 &val);
+    bool readInt16(qint16 &val);
+    bool readInt24(qint32 &val);
+
+    //helper functions
+    bool isListTag(quint32 b);
+
 };
 
 #endif // BINTREENODEREADER_H

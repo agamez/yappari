@@ -40,16 +40,20 @@ class KeyStream : public QObject
     Q_OBJECT
 
 public:
-    explicit KeyStream(QByteArray key, QObject *parent = 0);
+    explicit KeyStream(QByteArray rc4key, QByteArray mackey, QObject *parent = 0);
 
-    void decodeMessage(QByteArray& buffer, int macOffset, int offset, int length);
-    void encodeMessage(QByteArray& buffer, int macOffset, int offset, int length);
+    bool decodeMessage(QByteArray& buffer, int macOffset, int offset, int length);
+    void encodeMessage(QByteArray& buffer, int macOffset, int offset, int length, bool dout = true);
 
-    static QByteArray keyFromPasswordAndNonce(QByteArray& pass, QByteArray& nonce);
+    static QList<QByteArray> keyFromPasswordAndNonce(QByteArray& pass, QByteArray& nonce);
+    static QByteArray deriveBytes(QByteArray& password, QByteArray& salt, int iterations);
 
 private:
+    QByteArray processBuffer(QByteArray buffer, int seq = 0);
+
     RC4 *rc4;
     QtHmacSha1 *mac;
+    int seq;
 
 };
 

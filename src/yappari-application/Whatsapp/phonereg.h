@@ -39,6 +39,11 @@
 #include "wacoderequest.h"
 #include "smslistener.h"
 
+#include <QSystemDeviceInfo>
+
+// QtMobility namespace
+QTM_USE_NAMESPACE
+
 class PhoneReg : public QObject
 {
     Q_OBJECT

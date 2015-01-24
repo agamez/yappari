@@ -30,6 +30,7 @@
 #define WAEXISTSREQUEST_H
 
 #include <QString>
+#include <QSystemInfo>
 
 #include "warequest.h"
 

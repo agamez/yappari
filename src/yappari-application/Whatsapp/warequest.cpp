@@ -41,23 +41,8 @@ WARequest::WARequest(QObject *parent) : HttpRequestv2(parent)
 
 void WARequest::getRequest()
 {
-
-#ifndef TEST
     QString url = URL_REGISTRATION_V2 + method +
                   "?" + QString::fromUtf8(writeBuffer.constData());
-#else
-    QString url;
-
-    if (method == "exist")
-        url = "https://192.168.100.103/v2/exist?";
-    if (method == "code")
-        url = "https://192.168.100.103/v2/code?";
-    if (method == "register")
-        url = "https://192.168.100.103/v2/register?";
-
-    url += QString::fromUtf8(writeBuffer.constData());
-#endif
-
     // Be professional
     if (url.right(1) == "&")
         url = url.left(url.length()-1);

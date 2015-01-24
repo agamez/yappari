@@ -54,22 +54,39 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method,
     // QString imsi = deviceInfo.imsi();
 #endif
 
-    if (mcc.length() < 3)
-        mcc = QString(3-mcc.length(),QChar('0')) + mcc;
+    if (mcc.isEmpty()) {
+        addParam("sim_mcc", "000");
+        addParam("sim_mnc", "000");
+        addParam("mcc", "000");
+        addParam("mnc", "000");
+    }
+    else {
+        mcc = mcc.rightJustified(3, '0');
+        mnc = mnc.rightJustified(3, '0');
+        addParam("sim_mcc", mcc);
+        addParam("sim_mnc", mcc);
 
-    if (mnc.length() < 3)
-        mnc = QString(3-mnc.length(),QChar('0')) + mnc;
+        QString home_mcc = networkInfo.homeMobileCountryCode();
+        if (!home_mcc.isEmpty()) {
+            QString home_mnc = networkInfo.homeMobileNetworkCode();
+
+            home_mcc = home_mcc.rightJustified(3, '0');
+            home_mnc = home_mnc.rightJustified(3, '0');
+            addParam("mcc", home_mcc);
+            addParam("mnc", home_mnc);
+        }
+        else {
+            addParam("mcc", "000");
+            addParam("mnc", "000");
+        }
+    }
+    addParam("network_radio_type", "1");
 
     addParam("cc", cc);
     addParam("in", in);
-    addParam("reason","next-method");
     addParam("method", method);
-    addParam("mcc", mcc);
-    addParam("mnc", mnc);
-    addParam("lg", language.isEmpty() ? "zz" : language);
-    addParam("lc", country.isEmpty() ?  "ZZ" : country);
+    addParam("lg", language.isEmpty() ? "en" : language);
+    addParam("lc", country.isEmpty() ?  "zz" : country);
     addParam("token", Utilities::getToken(in));
-
-    // addParam("imsi", imsi.isEmpty() ? "00000000000000" : imsi);
-    addParam("id",id);
+    addParam("id", id);
 }

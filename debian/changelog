@@ -1,3 +1,9 @@
+yappari (2.0.0) stable; urgency=medium
+
+  * New registration protocol
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Sat, 24 Jan 2015 17:33:12 +0100
+
 yappari (1.1.55) stable; urgency=low
 
   * Upgraded USER_AGENT_VERSION, BUILD_KEY and BUILD_HASH to fake latest S40.

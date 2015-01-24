@@ -1,7 +1,7 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
-<b>New in this version 2.0.0:</b><br>
-<li>&bull; New registration protocol.</li>
+<b>New in this version 2.0.1:</b><br>
+<li>&bull; New protocol version.</li>
 <br>
 <b>New in this version 1.1.55:</b><br>
 <li>&bull; Upgraded USER_AGENT_VERSION, BUILD_KEY and BUILD_HASH to fake latest S40. Maybe this helps after 24 hour ban on 2015/01/23.</li>

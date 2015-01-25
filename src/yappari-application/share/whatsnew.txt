@@ -1,5 +1,8 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
+<b>New in this version 2.0.2:</b><br>
+<li>&bull; Registration fixed.</li>
+<br>
 <b>New in this version 2.0.1:</b><br>
 <li>&bull; New protocol version.</li>
 <br>

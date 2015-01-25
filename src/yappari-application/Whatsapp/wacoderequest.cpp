@@ -45,13 +45,11 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method,
     QString country = "ZZ";
     QString mcc = "734";
     QString mnc = "002";
-    QString imsi = "000000000000000";
 #else
     QString language = systemInfo.currentLanguage();
     QString country = systemInfo.currentCountryCode();
     QString mcc = networkInfo.currentMobileCountryCode();
     QString mnc = networkInfo.currentMobileNetworkCode();
-    // QString imsi = deviceInfo.imsi();
 #endif
 
     if (mcc.length() < 3)
@@ -62,14 +60,15 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method,
 
     addParam("cc", cc);
     addParam("in", in);
-    addParam("reason","next-method");
-    addParam("method", method);
-    addParam("mcc", mcc);
-    addParam("mnc", mnc);
-    addParam("lg", language.isEmpty() ? "zz" : language);
     addParam("lc", country.isEmpty() ?  "ZZ" : country);
+    addParam("lg", language.isEmpty() ? "zz" : language);
+    addParam("mcc", "000");
+    addParam("mnc", "000");
+    addParam("sim_mcc", mcc);
+    addParam("sim_mnc", mnc);
+    addParam("method", method);
+    addParam("network_radio_type", "1");
+    addParam("reason","self-send-jailbroken");
     addParam("token", Utilities::getToken(in));
-
-    // addParam("imsi", imsi.isEmpty() ? "00000000000000" : imsi);
     addParam("id",id);
 }

@@ -35,7 +35,14 @@ WAExistsRequest::WAExistsRequest(QString cc, QString in,
 {
     this->method = "exist";
 
+    QSystemInfo systemInfo(this);
+    QString language = systemInfo.currentLanguage();
+    QString country = systemInfo.currentCountryCode();
+
     addParam("cc", cc);
     addParam("in", in);
     addParam("id",id);
+    addParam("lc", country.isEmpty() ?  "GB" : country);
+    addParam("lg", language.isEmpty() ? "en" : language);
+    addParam("token", Utilities::getToken(in));
 }

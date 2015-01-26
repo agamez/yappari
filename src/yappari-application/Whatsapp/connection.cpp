@@ -475,15 +475,15 @@ bool Connection::read()
 
         if (tag == "chatstate") {
             QString from = node.getAttributeValue("from");
-            //QString participant = node.getAttributeValue("participant");  //not used in yappari yet
+            QString participant = node.getAttributeValue("participant");
             ProtocolTreeNodeListIterator i(node.getChildren());
             while (i.hasNext()) {
                 ProtocolTreeNode child = i.next().value();
                 if (child.getTag() == "composing") {
-                    emit composing(from, child.getAttributeValue("media"));
+                    emit composing(from, participant, child.getAttributeValue("media"));
                 }
                 else if (child.getTag() == "paused") {
-                    emit paused(from);
+                    emit paused(from, participant);
                 }
             }
         }
@@ -1034,21 +1034,6 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                                              : receipt_type));
                 }
             }
-            else if (child.getTag() == "composing")
-            {
-                QString xmlns = child.getAttributeValue("xmlns");
-                if (xmlns == "http://jabber.org/protocol/chatstates")
-                {
-                    msgType = Composing;
-                    media = child.getAttributeValue("media");
-                }
-            }
-            else if (child.getTag() == "paused")
-            {
-                QString xmlns = child.getAttributeValue("xmlns");
-                if (xmlns == "http://jabber.org/protocol/chatstates")
-                    msgType = Paused;
-            }
         }
         switch (msgType)
         {
@@ -1058,14 +1043,6 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
 
             case MessageStatusUpdate:
                 emit messageStatusUpdate(message);
-                break;
-
-            case Composing:
-                emit composing(from, media);
-                break;
-
-            case Paused:
-                emit paused(from);
                 break;
 
             case UserStatusUpdate:

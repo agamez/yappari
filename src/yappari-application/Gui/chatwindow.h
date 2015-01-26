@@ -62,8 +62,8 @@ public:
     const Contact& getContact() const;
     void messageStatusUpdate(FMessage& message);
     void available(bool online, qint64 lastSeen);
-    void composing(QString media);
-    void paused();
+    void composing(QString participant, QString media);
+    void paused(QString participant);
     FMessage lastMessage();
     void setMute(qint64 timestamp);
     void updateTimestamps();

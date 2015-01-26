@@ -262,11 +262,9 @@ bool Connection::read()
 
                     else if (child.getTag() == "query")
                     {
-                        int last = child.getAttributeValue("seconds").toInt();
-                        if (last > 0) {
-                            QDateTime dt = QDateTime::currentDateTime();
-                            int timestamp = dt.toTime_t();
-                            timestamp = timestamp - last;
+                        if (child.getAttributeValue("seconds").toLongLong() > 0) {
+                            qint64 timestamp = QDateTime::currentMSecsSinceEpoch() -
+-                                               (child.getAttributeValue("seconds").toLongLong() * 1000);
                             emit lastOnline(from, timestamp);
                         }
 

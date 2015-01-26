@@ -499,12 +499,11 @@ bool Connection::read()
 
                 QString from = node.getAttributeValue("from");
                 QString id = node.getAttributeValue("id");
-                QString count = node.getAttributeValue("count");
+
                 FMessage message;
                 Key k(from, true, id);
-                message.key = k;
+                message = store.value(k);
                 message.status = FMessage::ReceivedByServer;
-                message.setData(count);
 
                 msgType = MessageStatusUpdate;
 

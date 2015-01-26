@@ -329,7 +329,7 @@ void ChatWindow::composing(QString participant, QString media)
 {
     isPeerComposing = true;
     QString text = (media == "audio") ? " is recording audio..." : " is typing...";
-    var n = participant==""? contact->name : participant
+    QString n = participant=="" ? contact->name : participant;
     ui->typingStatusLabel->setText(Utilities::removeEmoji(n) + text);
 }
 

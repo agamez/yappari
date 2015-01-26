@@ -91,8 +91,8 @@ public slots:
     void lockModeChanged(QString lockMode);
     void available(QString jid, bool online);
     void available(QString jid, qint64 lastSeen);
-    void composing(QString jid, QString media);
-    void paused(QString jid);
+    void composing(QString jid, QString participant, QString media);
+    void paused(QString jid, QString participant);
     void showDonate();
     void groupLeft(QString jid);
     void requestSync();

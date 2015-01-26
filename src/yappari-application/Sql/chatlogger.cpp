@@ -37,7 +37,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define MAX_MESSAGES               7
-#define LOG_VERSION                4
+#define LOG_VERSION                5
 #define LOG_EXTENSION              ".dblog"
 
 // Column definitions
@@ -62,6 +62,9 @@
 #define LOG_LATITUDE                17
 #define LOG_LONGITUDE               18
 #define LOG_MEDIA_CAPTION           19
+#define LOG_MSG_COUNT               20
+#define LOG_MSG_DELIVERED           21
+#define LOG_MSG_READ                22
 
 ChatLogger::ChatLogger(QObject *parent):
     QObject(parent)
@@ -117,7 +120,10 @@ bool ChatLogger::init(QString jid)
                    "live boolean,"
                    "latitude real,"
                    "longitude real,"
-                   "media_caption varchar(160)"
+                   "media_caption varchar(160),"
+                   "msg_count integer,"
+                   "msg_delivered varchar(8192),"
+                   "msg_read varchar(8192)"
                    ")");
 
         query.exec("create table settings ("
@@ -181,7 +187,7 @@ bool ChatLogger::init(QString jid)
 
             if (version == 3)
             {
-                // Upgrade it to version 3
+                // Upgrade it to version 4
 
                 Utilities::logData("Upgrading log " + jid + " to version " +
                                    QString::number(LOG_VERSION));
@@ -190,6 +196,25 @@ bool ChatLogger::init(QString jid)
                 query.exec();
 
                 version = LOG_VERSION;
+                query.prepare("update settings set version="+
+                              QString::number(version));
+                query.exec();
+            }
+            if (version == 4)
+            {
+                // Upgrade it to version 5
+
+                Utilities::logData("Upgrading log " + jid + " to version " +
+                                   QString::number(LOG_VERSION));
+
+                query.prepare("alter table log add column msg_count integer");
+                query.exec();
+                query.prepare("alter table log add column msg_delivered varchar(8192)");
+                query.exec();
+                query.prepare("alter table log add column msg_read varchar(8192)");
+                query.exec();
+
+                version = 5;
                 query.prepare("update settings set version="+
                               QString::number(version));
                 query.exec();
@@ -331,10 +356,14 @@ void ChatLogger::updateLoggedMessage(FMessage message)
 {
     QSqlQuery query(db);
 
-    query.prepare("update log set status=:status where id=:id");
+    query.prepare("update log set status=:status, msg_count=:msg_count, "
+                "msg_delivered=:msg_delivered, msg_read=:msg_read where id=:id");
 
     query.bindValue(":id",message.key.id);
     query.bindValue(":status",message.status);
+    query.bindValue(":msg_count",message.count);
+    query.bindValue(":msg_delivered",message.delivered);
+    query.bindValue(":msg_read",message.read);
 
     query.exec();
 }

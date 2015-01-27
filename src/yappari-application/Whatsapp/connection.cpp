@@ -502,9 +502,7 @@ bool Connection::read()
                 Key k(from, true, id);
                 message = store.value(k);
                 message.status = FMessage::ReceivedByServer;
-                // We should store count somewhere, to know if everybody has ack'ed the message
-                // But it must be done in a new parameter, this overwrites data message
-                // Left here as TODO reminder: message.setData(count);
+                message.count = count.toInt();
 
                 msgType = MessageStatusUpdate;
 

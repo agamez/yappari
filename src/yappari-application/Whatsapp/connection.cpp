@@ -28,7 +28,6 @@
  */
 
 #include <QRegExp>
-#include <QUuid>
 #include <QTime>
 
 #include "Whatsapp/util/qtmd5digest.h"

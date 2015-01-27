@@ -26,8 +26,6 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#include <QUuid>
-
 #include "phonereg.h"
 #include "util/utilities.h"
 #include "util/qtmd5digest.h"

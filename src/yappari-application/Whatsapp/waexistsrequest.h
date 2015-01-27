@@ -30,8 +30,12 @@
 #define WAEXISTSREQUEST_H
 
 #include <QString>
+#include <QSystemInfo>
 
 #include "warequest.h"
+
+// QtMobility namespace
+QTM_USE_NAMESPACE
 
 class WAExistsRequest : public WARequest
 {

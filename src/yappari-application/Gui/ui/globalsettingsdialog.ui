@@ -134,6 +134,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="blueChecksCheckbox">
+          <property name="text">
+           <string>Report when the other party has read messages (in both directions)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="enterIsSendCheckbox">
           <property name="text">
            <string>Use Enter to send the message</string>

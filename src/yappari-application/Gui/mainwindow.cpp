@@ -757,6 +757,7 @@ void MainWindow::showGlobalSettingsDialog()
         Client::showNicknames = dialog.getShowNicknames();
         Client::showNumbers = dialog.getShowNumbers();
         Client::popupOnFirstMessage = dialog.getPopupOnFirstMessage();
+        Client::blueChecks = dialog.getBlueChecks();
         Client::automaticDownloadBytes = dialog.getAutomaticDownloadBytes();
         Client::importMediaToGallery = dialog.getImportMediaToGallery();
         Client::syncFreq = dialog.getSyncFrequency();

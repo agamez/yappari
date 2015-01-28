@@ -121,6 +121,7 @@
 #define SETTINGS_SHOW_NICKNAMES             "shownicknames"
 #define SETTINGS_SHOW_NUMBERS               "shownumbers"
 #define SETTINGS_POPUP_ON_FIRST_MESSAGE     "popuponfirstmessage"
+#define SETTINGS_BLUE_CHECKS                "bluechecks"
 #define SETTINGS_AUTOMATIC_DOWNLOAD         "automaticdownload"
 #define SETTINGS_IMPORT_TO_GALLERY          "importmediatogallery"
 #define SETTINGS_LAST_SYNC                  "lastsync"
@@ -143,6 +144,7 @@
 #define DEFAULT_SHOW_NICKNAMES              false
 #define DEFAULT_SHOW_NUMBERS                true
 #define DEFAULT_POPUP_ON_FIRST_MESSAGE      false
+#define DEFAULT_BLUE_CHECKS                 true
 #define DEFAULT_AUTOMATIC_DOWNLOAD          100
 #define DEFAULT_IMPORT_TO_GALLERY           false
 #define DEFAULT_SYNC_FREQ                   2

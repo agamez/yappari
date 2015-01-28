@@ -140,6 +140,9 @@ bool Client::showNumbers;
 // Pop up conversation windows when first message is received
 bool Client::popupOnFirstMessage;
 
+// Report when the other party has read messages (in both directions)
+bool Client::blueChecks;
+
 // Automatic download of media if less than this number of bytes
 int Client::automaticDownloadBytes;
 
@@ -478,6 +481,10 @@ void Client::readSettings()
     this->popupOnFirstMessage = settings->value(SETTINGS_POPUP_ON_FIRST_MESSAGE,
                                                   QVariant(DEFAULT_POPUP_ON_FIRST_MESSAGE)).toBool();
 
+    // Report when the other party has read messages (in both directions)
+    this->blueChecks = settings->value(SETTINGS_BLUE_CHECKS,
+                                                  QVariant(DEFAULT_BLUE_CHECKS)).toBool();
+
     // Automatic download bytes
     this->automaticDownloadBytes = settings->value(SETTINGS_AUTOMATIC_DOWNLOAD,
                                                    QVariant(DEFAULT_AUTOMATIC_DOWNLOAD)).toInt();
@@ -541,6 +548,7 @@ void Client::updateSettings()
     settings->setValue(SETTINGS_SHOW_NICKNAMES,showNicknames);
     settings->setValue(SETTINGS_SHOW_NUMBERS,showNumbers);
     settings->setValue(SETTINGS_POPUP_ON_FIRST_MESSAGE,popupOnFirstMessage);
+    settings->setValue(SETTINGS_BLUE_CHECKS,blueChecks);
     settings->setValue(SETTINGS_AUTOMATIC_DOWNLOAD,automaticDownloadBytes);
     settings->setValue(SETTINGS_IMPORT_TO_GALLERY,importMediaToGallery);
     settings->setValue(SETTINGS_SYNC_FREQ,syncFreq);

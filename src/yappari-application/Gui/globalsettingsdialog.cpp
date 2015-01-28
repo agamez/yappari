@@ -123,6 +123,7 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
     ui->nicknamesCheckBox->setChecked(Client::showNicknames);
     ui->shownumbersCheckBox->setChecked(Client::showNumbers);
     ui->popupCheckbox->setChecked(Client::popupOnFirstMessage);
+    ui->blueChecksCheckbox->setChecked(Client::blueChecks);
     ui->importCheckbox->setChecked(Client::importMediaToGallery);
     ui->startOnBootCheckBox->setChecked(Client::startOnBoot);
     ui->enterIsSendCheckbox->setChecked(Client::enterIsSend);
@@ -171,6 +172,11 @@ bool GlobalSettingsDialog::getShowNumbers()
 bool GlobalSettingsDialog::getPopupOnFirstMessage()
 {
     return ui->popupCheckbox->isChecked();
+}
+
+bool GlobalSettingsDialog::getBlueChecks()
+{
+    return ui->blueChecksCheckbox->isChecked();
 }
 
 bool GlobalSettingsDialog::getImportMediaToGallery()

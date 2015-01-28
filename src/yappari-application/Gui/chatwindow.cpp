@@ -203,7 +203,10 @@ void ChatWindow::readMoreLogLines()
 
 void ChatWindow::setMessagesAsRead()
 {
-    emit messageRead(logger.lastMessage());
+    FMessage msg = logger.lastMessage();
+    emit messageRead(msg);
+    msg.status = FMessage::ReceivedByTarget;
+    logger.updateLoggedMessage(msg);
     Utilities::logData("Last message should be marked as read");
 }
 

@@ -1,5 +1,12 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
+<b>New in this version 2.0.3:</b><br>
+<li>&bull; Implemented (as a selectable but enabled by default option) ability to send and receive read notifications on individual chats (i.e.: blue double tick).</li>
+<li>&bull; Better UI for multimedia messages with long captions.</li>
+<li>&bull; Fixed registration again and replaced code to avoid reregistration on certain occasions (CODeRUS).</li>
+<li>&bull; Fixed last seen timestamp (CODeRUS).</li>
+<li>&bull; Added infrastructure to report which participant is composing message on group chats (cepiperez).</li>
+<br>
 <b>New in this version 2.0.2:</b><br>
 <li>&bull; Registration fixed.</li>
 <br>

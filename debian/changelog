@@ -1,3 +1,16 @@
+yappari (2.0.3) stable; urgency=medium
+
+  * Implemented (as a selectable but enabled by default option) ability to send
+    and receive read notifications on individual chats (i.e.: blue double tick).
+  * Better UI for multimedia messages with long captions.
+  * Fixed registration again and replaced code to avoid reregistration on certain
+    occasions (CODeRUS).
+  * Fixed last seen timestamp (CODeRUS).
+  * Added infrastructure to report which participant is composing message on
+    group chats (cepiperez).
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Thu, 29 Jan 2015 14:57:46 +0100
+
 yappari (2.0.2) stable; urgency=medium
 
   * Registration fixed.

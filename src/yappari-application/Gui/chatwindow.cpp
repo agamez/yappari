@@ -163,6 +163,9 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     connect(ui->scrollArea,SIGNAL(topReached()),
             this,SLOT(readMoreLogLines()));
 
+    connect(ui->scrollArea,SIGNAL(bottomReached()),
+            this,SLOT(setMessagesAsRead()));
+
     setBlock(contact->blocked);
 
     readMoreLogLines();
@@ -196,6 +199,19 @@ void ChatWindow::readMoreLogLines()
     QList<FMessage> list = logger.lastMessages();
 
     ui->scrollArea->loadLogMessages(list);
+}
+
+void ChatWindow::setMessagesAsRead()
+{
+    FMessage msg = logger.lastMessage();
+    if(msg.key.from_me || msg.status == FMessage::ReceivedByTarget) return;
+
+    if(msg.key.remote_jid.right(5) != "@g.us" && !Client::blueChecks) return;
+
+    emit messageRead(msg);
+    msg.status = FMessage::ReceivedByTarget;
+    logger.updateLoggedMessage(msg);
+    Utilities::logData("Message should now be marked as read");
 }
 
 void ChatWindow::messageReceived(FMessage& message)
@@ -299,8 +315,8 @@ void ChatWindow::textChanged()
 
 void ChatWindow::myselfComposing(int waType)
 {
-    if (contact->type == Contact::TypeContact)
-    {
+    //if (contact->type == Contact::TypeContact) Let's keep it for future broadcast implementation
+    //{
         isMyselfComposing = true;
 
         FMessage message(contact->jid,true);
@@ -308,32 +324,34 @@ void ChatWindow::myselfComposing(int waType)
         message.media_wa_type = waType;
 
         emit sendMessage(message);
-    }
+    //}
 }
 
 void ChatWindow::myselfPaused()
 {
-    if (contact->type == Contact::TypeContact)
-    {
+    //if (contact->type == Contact::TypeContact) Let's keep it for future broadcast implementation
+    //{
         isMyselfComposing = false;
 
         FMessage message(contact->jid,true);
         message.type = FMessage::PausedMessage;
 
         emit sendMessage(message);
-    }
+    //}
 }
 
 
-void ChatWindow::composing(QString media)
+void ChatWindow::composing(QString participant, QString media)
 {
     isPeerComposing = true;
     QString text = (media == "audio") ? " is recording audio..." : " is typing...";
-    ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + text);
+    QString n = participant=="" ? contact->name : participant;
+    ui->typingStatusLabel->setText(Utilities::removeEmoji(n) + text);
 }
 
-void ChatWindow::paused()
+void ChatWindow::paused(QString participant)
 {
+    //Participan not used yet, but can be used in group when more than one is typing
     if (isPeerComposing)
         // ui->typingStatusLabel->setText(Utilities::removeEmoji(contact->name) + " stopped typing.");
         ui->typingStatusLabel->clear();

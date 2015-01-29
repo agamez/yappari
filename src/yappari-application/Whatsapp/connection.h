@@ -152,6 +152,8 @@ public slots:
     // Sends a FMessage
     void sendMessage(FMessage& message);
 
+    // Send a message read acknowledgement
+    void sendMessageRead(FMessage& message);
 
     /** ***********************************************************************
      ** User handling
@@ -434,10 +436,10 @@ signals:
      **/
 
     // User is typing
-    void composing(QString jid, QString media);
+    void composing(QString jid, QString participant, QString media);
 
     // User stopped typing
-    void paused(QString jid);
+    void paused(QString jid, QString participant);
 
 
     /** ***********************************************************************

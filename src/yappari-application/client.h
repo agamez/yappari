@@ -183,6 +183,9 @@ public:
     // Pop up conversation windows when first message is received
     static bool popupOnFirstMessage;
 
+    // Report when the other party has read messages (in both directions)
+    static bool blueChecks;
+
     // Automatic download of media if less than this number of bytes
     static int automaticDownloadBytes;
 
@@ -324,6 +327,7 @@ public slots:
     void blockOrUnblockContact(QString jid, bool blocked);
     void privacyListReceived(QStringList list);
     void sendVoiceNotePlayed(FMessage message);
+    void sendMessageRead(FMessage message);
     void updateLastDir(int waType, QString dir);
 
 

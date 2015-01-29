@@ -307,6 +307,9 @@ ChatWindow *MainWindow::createChatWindow(Contact& contact, bool show)
         connect(chat,SIGNAL(voiceNotePlayed(FMessage)),
                 this,SLOT(sendVoiceNotePlayed(FMessage)));
 
+        connect(chat,SIGNAL(messageRead(FMessage)),
+                this,SLOT(sendMessageRead(FMessage)));
+
         connect(chat,SIGNAL(updateLastDir(int,QString)),
                 this,SLOT(requestUpdateLastDir(int,QString)));
 
@@ -676,22 +679,26 @@ void MainWindow::available(QString jid, qint64 lastSeen)
 }
 
 
-void MainWindow::composing(QString jid, QString media)
+void MainWindow::composing(QString jid, QString participant, QString media)
 {
     if (chatWindowList.contains(jid))
     {
         ChatWindow *chat = chatWindowList.value(jid);
-        chat->composing(media);
+        if (!participant.isEmpty()) {
+            Contact& c = roster->getContact(participant);
+            chat->composing(c.name, media);
+        }
+        chat->composing("", media);
     }
 }
 
 
-void MainWindow::paused(QString jid)
+void MainWindow::paused(QString jid, QString participant)
 {
     if (chatWindowList.contains(jid))
     {
         ChatWindow *chat = chatWindowList.value(jid);
-        chat->paused();
+        chat->paused(participant);
     }
 }
 
@@ -750,6 +757,7 @@ void MainWindow::showGlobalSettingsDialog()
         Client::showNicknames = dialog.getShowNicknames();
         Client::showNumbers = dialog.getShowNumbers();
         Client::popupOnFirstMessage = dialog.getPopupOnFirstMessage();
+        Client::blueChecks = dialog.getBlueChecks();
         Client::automaticDownloadBytes = dialog.getAutomaticDownloadBytes();
         Client::importMediaToGallery = dialog.getImportMediaToGallery();
         Client::syncFreq = dialog.getSyncFrequency();
@@ -1020,6 +1028,11 @@ void MainWindow::requestContactStatus(QString jid)
 void MainWindow::sendVoiceNotePlayed(FMessage message)
 {
     emit voiceNotePlayed(message);
+}
+
+void MainWindow::sendMessageRead(FMessage message)
+{
+    emit messageRead(message);
 }
 
 void MainWindow::photoReceived(Contact &c, QImage photo, QString photoId)

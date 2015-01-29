@@ -98,6 +98,9 @@ public:
     QString notify_name;
     QString remote_resource;
     ContentType type;
+    int count;
+    QString delivered;
+    QString read;
 
     double latitude;
     double longitude;

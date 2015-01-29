@@ -26,8 +26,6 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#include <QUuid>
-
 #include "phonereg.h"
 #include "util/utilities.h"
 #include "util/qtmd5digest.h"
@@ -42,11 +40,12 @@ PhoneReg::PhoneReg(QString cc, QString number, QObject *parent) :
 
     // Generate a new id
 
+    QSystemDeviceInfo deviceInfo(this);
     QtMD5Digest digest;
     digest.reset();
-
-    digest.update(QUuid::createUuid().toString().toUtf8());
-
+    digest.update(number.toUtf8());
+    digest.update(deviceInfo.imsi().toUtf8());
+    digest.update(QString("yappari").toUtf8());
     QByteArray bytes = digest.digest();
 
     this->id = QString::fromLatin1(bytes.toHex().constData()).left(20);

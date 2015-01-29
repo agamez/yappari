@@ -79,6 +79,10 @@ void ChatArea::sliderMoved(int value)
 {
     if (value == 0)
         emit topReached();
+    else if (value == verticalScrollBar()->maximum()) {
+        emit bottomReached();
+        Utilities::logData("Bottom reached");
+    }
 }
 
 

@@ -32,12 +32,16 @@
 #include <QObject>
 #include <QString>
 #include <QThread>
+#include <QSystemDeviceInfo>
 
 #include "phoneregreply.h"
 #include "waexistsrequest.h"
 #include "waregrequest.h"
 #include "wacoderequest.h"
 #include "smslistener.h"
+
+// QtMobility namespace
+QTM_USE_NAMESPACE
 
 class PhoneReg : public QObject
 {

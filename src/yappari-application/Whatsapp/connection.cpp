@@ -28,7 +28,6 @@
  */
 
 #include <QRegExp>
-#include <QUuid>
 #include <QTime>
 
 #include "Whatsapp/util/qtmd5digest.h"
@@ -39,6 +38,8 @@
 #include "globalconstants.h"
 
 #include "connection.h"
+
+#include "client.h"
 
 FunStore Connection::store;
 
@@ -262,11 +263,9 @@ bool Connection::read()
 
                     else if (child.getTag() == "query")
                     {
-                        int last = child.getAttributeValue("seconds").toInt();
-                        if (last > 0) {
-                            QDateTime dt = QDateTime::currentDateTime();
-                            int timestamp = dt.toTime_t();
-                            timestamp = timestamp - last;
+                        if (child.getAttributeValue("seconds").toLongLong() > 0) {
+                            qint64 timestamp = QDateTime::currentMSecsSinceEpoch() -
+-                                               (child.getAttributeValue("seconds").toLongLong() * 1000);
                             emit lastOnline(from, timestamp);
                         }
 
@@ -477,15 +476,15 @@ bool Connection::read()
 
         if (tag == "chatstate") {
             QString from = node.getAttributeValue("from");
-            //QString participant = node.getAttributeValue("participant");  //not used in yappari yet
+            QString participant = node.getAttributeValue("participant");
             ProtocolTreeNodeListIterator i(node.getChildren());
             while (i.hasNext()) {
                 ProtocolTreeNode child = i.next().value();
                 if (child.getTag() == "composing") {
-                    emit composing(from, child.getAttributeValue("media"));
+                    emit composing(from, participant, child.getAttributeValue("media"));
                 }
                 else if (child.getTag() == "paused") {
-                    emit paused(from);
+                    emit paused(from, participant);
                 }
             }
         }
@@ -500,11 +499,12 @@ bool Connection::read()
                 QString from = node.getAttributeValue("from");
                 QString id = node.getAttributeValue("id");
                 QString count = node.getAttributeValue("count");
+
                 FMessage message;
                 Key k(from, true, id);
-                message.key = k;
+                message = store.value(k);
                 message.status = FMessage::ReceivedByServer;
-                message.setData(count);
+                message.count = count.toInt();
 
                 msgType = MessageStatusUpdate;
 
@@ -531,7 +531,7 @@ bool Connection::read()
                 message.remote_resource = participant;
                 if (type.isEmpty()) message.status = FMessage::ReceivedByTarget;
                 if (type=="played") message.status = FMessage::Played;
-                if (type=="read") message.status = FMessage::ReadByTarget;
+                if (type=="read" && Client::blueChecks) message.status = FMessage::ReadByTarget;
 
                 msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
 
@@ -566,7 +566,7 @@ bool Connection::read()
                         /* Whatsapp server sends the same "received" message twice:
                            once when received by the target and the second one when
                            it has been read (or at least displayed by the app) */
-                        : (message.status == FMessage::ReceivedByTarget)
+                        : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
                           ? FMessage::ReadByTarget
                           : FMessage::ReceivedByTarget;
                 msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
@@ -618,7 +618,7 @@ bool Connection::read()
                                             /* Whatsapp server sends the same "received" message twice:
                                                once when received by the target and the second one when
                                                it has been read (or at least displayed by the app) */
-                                            : (message.status == FMessage::ReceivedByTarget)
+                                            : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
                                               ? FMessage::ReadByTarget
                                               : FMessage::ReceivedByTarget;
                                     msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
@@ -1011,7 +1011,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                             /* Whatsapp server sends the same "received" message twice:
                                once when received by the target and the second one when
                                it has been read (or at least displayed by the app) */
-                            : (message.status == FMessage::ReceivedByTarget)
+                            : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
                               ? FMessage::ReadByTarget
                               : FMessage::ReceivedByTarget;
                     msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
@@ -1035,21 +1035,6 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                                              : receipt_type));
                 }
             }
-            else if (child.getTag() == "composing")
-            {
-                QString xmlns = child.getAttributeValue("xmlns");
-                if (xmlns == "http://jabber.org/protocol/chatstates")
-                {
-                    msgType = Composing;
-                    media = child.getAttributeValue("media");
-                }
-            }
-            else if (child.getTag() == "paused")
-            {
-                QString xmlns = child.getAttributeValue("xmlns");
-                if (xmlns == "http://jabber.org/protocol/chatstates")
-                    msgType = Paused;
-            }
         }
         switch (msgType)
         {
@@ -1059,14 +1044,6 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
 
             case MessageStatusUpdate:
                 emit messageStatusUpdate(message);
-                break;
-
-            case Composing:
-                emit composing(from, media);
-                break;
-
-            case Paused:
-                emit paused(from);
                 break;
 
             case UserStatusUpdate:
@@ -1524,6 +1501,34 @@ void Connection::sendMessageReceived(FMessage &message)
 
     int bytes = out->write(messageNode);
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+/**
+    Send a message read acknowledgement.
+
+    @param message      FMessage object containing the message to be acknowledged.
+*/
+void Connection::sendMessageRead(FMessage& message)
+{
+    AttributeList attrs;
+
+    ProtocolTreeNode messageNode("receipt");
+    attrs.insert("to",message.key.remote_jid);
+    attrs.insert("id",message.key.id);
+    attrs.insert("type","read");
+    if (!message.remote_resource.isEmpty()) {
+        attrs.insert("participant", message.remote_resource);
+    }
+
+    messageNode.setAttributes(attrs);
+
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+
+    store.remove(message.key);
+
+    message.status = FMessage::ReceivedByTarget;
+    store.put(message);
 }
 
 /**

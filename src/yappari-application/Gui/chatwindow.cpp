@@ -204,6 +204,8 @@ void ChatWindow::readMoreLogLines()
 void ChatWindow::setMessagesAsRead()
 {
     FMessage msg = logger.lastMessage();
+    if(message.key.from_me) return;
+
     emit messageRead(msg);
     msg.status = FMessage::ReceivedByTarget;
     logger.updateLoggedMessage(msg);

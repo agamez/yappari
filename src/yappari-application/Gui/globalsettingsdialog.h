@@ -49,6 +49,7 @@ public:
     bool getShowNicknames();
     bool getShowNumbers();
     bool getPopupOnFirstMessage();
+    bool getBlueChecks();
     bool getImportMediaToGallery();
     int getAutomaticDownloadBytes();
     int getSyncFrequency();

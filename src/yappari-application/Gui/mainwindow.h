@@ -106,6 +106,7 @@ public slots:
     void requestPhotoUpdate(QString jid, QString photoId, bool largeFormat);
     void requestContactStatus(QString jid);
     void sendVoiceNotePlayed(FMessage message);
+    void sendMessageRead(FMessage message);
     void showStatusWindow();
     void photoReceived(Contact& c, QImage photo, QString photoId);
     void viewContact(Contact *c);
@@ -180,6 +181,7 @@ signals:
     void requestBlockOrUnblockContact(QString jid, bool blocked);
     void privacyListRefreshed();
     void voiceNotePlayed(FMessage message);
+    void messageRead(FMessage message);
     void updateLastDir(int waType, QString dir);
 
 };

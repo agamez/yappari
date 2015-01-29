@@ -39,6 +39,8 @@
 
 #include "connection.h"
 
+#include "client.h"
+
 FunStore Connection::store;
 
 /**
@@ -529,7 +531,7 @@ bool Connection::read()
                 message.remote_resource = participant;
                 if (type.isEmpty()) message.status = FMessage::ReceivedByTarget;
                 if (type=="played") message.status = FMessage::Played;
-                if (type=="read") message.status = FMessage::ReadByTarget;
+                if (type=="read" && Client::blueChecks) message.status = FMessage::ReadByTarget;
 
                 msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
 
@@ -564,7 +566,7 @@ bool Connection::read()
                         /* Whatsapp server sends the same "received" message twice:
                            once when received by the target and the second one when
                            it has been read (or at least displayed by the app) */
-                        : (message.status == FMessage::ReceivedByTarget)
+                        : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
                           ? FMessage::ReadByTarget
                           : FMessage::ReceivedByTarget;
                 msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
@@ -616,7 +618,7 @@ bool Connection::read()
                                             /* Whatsapp server sends the same "received" message twice:
                                                once when received by the target and the second one when
                                                it has been read (or at least displayed by the app) */
-                                            : (message.status == FMessage::ReceivedByTarget)
+                                            : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
                                               ? FMessage::ReadByTarget
                                               : FMessage::ReceivedByTarget;
                                     msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
@@ -1009,7 +1011,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                             /* Whatsapp server sends the same "received" message twice:
                                once when received by the target and the second one when
                                it has been read (or at least displayed by the app) */
-                            : (message.status == FMessage::ReceivedByTarget)
+                            : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
                               ? FMessage::ReadByTarget
                               : FMessage::ReceivedByTarget;
                     msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
@@ -1499,6 +1501,34 @@ void Connection::sendMessageReceived(FMessage &message)
 
     int bytes = out->write(messageNode);
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+/**
+    Send a message read acknowledgement.
+
+    @param message      FMessage object containing the message to be acknowledged.
+*/
+void Connection::sendMessageRead(FMessage& message)
+{
+    AttributeList attrs;
+
+    ProtocolTreeNode messageNode("receipt");
+    attrs.insert("to",message.key.remote_jid);
+    attrs.insert("id",message.key.id);
+    attrs.insert("type","read");
+    if (!message.remote_resource.isEmpty()) {
+        attrs.insert("participant", message.remote_resource);
+    }
+
+    messageNode.setAttributes(attrs);
+
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+
+    store.remove(message.key);
+
+    message.status = FMessage::ReceivedByTarget;
+    store.put(message);
 }
 
 /**

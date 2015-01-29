@@ -70,6 +70,7 @@ public:
 
 public slots:
     void readMoreLogLines();
+    void setMessagesAsRead();
     void textChanged();
     void myselfComposing(int waType = -1);
     void myselfPaused();
@@ -115,6 +116,7 @@ signals:
     void userStatusChanged();
     void blockOrUnblockContact(QString jid, bool blocked);
     void voiceNotePlayed(FMessage message);
+    void messageRead(FMessage message);
     void updateLastDir(int waType, QString dir);
     void forwardMessage(FMessage message);
 

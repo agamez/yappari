@@ -163,6 +163,9 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     connect(ui->scrollArea,SIGNAL(topReached()),
             this,SLOT(readMoreLogLines()));
 
+    connect(ui->scrollArea,SIGNAL(bottomReached()),
+            this,SLOT(setMessagesAsRead()));
+
     setBlock(contact->blocked);
 
     readMoreLogLines();
@@ -196,6 +199,19 @@ void ChatWindow::readMoreLogLines()
     QList<FMessage> list = logger.lastMessages();
 
     ui->scrollArea->loadLogMessages(list);
+}
+
+void ChatWindow::setMessagesAsRead()
+{
+    FMessage msg = logger.lastMessage();
+    if(msg.key.from_me || msg.status == FMessage::ReceivedByTarget) return;
+
+    if(msg.key.remote_jid.right(5) != "@g.us" && !Client::blueChecks) return;
+
+    emit messageRead(msg);
+    msg.status = FMessage::ReceivedByTarget;
+    logger.updateLoggedMessage(msg);
+    Utilities::logData("Message should now be marked as read");
 }
 
 void ChatWindow::messageReceived(FMessage& message)

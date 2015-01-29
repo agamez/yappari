@@ -204,12 +204,14 @@ void ChatWindow::readMoreLogLines()
 void ChatWindow::setMessagesAsRead()
 {
     FMessage msg = logger.lastMessage();
-    if(message.key.from_me) return;
+    if(msg.key.from_me || msg.status == FMessage::ReceivedByTarget) return;
+
+    if(msg.key.remote_jid.right(5) != "@g.us" && !Client::blueChecks) return;
 
     emit messageRead(msg);
     msg.status = FMessage::ReceivedByTarget;
     logger.updateLoggedMessage(msg);
-    Utilities::logData("Last message should be marked as read");
+    Utilities::logData("Message should now be marked as read");
 }
 
 void ChatWindow::messageReceived(FMessage& message)

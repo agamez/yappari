@@ -1510,29 +1510,25 @@ void Connection::sendMessageReceived(FMessage &message)
 */
 void Connection::sendMessageRead(FMessage& message)
 {
-    if(message.status != FMessage::ReceivedByTarget && Client::blueChecks) {
-        AttributeList attrs;
+    AttributeList attrs;
 
-        ProtocolTreeNode messageNode("receipt");
-        attrs.insert("to",message.key.remote_jid);
-        attrs.insert("id",message.key.id);
-        attrs.insert("type","read");
-        if (!message.remote_resource.isEmpty()) {
-            attrs.insert("participant", message.remote_resource);
-        }
-
-        messageNode.setAttributes(attrs);
-
-        int bytes = out->write(messageNode);
-        counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
-
-        store.remove(message.key);
-
-        message.status = FMessage::ReceivedByTarget;
-        store.put(message);
-    } else {
-        Utilities::logData("Message already marked as read. Don't send anything new");
+    ProtocolTreeNode messageNode("receipt");
+    attrs.insert("to",message.key.remote_jid);
+    attrs.insert("id",message.key.id);
+    attrs.insert("type","read");
+    if (!message.remote_resource.isEmpty()) {
+        attrs.insert("participant", message.remote_resource);
     }
+
+    messageNode.setAttributes(attrs);
+
+    int bytes = out->write(messageNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+
+    store.remove(message.key);
+
+    message.status = FMessage::ReceivedByTarget;
+    store.put(message);
 }
 
 /**

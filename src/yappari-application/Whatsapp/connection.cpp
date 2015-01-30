@@ -2064,7 +2064,7 @@ void Connection::sendVerbParticipants(QString gjid, QStringList participants,
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to",gjid);
-    attrs.insert("xmlns", "w:g2");
+    attrs.insert("xmlns", "w:g");
     iqNode.setAttributes(attrs);
     iqNode.addChild(innerNode);
 
@@ -2092,7 +2092,7 @@ void Connection::sendGetParticipants(QString gjid)
     attrs.insert("id",id);
     attrs.insert("type","get");
     attrs.insert("to",gjid);
-    attrs.insert("xmlns", "w:g2");
+    attrs.insert("xmlns", "w:g");
     iqNode.setAttributes(attrs);
     iqNode.addChild(listNode);
 
@@ -2133,7 +2133,7 @@ void Connection::sendGetGroups(QString id, QString type)
     attrs.insert("id",id);
     attrs.insert("type","get");
     attrs.insert("to","g.us");
-    attrs.insert("xmlns","w:g2");
+    attrs.insert("xmlns","w:g");
     iqNode.setAttributes(attrs);
     iqNode.addChild(listNode);
 
@@ -2163,7 +2163,7 @@ void Connection::sendSetGroupSubject(QString gjid, QString subject)
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to",gjid);
-    attrs.insert("xmlns","w:g2");
+    attrs.insert("xmlns","w:g");
     iqNode.setAttributes(attrs);
     iqNode.addChild(subjectNode);
 
@@ -2194,7 +2194,7 @@ void Connection::sendLeaveGroup(QString gjid)
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to","g.us");
-    attrs.insert("xmlns","w:g2");
+    attrs.insert("xmlns","w:g");
     iqNode.setAttributes(attrs);
     iqNode.addChild(leaveNode);
 

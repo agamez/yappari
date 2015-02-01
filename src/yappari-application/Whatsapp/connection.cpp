@@ -463,7 +463,7 @@ bool Connection::read()
 
                 if (type=="unavailable" ) {
                     if (last!="deny" && !last.isEmpty() && last!="") {
-                        emit lastOnline(from, last.toInt());
+                        emit lastOnline(from, last.toLongLong()*1000);
                     }
                 }
             }

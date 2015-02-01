@@ -452,6 +452,7 @@ bool Connection::read()
         {
             QString xmlns = node.getAttributeValue("xmlns");
             QString from = node.getAttributeValue("from");
+            QString last = node.getAttributeValue("last");
             if ((xmlns.isEmpty() || xmlns == "urn:xmpp") && !from.isEmpty() && from != myJid)
             {
                 QString type = node.getAttributeValue("type");
@@ -459,17 +460,21 @@ bool Connection::read()
                     emit available(from, true);
                 else if (type == "unavailable")
                     emit available(from, false);
+
+                if (type=="unavailable" ) {
+                    if (last!="deny" && !last.isEmpty() && last!="") {
+                        emit lastOnline(from, last.toInt());
+                    }
+                }
             }
             else if (xmlns == "w" && !from.isEmpty())
             {
                 QString add = node.getAttributeValue("add");
                 QString remove = node.getAttributeValue("remove");
-
                 if (!add.isEmpty())
                     emit groupAddUser(from, add);
                 else if (!remove.isEmpty())
                     emit groupRemoveUser(from, remove);
-
             }
         }
 

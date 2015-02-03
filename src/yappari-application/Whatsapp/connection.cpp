@@ -171,71 +171,53 @@ bool Connection::read()
                 {
                     ProtocolTreeNode child = i.next().value();
 
-                    if (child.getTag() == "groups")
+                    if (child.getTag() == "group")
                     {
-                        ProtocolTreeNodeListIterator nchild(child.getChildren());
-                        while (nchild.hasNext())
-                        {
-                            ProtocolTreeNode mchild = nchild.next().value();
-                            if (mchild.getTag() == "group")
-                            {
-                                QString childId = mchild.getAttributeValue("id");
-                                QString subject = mchild.getAttributeValue("subject");
-                                QString author = mchild.getAttributeValue("creator");
-                                QString creation = mchild.getAttributeValue("creation");
-                                QString subject_o = mchild.getAttributeValue("s_o");
-                                QString subject_t = mchild.getAttributeValue("s_t");
-                                QString jid = childId + "@g.us";
+                        QString childId = child.getAttributeValue("id");
+                        QString subject = child.getAttributeValue("subject");
+                        QString author = child.getAttributeValue("creator");
+                        QString creation = child.getAttributeValue("creation");
+                        QString subject_o = child.getAttributeValue("s_o");
+                        QString subject_t = child.getAttributeValue("s_t");
+                        QString jid = childId + "@g.us";
 
-                                QStringList groupParticipants;
-                                ProtocolTreeNodeListIterator j(mchild.getChildren());
-                                while (j.hasNext())
-                                {
-                                    ProtocolTreeNode participant = j.next().value();
-                                    if (participant.getTag() == "participant")
-                                    {
-                                        QString jid = participant.getAttributeValue("jid");
-                                        if (participant.getAttributeValue("type")=="admin")
-                                            groupParticipants.append(jid+"(groupadmin)");
-                                        else
-                                            groupParticipants.append(jid);
-                                    }
-                                }
-                                // need to add participants to signal!
-                                //emit groupInfoFromList(jid, author, subject, creation, subject_o, subject_t, groupParticipants);
-                                emit groupInfoFromList(id, jid, author, subject, creation, subject_o, subject_t);
+                        QStringList groupParticipants;
+                        ProtocolTreeNodeListIterator j(child.getChildren());
+                        while (j.hasNext())
+                        {
+                            ProtocolTreeNode participant = j.next().value();
+                            if (participant.getTag() == "participant")
+                            {
+                                QString jid = participant.getAttributeValue("jid");
+                                if (participant.getAttributeValue("type")=="admin")
+                                    groupParticipants.append(jid+"(groupadmin)");
+                                else
+                                    groupParticipants.append(jid);
                             }
                         }
-
+                        // need to add participants to signal!
+                        //emit groupInfoFromList(jid, author, subject, creation, subject_o, subject_t, groupParticipants);
+                        emit groupInfoFromList(id, jid, author, subject, creation, subject_o, subject_t);
                     }
 
-                    if (child.getTag() == "lists")
+                    if (child.getTag() == "list")
                     {
-                        ProtocolTreeNodeListIterator nchild(child.getChildren());
-                        while (nchild.hasNext())
-                        {
-                            ProtocolTreeNode mchild = nchild.next().value();
-                            if (mchild.getTag() == "list")
-                            {
-                                QString childId = mchild.getAttributeValue("id");
-                                QString subject = mchild.getAttributeValue("name");
+                        QString childId = child.getAttributeValue("id");
+                        QString subject = child.getAttributeValue("name");
 
-                                QStringList groupParticipants;
-                                ProtocolTreeNodeListIterator j(mchild.getChildren());
-                                while (j.hasNext())
-                                {
-                                    ProtocolTreeNode participant = j.next().value();
-                                    if (participant.getTag() == "recipient")
-                                    {
-                                        QString jid = participant.getAttributeValue("jid");
-                                        groupParticipants.append(jid);
-                                    }
-                                }
-                                //broadcast lists - not implemented yet in yappari
-                                //emit broadcastInfoFromList(childId, subject, groupParticipants);
+                        QStringList groupParticipants;
+                        ProtocolTreeNodeListIterator j(child.getChildren());
+                        while (j.hasNext())
+                        {
+                            ProtocolTreeNode participant = j.next().value();
+                            if (participant.getTag() == "recipient")
+                            {
+                                QString jid = participant.getAttributeValue("jid");
+                                groupParticipants.append(jid);
                             }
                         }
-
+                        //broadcast lists - not implemented yet in yappari
+                        //emit broadcastInfoFromList(childId, subject, groupParticipants);
                     }
 
                     if (child.getTag() == "delete" )

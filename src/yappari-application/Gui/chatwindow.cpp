@@ -71,6 +71,10 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+// Solve clash between Xlib FocusIn and QEvent::FocusIn
+enum { XFocusIn = FocusIn };
+#undef FocusIn
+
 #define TEXTEDIT_HEIGHT     70
 #define MAX_FILE_SIZE       16777216
 
@@ -203,6 +207,8 @@ void ChatWindow::readMoreLogLines()
 
 void ChatWindow::setMessagesAsRead()
 {
+    if(!isActiveWindow()) return;
+
     FMessage msg = logger.lastMessage();
     if(msg.key.from_me || msg.status == FMessage::ReceivedByTarget) return;
 
@@ -359,6 +365,12 @@ void ChatWindow::paused(QString participant)
 
 bool ChatWindow::eventFilter(QObject *obj, QEvent *event)
 {
+    if(event->type() == QEvent::WindowActivate)
+    {
+        setMessagesAsRead();
+        return true;
+    }
+
     if (obj == ui->centralwidget)
     {
         if (event->type() == QEvent::MouseButtonPress)

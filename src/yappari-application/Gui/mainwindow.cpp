@@ -684,11 +684,12 @@ void MainWindow::composing(QString jid, QString participant, QString media)
     if (chatWindowList.contains(jid))
     {
         ChatWindow *chat = chatWindowList.value(jid);
-        if (!participant.isEmpty()) {
+        if (participant.isEmpty()) {
+            chat->composing("", media);
+        } else {
             Contact& c = roster->getContact(participant);
             chat->composing(c.name, media);
         }
-        chat->composing("", media);
     }
 }
 

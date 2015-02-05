@@ -897,11 +897,11 @@ void Client::connected()
     connect(connection,SIGNAL(available(QString,bool)),
             mainWin,SLOT(available(QString,bool)));
 
-    connect(connection,SIGNAL(composing(QString,QString)),
-            mainWin,SLOT(composing(QString,QString)));
+    connect(connection,SIGNAL(composing(QString,QString,QString)),
+            mainWin,SLOT(composing(QString,QString,QString)));
 
-    connect(connection,SIGNAL(paused(QString)),
-            mainWin,SLOT(paused(QString)));
+    connect(connection,SIGNAL(paused(QString,QString)),
+            mainWin,SLOT(paused(QString,QString)));
 
     connect(connection,SIGNAL(groupLeft(QString)),
             mainWin,SLOT(groupLeft(QString)));

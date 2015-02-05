@@ -62,13 +62,9 @@ WACodeRequest::WACodeRequest(QString cc, QString in, QString method,
     addParam("in", in);
     addParam("lc", country.isEmpty() ?  "ZZ" : country);
     addParam("lg", language.isEmpty() ? "zz" : language);
-    addParam("mcc", "000");
-    addParam("mnc", "000");
     addParam("sim_mcc", mcc);
     addParam("sim_mnc", mnc);
     addParam("method", method);
-    addParam("network_radio_type", "1");
-    addParam("reason","self-send-jailbroken");
     addParam("token", Utilities::getToken(in));
     addParam("id",id);
 }

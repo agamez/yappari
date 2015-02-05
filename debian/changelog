@@ -1,3 +1,12 @@
+yappari (2.0.4) stable; urgency=medium
+
+  * Fixed group commands (listing members, title, etc)
+  * "X is typing" functionality restored and implemented for groups
+  * "Last seen functionality" fixed (cepiperez)
+  * Report read messages only when chat window is made active
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Sun, 01 Feb 2015 16:01:40 +0100
+
 yappari (2.0.3) stable; urgency=medium
 
   * Implemented (as a selectable but enabled by default option) ability to send

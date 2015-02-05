@@ -1,5 +1,12 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
+
+<b>New in this version 2.0.4:</b><br>
+<li>&bull; Fixed group commands (listing members, title, etc).</li>
+<li>&bull; "X is typing" functionality restored and implemented for groups.</li>
+<li>&bull; "Last seen functionality" fixed (cepiperez).</li>
+<li>&bull; Report read messages only when chat window is made active.</li>
+
 <b>New in this version 2.0.3:</b><br>
 <li>&bull; Implemented (as a selectable but enabled by default option) ability to send and receive read notifications on individual chats (i.e.: blue double tick).</li>
 <li>&bull; Better UI for multimedia messages with long captions.</li>

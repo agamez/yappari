@@ -175,7 +175,7 @@ bool Connection::read()
                     {
                         QString childId = child.getAttributeValue("id");
                         QString subject = child.getAttributeValue("subject");
-                        QString author = child.getAttributeValue("creator");
+                        QString author = child.getAttributeValue("owner");
                         QString creation = child.getAttributeValue("creation");
                         QString subject_o = child.getAttributeValue("s_o");
                         QString subject_t = child.getAttributeValue("s_t");

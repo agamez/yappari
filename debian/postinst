@@ -34,4 +34,4 @@ fi
 PIDS=$(ps | grep /usr/bin/Yappari | grep -v grep | awk ' { print $1 } ')
 for PID in $PIDS ; do
     kill $PID
-fi
+done

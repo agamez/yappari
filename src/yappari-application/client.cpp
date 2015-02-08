@@ -252,6 +252,9 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(mainWin,SIGNAL(requestLeaveGroup(QString)),
             this,SLOT(requestLeaveGroup(QString)));
 
+    connect(mainWin,SIGNAL(getMyStatus()),
+            this,SLOT(getMyStatus()));
+
     connect(mainWin,SIGNAL(changeStatus(QString)),
             this,SLOT(changeStatus(QString)));
 
@@ -1029,6 +1032,11 @@ void Client::syncFinished()
     sendGetStatus();
 }
 
+void Client::getMyStatus()
+{
+    requestContactStatus(myJid);
+}
+
 void Client::changeStatus(QString newStatus)
 {
     FMessage message("s.us",newStatus,"");
@@ -1325,9 +1333,10 @@ void Client::userStatusUpdated(FMessage message)
             Contact &c = roster->getContact(jid);
             c.status = QString::fromUtf8(message.data);
             message.key.remote_jid = jid;
-            mainWin->statusChanged(message);
-
             roster->updateStatus(&c);
+
+            if(jid==myJid) myStatus=status;
+            mainWin->statusChanged(message);
         }
     }
 }
@@ -1433,12 +1442,12 @@ void Client::statusChanged(QString jid, qint64 t, QString status)
 {
     Contact &c = roster->getContact(jid);
 
-    if (c.statusTimestamp != t)
+    if (c.statusTimestamp != t || jid==myJid)
     {
         c.status = status;
         c.statusTimestamp = t;
-
         roster->updateStatus(&c);
+        if(jid==myJid) myStatus=status;
 
         mainWin->statusChanged(jid, status);
     }

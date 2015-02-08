@@ -155,6 +155,7 @@ signals:
     void activeChatChanged(QString jid);
     void sendSetGroupSubject(QString gjid, QString newSubject);
     void requestLeaveGroup(QString jid);
+    void getMyStatus();
     void changeStatus(QString newStatus);
     void changeUserName(QString newUserName);
     void sync();
@@ -172,6 +173,7 @@ signals:
     void previewPhotoReceived(QString jid);
     void largePhotoReceived(QString jid, QImage photo, QString photoId);
     void onlineStatusChanged(QString jid);
+    void ownStatusUpdated(QString);
     void userStatusUpdated(QString jid);
     void groupSubjectUpdated(QString gjid);
     void addGroupParticipant(QString gjid, QString participant);

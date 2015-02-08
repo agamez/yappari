@@ -291,6 +291,7 @@ public slots:
     void requestLeaveGroup(QString jid);
     void requestQueryLastOnline(QString jid);
     void userStatusUpdated(FMessage message);
+    void getMyStatus();
     void changeStatus(QString newStatus);
     void changeUserName(QString newUserName);
     void synchronizeContacts();

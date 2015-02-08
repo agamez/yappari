@@ -993,6 +993,10 @@ void MainWindow::showStatusWindow()
 
     connect(window,SIGNAL(changeStatus(QString)),
             this,SLOT(requestChangeStatus(QString)));
+    connect(this,SIGNAL(ownStatusUpdated(QString)),
+            window,SLOT(statusReceived(QString)));
+
+    emit getMyStatus();
 
     showWindow(window);
 }
@@ -1063,6 +1067,7 @@ void MainWindow::statusChanged(QString jid, QString status)
         chat->statusChanged(status);
     }
 
+    if(jid==Client::myJid) emit ownStatusUpdated(status);
     emit userStatusUpdated(jid);
 }
 

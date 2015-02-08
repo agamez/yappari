@@ -35,10 +35,6 @@ StatusWindow::StatusWindow(QWidget *parent) :
         QListWidgetItem *item = new QListWidgetItem(status);
         ui->listWidget->insertItem(0,item);
     }
-
-    ui->textEdit->setText(Utilities::WATextToHtml(Client::myStatus,32));
-    ui->textEdit->moveCursor(QTextCursor::End);
-    ui->textEdit->setFocus();
 }
 
 StatusWindow::~StatusWindow()
@@ -59,6 +55,14 @@ bool StatusWindow::eventFilter(QObject *obj, QEvent *event)
     }
 
     return QMainWindow::eventFilter(obj,event);
+}
+
+void StatusWindow::statusReceived(QString status)
+{
+    ui->textEdit->setText(Utilities::WATextToHtml(status,32));
+    ui->saveButton->setEnabled(true);
+    ui->textEdit->moveCursor(QTextCursor::End);
+    ui->textEdit->setFocus();
 }
 
 void StatusWindow::statusSelected(QListWidgetItem *item)

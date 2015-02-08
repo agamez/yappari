@@ -20,6 +20,7 @@ signals:
     void changeStatus(QString status);
 
 public slots:
+    void statusReceived(QString status);
     void statusSelected(QListWidgetItem *item);
     void verifyStatus();
 

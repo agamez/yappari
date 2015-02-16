@@ -347,12 +347,14 @@ void ChatArea::contextMenu(QPoint p, QObject *obj)
     QMenu *menu = new QMenu(this);
     QAction *copy = new QAction("Copy",this);
     QAction *forward = new QAction("Forward", this);
+    QAction *deletemsg = new QAction("Delete", this);
     QAction *browser = new QAction("Open in browser", this);
 
     if (obj->objectName() == "ChatTextItem")
         menu->addAction(copy);
 
     menu->addAction(forward);
+    menu->addAction(deletemsg);
 
     if (obj->objectName() == "ChatImageItem")
     {
@@ -402,6 +404,25 @@ void ChatArea::contextMenu(QPoint p, QObject *obj)
                                    dbus,this);
 
         browserBus->load_url("file://" + msg.local_file_uri);
+    }
+    else if (action == deletemsg)
+    {
+        FMessage msg;
+        if (obj->objectName() == "ChatTextItem")
+        {
+            ChatTextItem *item = (ChatTextItem *) obj;
+            msg = item->getMessage();
+            grid->removeWidget(item);
+            delete item;
+        }
+        else if (obj->objectName() == "ChatImageItem")
+        {
+            ChatImageItem *item = (ChatImageItem *) obj;
+            msg = item->getMessage();
+            grid->removeWidget(item);
+            delete item;
+        }
+        emit deleteMessage(msg);
     }
     Utilities::logData("Exit Menu");
 }

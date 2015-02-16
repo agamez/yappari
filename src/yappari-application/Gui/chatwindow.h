@@ -101,6 +101,7 @@ public slots:
     void updateRecordingTime(int current);
     void sendVoiceNotePlayed(FMessage message);
     void forwardMessageRequested(FMessage message);
+    void deleteMessage(FMessage message);
 
 signals:
     void logMessage(FMessage message);

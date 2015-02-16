@@ -407,6 +407,16 @@ void ChatLogger::deleteAllMessages()
     init(jid);
 }
 
+void ChatLogger::deleteMessage(FMessage message)
+{
+    QSqlQuery query(db);
+
+    query.prepare("delete from log where id=:id");
+
+    query.bindValue(":id",message.key.id);
+    query.exec();
+}
+
 FMessage ChatLogger::lastMessage()
 {
     QSqlQuery query(db);

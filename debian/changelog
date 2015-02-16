@@ -1,3 +1,9 @@
+yappari (2.0.5+nmu1) UNRELEASED; urgency=medium
+
+  * Message deletion implemented.
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Mon, 16 Feb 2015 20:48:59 +0100
+
 yappari (2.0.5) stable; urgency=medium
 
   * Fix registration (CODeRUS)

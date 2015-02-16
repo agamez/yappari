@@ -101,6 +101,8 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
             this,SLOT(sendVoiceNotePlayed(FMessage)));
     connect(ui->scrollArea,SIGNAL(forwardMessage(FMessage)),
             this,SLOT(forwardMessageRequested(FMessage)));
+    connect(ui->scrollArea,SIGNAL(deleteMessage(FMessage)),
+            this,SLOT(deleteMessage(FMessage)));
     connect(ui->sendButton,SIGNAL(clicked()),this,SLOT(sendButtonClicked()));
     connect(ui->sendButton,SIGNAL(pressed()),this,SLOT(startRecording()));
     connect(ui->selectEmojiButton,SIGNAL(clicked()),
@@ -927,4 +929,17 @@ void ChatWindow::sendVoiceNotePlayed(FMessage message)
 void ChatWindow::forwardMessageRequested(FMessage message)
 {
     emit forwardMessage(message);
+}
+
+void ChatWindow::deleteMessage(FMessage message)
+{
+    QMessageBox msg(this);
+
+    msg.setText("Are you sure you want to permanentl delete this message from the log?");
+    msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+
+    if (msg.exec() == QMessageBox::Yes)
+    {
+        logger.deleteMessage(message);
+    }
 }

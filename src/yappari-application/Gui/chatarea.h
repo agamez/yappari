@@ -58,6 +58,7 @@ signals:
     void mediaDownload(FMessage message);
     void voiceNotePlayed(FMessage message);
     void forwardMessage(FMessage message);
+    void deleteMessage(FMessage message);
     void contextMenuRequested(QPoint p, QObject *obj);
 
 public slots:

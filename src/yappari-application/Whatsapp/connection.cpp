@@ -548,15 +548,13 @@ bool Connection::read()
             message = store.value(k);
             if (message.key.id == id)
             {
-                message.status = (receipt_type == "played")
-                        ? FMessage::Played
-                        /* Whatsapp server sends the same "received" message twice:
-                           once when received by the target and the second one when
-                           it has been read (or at least displayed by the app) */
-                        : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
-                          ? FMessage::ReadByTarget
-                          : FMessage::ReceivedByTarget;
-                msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
+                if(receipt_type == "played") {
+                    message.status = FMessage::Played;
+                } else if(receipt_type == "read" && Client::blueChecks) {
+                    message.status = FMessage::ReadByTarget;
+                } else {
+                    message.status = FMessage::ReceivedByTarget;
+                }
 
                 // Remove it from the store if it's not a voice message
                 // Or if it's a voice message already played
@@ -579,64 +577,6 @@ bool Connection::read()
 
             emit messageStatusUpdate(message);
 
-            //READ LIST
-            if (receipt_type=="read" || receipt_type=="played")
-            {
-                ProtocolTreeNodeListIterator i(node.getChildren());
-                while (i.hasNext())
-                {
-                    ProtocolTreeNode child = i.next().value();
-                    if (child.getTag() == "list")
-                    {
-                        ProtocolTreeNodeListIterator j(child.getChildren());
-                        while (j.hasNext())
-                        {
-                            ProtocolTreeNode user = j.next().value();
-                            if (user.getTag()=="item") {
-                                QString kid = user.getAttributeValue("id");
-
-                                FMessage message;
-                                Key k(from,true,kid);
-                                message = store.value(k);
-                                if (message.key.id == kid)
-                                {
-                                    message.status = (receipt_type == "played")
-                                            ? FMessage::Played
-                                            /* Whatsapp server sends the same "received" message twice:
-                                               once when received by the target and the second one when
-                                               it has been read (or at least displayed by the app) */
-                                            : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
-                                              ? FMessage::ReadByTarget
-                                              : FMessage::ReceivedByTarget;
-                                    msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
-
-                                    // Remove it from the store if it's not a voice message
-                                    // Or if it's a voice message already played
-                                    if ((message.live && receipt_type == "played") || !message.live)
-                                        store.remove(k);
-
-                                    // But restore it if still waiting for ReadByTarget
-                                    if (message.status == FMessage::ReceivedByTarget)
-                                        store.put(message);
-                                }
-                                if (receipt_type == "delivered" || receipt_type == "played" ||
-                                    receipt_type.isEmpty())
-                                {
-                                    // Delivery Receipt received
-                                    sendDeliveredReceiptAck(from, kid,
-                                                            (receipt_type.isEmpty()
-                                                             ? "delivered"
-                                                             : receipt_type));
-                                }
-
-                                emit messageStatusUpdate(message);
-                            }
-                        }
-                    }
-
-                }
-
-            }
             // Delivery Receipt received
             sendDeliveredReceiptAck(from, id, receipt_type, participant);
 

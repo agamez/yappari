@@ -1,6 +1,8 @@
-yappari (2.0.5+nmu1) UNRELEASED; urgency=medium
+yappari (2.0.6) stable; urgency=medium
 
   * Message deletion implemented.
+  * Basic group receipts implemented.
+  * Crashes on connection error should be fixed (cepiperez)
 
  -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Mon, 16 Feb 2015 20:48:59 +0100
 

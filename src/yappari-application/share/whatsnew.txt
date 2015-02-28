@@ -3,6 +3,8 @@ If you like this application and want to see more updates consider contributing 
 
 <b>New in this version 2.0.6:</b><br>
 <li>&bull; Message deletion implemented.</li>
+<li>&bull; Basic group receipts implemented.</li>
+<li>&bull; Crashes on connection error should be fixed (cepiperez)</li>
 <br>
 
 <b>New in this version 2.0.5:</b><br>

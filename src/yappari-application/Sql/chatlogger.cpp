@@ -141,84 +141,52 @@ bool ChatLogger::init(QString jid)
 
         // Check the DB is the current version
 
-        query.prepare("select version from settings");
-        query.exec();
+        query.exec("select version from settings");
 
         if (query.next())
         {
             int version = query.value(0).toInt();
 
-            if (version == 1)
+            query.exec("BEGIN TRANSACTION");
+            switch(version)
             {
+            case 1:
                 // Upgrade it to version 2
 
                 Utilities::logData("Upgrading log " + jid + " to version 2");
 
-                query.prepare("alter table log add column local_file_uri varchar(512)");
-                query.exec();
-                query.prepare("update settings set version=2");
-                query.exec();
+                query.exec("alter table log add column local_file_uri varchar(512)");
 
-                version = 2;
-                query.prepare("update settings set version="+
-                              QString::number(version));
-                query.exec();
-            }
-
-            if (version == 2)
-            {
+            case 2:
                 // Upgrade it to version 3
 
                 Utilities::logData("Upgrading log " + jid + " to version " +
                                    QString::number(LOG_VERSION));
 
-                query.prepare("alter table log add column live boolean");
-                query.exec();
-                query.prepare("alter table log add column latitude real");
-                query.exec();
-                query.prepare("alter table log add column longitude real");
-                query.exec();
+                query.exec("alter table log add column live boolean");
+                query.exec("alter table log add column latitude real");
+                query.exec("alter table log add column longitude real");
 
-                version = 3;
-                query.prepare("update settings set version="+
-                              QString::number(version));
-                query.exec();
-            }
-
-            if (version == 3)
-            {
+            case 3:
                 // Upgrade it to version 4
-
                 Utilities::logData("Upgrading log " + jid + " to version " +
                                    QString::number(LOG_VERSION));
 
-                query.prepare("alter table log add column media_caption varchar(160)");
-                query.exec();
+                query.exec("alter table log add column media_caption varchar(160)");
 
-                version = LOG_VERSION;
-                query.prepare("update settings set version="+
-                              QString::number(version));
-                query.exec();
-            }
-            if (version == 4)
-            {
+            case 4:
                 // Upgrade it to version 5
 
                 Utilities::logData("Upgrading log " + jid + " to version " +
                                    QString::number(LOG_VERSION));
 
-                query.prepare("alter table log add column msg_count integer");
-                query.exec();
-                query.prepare("alter table log add column msg_delivered varchar(8192)");
-                query.exec();
-                query.prepare("alter table log add column msg_read varchar(8192)");
-                query.exec();
-
-                version = 5;
-                query.prepare("update settings set version="+
-                              QString::number(version));
-                query.exec();
+                query.exec("alter table log add column msg_count integer");
+                query.exec("alter table log add column msg_delivered varchar(8192)");
+                query.exec("alter table log add column msg_read varchar(8192)");
             }
+            query.exec("update settings set version=" +
+                        QString::number(LOG_VERSION));
+            query.exec("END TRANSACTION");
         }
 
         query.exec("select max(localid) from log");

@@ -1134,6 +1134,7 @@ void Client::read()
             Utilities::logData("read(): There was an IO Exception: " + lastError);
             connectionClosed();
             showStatus(lastError + " Retrying in 10 seconds..");
+            break;
         }
         catch (ProtocolException &e)
         {
@@ -1141,6 +1142,7 @@ void Client::read()
             Utilities::logData("read(): There was a Protocol Exception: " + lastError);
             connectionClosed();
             showStatus("Protocol Exception. Retrying in 10 seconds...");
+            break;
         }
     }
 

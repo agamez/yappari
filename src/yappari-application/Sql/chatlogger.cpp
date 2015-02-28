@@ -37,7 +37,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define MAX_MESSAGES               7
-#define LOG_VERSION                5
+#define LOG_VERSION                6
 #define LOG_EXTENSION              ".dblog"
 
 // Column definitions
@@ -122,8 +122,8 @@ bool ChatLogger::init(QString jid)
                    "longitude real,"
                    "media_caption varchar(160),"
                    "msg_count integer,"
-                   "msg_delivered varchar(8192),"
-                   "msg_read varchar(8192)"
+                   "msg_delivered integer,"
+                   "msg_read integer"
                    ")");
 
         query.exec("create table settings ("
@@ -183,6 +183,42 @@ bool ChatLogger::init(QString jid)
                 query.exec("alter table log add column msg_count integer");
                 query.exec("alter table log add column msg_delivered varchar(8192)");
                 query.exec("alter table log add column msg_read varchar(8192)");
+
+            case 5:
+                // Upgrade it to version 6
+
+                Utilities::logData("Upgrading log " + jid + " to version " +
+                                   QString::number(LOG_VERSION));
+
+                // sqlite doesn't allow column type alteration, so we must do this workaround
+                query.exec("alter table log rename to tmp_log");
+                query.exec("create table log ("
+                           "localid integer primary key autoincrement,"
+                           "name varchar(256),"
+                           "from_me boolean,"
+                           "timestamp integer not null,"
+                           "id varchar(20) not null,"
+                           "type integer not null,"
+                           "data varchar(65535),"
+                           "thumb_image varchar(256),"
+                           "status integer not null,"
+                           "media_url varchar(256),"
+                           "media_mime_type varchar(20),"
+                           "media_wa_type integer,"
+                           "media_size integer,"
+                           "media_name varchar(256),"
+                           "media_duration_seconds integer,"
+                           "local_file_uri varchar(512),"
+                           "live boolean,"
+                           "latitude real,"
+                           "longitude real,"
+                           "media_caption varchar(160),"
+                           "msg_count integer,"
+                           "msg_delivered integer,"
+                           "msg_read integer"
+                           ")");
+                query.exec("insert into log select * from tmp_log");
+                query.exec("drop table tmp_log");
             }
             query.exec("update settings set version=" +
                         QString::number(LOG_VERSION));
@@ -209,12 +245,14 @@ void ChatLogger::logMessage(FMessage message)
                   "id, type, data, thumb_image, status, "
                   "media_url, media_mime_type, media_wa_type, media_size, "
                   "media_name, media_duration_seconds, local_file_uri,"
-                  "live, latitude, longitude, media_caption) "
+                  "live, latitude, longitude, media_caption,"
+                  "msg_count, msg_delivered, msg_read)"
                   "values (:name, :from_me, :timestamp, :id, "
                   ":type, :data, :thumb_image, :status, "
                   ":media_url, :media_mime_type, :media_wa_type, :media_size, "
                   ":media_name, :media_duration_seconds, :local_file_uri,"
-                  ":live, :latitude, :longitude, :media_caption"
+                  ":live, :latitude, :longitude, :media_caption,"
+                  ":msg_count, :msg_delivered, :msg_read"
                   ")");
 
     query.bindValue(":name",message.notify_name);
@@ -243,6 +281,10 @@ void ChatLogger::logMessage(FMessage message)
     query.bindValue(":latitude", message.latitude);
     query.bindValue(":longitude", message.longitude);
     query.bindValue(":media_caption", message.media_caption);	
+
+    query.bindValue(":msg_count", message.count);
+    query.bindValue(":msg_delivered", message.delivered);
+    query.bindValue(":msg_read", message.read);
     query.exec();
 
     Utilities::logData("logMessage(): " + query.lastError().text());
@@ -276,6 +318,9 @@ FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
     msg.latitude = query.value(LOG_LATITUDE).toDouble();
     msg.longitude = query.value(LOG_LONGITUDE).toDouble();
     msg.media_caption = query.value(LOG_MEDIA_CAPTION).toString();
+    msg.count = query.value(LOG_MSG_COUNT).toInt();
+    msg.read = query.value(LOG_MSG_READ).toInt();
+    msg.delivered = query.value(LOG_MSG_DELIVERED).toInt();
 
 
     if (msg.type == FMessage::MediaMessage)

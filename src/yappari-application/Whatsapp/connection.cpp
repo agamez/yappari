@@ -492,13 +492,13 @@ bool Connection::read()
                 message = store.value(k);
                 message.status = FMessage::ReceivedByServer;
                 message.count = count.toInt();
+                message.read = 0;
+                message.delivered = 0;
+
+                // Update store
+                store[k]=message;
 
                 msgType = MessageStatusUpdate;
-
-                // If this a receipt from a group message
-                // delete it from the FunStore
-                if (from.right(5) == "@g.us")
-                    store.remove(k);
 
                 emit messageStatusUpdate(message);
 
@@ -551,9 +551,18 @@ bool Connection::read()
                 if(receipt_type == "played") {
                     message.status = FMessage::Played;
                 } else if(receipt_type == "read" && Client::blueChecks) {
-                    message.status = FMessage::ReadByTarget;
+                    if(from.right(5) == "@g.us")
+                    {
+                        message.read++;
+                        if(message.read==message.count) message.status = FMessage::ReadByTarget;
+                    } else if(Client::blueChecks) message.status = FMessage::ReadByTarget;
                 } else {
-                    message.status = FMessage::ReceivedByTarget;
+                    if(from.right(5) == "@g.us")
+                    {
+                        message.delivered++;
+                        Utilities::logData("  message.delivered = " + QString::number(message.delivered));
+                        if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
+                    } else FMessage::ReceivedByTarget;
                 }
 
                 // Remove it from the store if it's not a voice message
@@ -913,11 +922,6 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                         message.status = FMessage::ReceivedByServer;
 
                         msgType = (from == "s.us") ? UserStatusUpdate : MessageStatusUpdate;
-
-                        // If this a receipt from a group message
-                        // delete it from the FunStore
-                        if (from.right(5) == "@g.us")
-                            store.remove(k);
                     }
                 }
                 else if (xmlns == "jabber:x:delay")

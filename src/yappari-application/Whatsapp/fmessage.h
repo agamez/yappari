@@ -99,8 +99,8 @@ public:
     QString remote_resource;
     ContentType type;
     int count;
-    QString delivered;
-    QString read;
+    int delivered;
+    int read;
 
     double latitude;
     double longitude;

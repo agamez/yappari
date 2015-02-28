@@ -560,7 +560,6 @@ bool Connection::read()
                     if(from.right(5) == "@g.us")
                     {
                         message.delivered++;
-                        Utilities::logData("  message.delivered = " + QString::number(message.delivered));
                         if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
                     } else FMessage::ReceivedByTarget;
                 }

@@ -58,6 +58,7 @@ public slots:
     void updateUriMessage(FMessage message);
     void updateDuration(FMessage message);
     void deleteAllMessages();
+    void deleteMessage(FMessage message);
 
 private:
     QString jid;

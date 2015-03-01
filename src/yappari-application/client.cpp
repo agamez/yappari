@@ -1106,8 +1106,8 @@ void Client::connectionClosed()
         else
         {
             Utilities::logData("Yappari will retry the connection in 10 seconds.");
-            retryLoginTimer->start(RETRY_LOGIN_INTERVAL);
             retryLoginTimer->setSingleShot(true);
+            retryLoginTimer->start(RETRY_LOGIN_INTERVAL);
         }
     }
     else

@@ -548,30 +548,29 @@ bool Connection::read()
             message = store.value(k);
             if (message.key.id == id)
             {
+                // Remove it from the store if it's not a voice message
+                // Or if it's a voice message already played
+                // It will be restored while waiting for receipts
+                if ((message.live && receipt_type == "played") || !message.live)
+                    store.remove(k);
+
                 if(receipt_type == "played") {
                     message.status = FMessage::Played;
-                } else if(receipt_type == "read" && Client::blueChecks) {
+                } else if(receipt_type == "read") {
                     if(from.right(5) == "@g.us")
                     {
                         message.read++;
                         if(message.read==message.count) message.status = FMessage::ReadByTarget;
+                        else store.put(message);
                     } else if(Client::blueChecks) message.status = FMessage::ReadByTarget;
                 } else {
                     if(from.right(5) == "@g.us")
                     {
                         message.delivered++;
                         if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
-                    } else FMessage::ReceivedByTarget;
-                }
-
-                // Remove it from the store if it's not a voice message
-                // Or if it's a voice message already played
-                if ((message.live && receipt_type == "played") || !message.live)
-                    store.remove(k);
-
-                // But restore it if still waiting for ReadByTarget
-                if (message.status == FMessage::ReceivedByTarget)
+                    } else message.status = FMessage::ReceivedByTarget;
                     store.put(message);
+                }
             }
             if (receipt_type == "delivered" || receipt_type == "played" ||
                 receipt_type.isEmpty())

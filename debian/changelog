@@ -1,3 +1,9 @@
+yappari (2.0.7) stable; urgency=medium
+
+  * Fix receipts on both single chats and groups
+
+ -- Alvaro Gamez Machado <alvaro.gamez@hazent.com>  Sun, 01 Mar 2015 16:11:58 +0100
+
 yappari (2.0.6) stable; urgency=medium
 
   * Message deletion implemented.

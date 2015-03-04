@@ -30,6 +30,7 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QVariant>
+#include <QList>
 
 #include "globalconstants.h"
 #include "chatlogger.h"
@@ -37,7 +38,7 @@
 #include "Whatsapp/util/utilities.h"
 
 #define MAX_MESSAGES               7
-#define LOG_VERSION                6
+#define LOG_VERSION                7
 #define LOG_EXTENSION              ".dblog"
 
 // Column definitions
@@ -65,6 +66,10 @@
 #define LOG_MSG_COUNT               20
 #define LOG_MSG_DELIVERED           21
 #define LOG_MSG_READ                22
+
+#define LOG_RECEIPT_REMOTE_JID       1
+#define LOG_RECEIPT_TYPE             2
+#define LOG_RECEIPT_TIMESTAMP        3
 
 ChatLogger::ChatLogger(QObject *parent):
     QObject(parent)
@@ -127,6 +132,13 @@ bool ChatLogger::init(QString jid)
                    "msg_read integer"
                    ")");
 
+        query.exec("create table receipt ("
+                   "message_id integer not null,"
+                   "participant varchar(20) not null,"
+                   "type integer not null,"
+                   "timestamp integer not null,"
+                   "unique(message_id, participant, type))");
+
         query.exec("create table settings ("
                    "version integer"
                    ")");
@@ -188,7 +200,6 @@ bool ChatLogger::init(QString jid)
 
             case 5:
                 // Upgrade it to version 6
-
                 Utilities::logData("Upgrading log " + jid + " to version " +
                                    QString::number(LOG_VERSION));
 
@@ -221,6 +232,18 @@ bool ChatLogger::init(QString jid)
                            ")");
                 query.exec("insert into log select * from tmp_log");
                 query.exec("drop table tmp_log");
+
+            case 6:
+                // Upgrade it to version 7
+                Utilities::logData("Upgrading log " + jid + " to version " +
+                                   QString::number(LOG_VERSION));
+
+		query.exec("create table receipt ("
+                           "message_id integer not null,"
+                           "participant varchar(20) not null,"
+                           "type integer not null,"
+			   "timestamp integer not null,"
+			   "unique(message_id, participant, type))");
             }
             query.exec("update settings set version=" +
                         QString::number(LOG_VERSION));
@@ -243,6 +266,7 @@ void ChatLogger::logMessage(FMessage message)
 {
     QSqlQuery query(db);
 
+    query.exec("BEGIN TRANSACTION");
     query.prepare("insert into log (name, from_me, timestamp, "
                   "id, type, data, thumb_image, status, "
                   "media_url, media_mime_type, media_wa_type, media_size, "
@@ -289,7 +313,25 @@ void ChatLogger::logMessage(FMessage message)
     query.bindValue(":msg_read", message.read);
     query.exec();
 
+    query.exec("select max(localid) from log");
+    query.next();
+    int log_id = query.value(0).toInt();
+
     Utilities::logData("logMessage(): " + query.lastError().text());
+
+    for(int i=0; i<message.receipts.size(); i++)
+    {
+        Utilities::logData("INSERTING receipt");
+        query.prepare("insert into receipt (message_id, participant, type, timestamp) "
+                      "values(:message_id, :participant, :type, :timestamp)");
+        query.bindValue(":message_id,", log_id);
+        query.bindValue(":participant", message.receipts.at(i).remote_jid);
+        query.bindValue(":type", message.receipts.at(i).type);
+        query.bindValue(":timestamp", message.receipts.at(i).timestamp);
+        query.exec();
+    }
+
+    query.exec("END TRANSACTION");
 }
 
 FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
@@ -329,6 +371,19 @@ FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
         msg.setData(QByteArray::fromBase64(query.value(LOG_DATA).toString().toUtf8()));
     else
         msg.setData(query.value(LOG_DATA).toString());
+
+    int localid = query.value(LOG_LOCALID).toInt();
+    query.prepare("select * from receipt "
+                  "where message_id = :message_id "),
+    query.bindValue(":message_id",localid);
+    query.exec();
+
+    while (query.next()) {
+        Receipt r(query.value(LOG_RECEIPT_REMOTE_JID).toString(),
+                  (Receipt::ReceiptType)query.value(LOG_RECEIPT_TYPE).toInt(),
+                  query.value(LOG_RECEIPT_TIMESTAMP).toLongLong());
+        msg.receipts.append(r);
+    }
 
     return msg;
 }
@@ -371,6 +426,8 @@ void ChatLogger::updateLoggedMessage(FMessage message)
 {
     QSqlQuery query(db);
 
+    query.exec("BEGIN TRANSACTION");
+
     query.prepare("update log set status=:status, msg_count=:msg_count, "
                 "msg_delivered=:msg_delivered, msg_read=:msg_read where id=:id");
 
@@ -381,6 +438,31 @@ void ChatLogger::updateLoggedMessage(FMessage message)
     query.bindValue(":msg_read",message.read);
 
     query.exec();
+
+    Utilities::logData("logMessage(): " + query.lastError().text());
+
+    query.prepare("select localid from log where id=:id");
+    query.bindValue(":id",message.key.id);
+    query.exec();
+
+    query.next();
+    int log_id = query.value(0).toInt();
+
+    for(int i=0; i<message.receipts.size(); i++)
+    {
+        Utilities::logData("UPDATING receipts");
+        query.prepare("insert or replace into receipt (message_id, participant, type, timestamp) "
+                      "values(:message_id, :participant, :type, :timestamp)");
+        query.bindValue(":message_id,", log_id);
+        query.bindValue(":participant", message.receipts.at(i).remote_jid);
+        query.bindValue(":type", message.receipts.at(i).type);
+        query.bindValue(":timestamp", message.receipts.at(i).timestamp);
+        query.exec();
+    }
+
+    Utilities::logData("logMessage(): " + query.lastError().text());
+
+    query.exec("END TRANSACTION");
 }
 
 void ChatLogger::updateUriMessage(FMessage message)
@@ -486,5 +568,3 @@ FMessage ChatLogger::lastMessage(QString jid)
 
     return msg;
 }
-
-

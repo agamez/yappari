@@ -1,6 +1,10 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.8:</b><br>
+<li>&bull; New checks to avoid crashes on connection error (cepiperez)</li>
+<br>
+
 <b>New in this version 2.0.7:</b><br>
 <li>&bull; Fix receipts on both single chats and groups</li>
 <br>

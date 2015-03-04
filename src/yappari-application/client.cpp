@@ -1122,6 +1122,9 @@ void Client::connectionClosed()
 
 void Client::read()
 {
+    if (connectionStatus==Disconnected || connectionStatus==WaitingForConnection)
+        return;
+
     connectionMutex.lock();
     while (socket->bytesAvailable() > 0)
     {

@@ -834,6 +834,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
     QString typeAttribute = messageNode.getAttributeValue("type");
 
 
+    Utilities::logData("parseMessageInitialTagAlreadyChecked");
     if (typeAttribute == "text" || typeAttribute == "media")
     {
         ProtocolTreeNodeListIterator i(messageNode.getChildren());
@@ -933,26 +934,33 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 QString receipt_type = child.getAttributeValue("type");
                 Key k(from,true,id);
                 message = store.value(k);
+                /* This code is duped, but is it ever reached? */
+                Utilities::logData("parseMessageInitialTagAlreadyChecked: Processing 'received' tag");
                 if (message.key.id == id)
                 {
-                    message.status = (receipt_type == "played")
-                            ? FMessage::Played
-                            /* Whatsapp server sends the same "received" message twice:
-                               once when received by the target and the second one when
-                               it has been read (or at least displayed by the app) */
-                            : (message.status == FMessage::ReceivedByTarget && Client::blueChecks)
-                              ? FMessage::ReadByTarget
-                              : FMessage::ReceivedByTarget;
-                    msgType = (from == "s.us") ? Unknown : MessageStatusUpdate;
-
                     // Remove it from the store if it's not a voice message
                     // Or if it's a voice message already played
+                    // It will be restored while waiting for receipts
                     if ((message.live && receipt_type == "played") || !message.live)
                         store.remove(k);
 
-                    // But restore it if still waiting for ReadByTarget
-                    if (message.status == FMessage::ReceivedByTarget)
+                    if(receipt_type == "played") {
+                        message.status = FMessage::Played;
+                    } else if(receipt_type == "read") {
+                        if(from.right(5) == "@g.us")
+                        {
+                            message.read++;
+                            if(message.read==message.count) message.status = FMessage::ReadByTarget;
+                            else store.put(message);
+                        } else if(Client::blueChecks) message.status = FMessage::ReadByTarget;
+                    } else {
+                        if(from.right(5) == "@g.us")
+                        {
+                            message.delivered++;
+                            if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
+                        } else message.status = FMessage::ReceivedByTarget;
                         store.put(message);
+                    }
                 }
                 if (receipt_type == "delivered" || receipt_type == "played" ||
                     receipt_type.isEmpty())

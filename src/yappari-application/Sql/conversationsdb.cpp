@@ -60,6 +60,7 @@ ConversationsDB::ConversationsDB(QObject *parent):
     {
         QSqlQuery query(db);
 
+        query.exec("BEGIN TRANSACTION");
         query.exec("create table chats ("
                    "jid varchar(256) primary key,"
                    "muted boolean,"
@@ -72,6 +73,7 @@ ConversationsDB::ConversationsDB(QObject *parent):
 
         query.exec("insert into settings (version) values (" +
                    QString::number(DB_VERSION) + ")");
+        query.exec("END TRANSACTION");
     }
 }
 

@@ -100,6 +100,7 @@ bool ChatLogger::init(QString jid)
     {
         QSqlQuery query(db);
 
+        query.exec("BEGIN TRANSACTION");
         query.exec("create table log ("
                    "localid integer primary key autoincrement,"
                    "name varchar(256),"
@@ -133,6 +134,7 @@ bool ChatLogger::init(QString jid)
         query.exec("insert into settings (version) values (" +
                    QString::number(LOG_VERSION) + ")");
 
+        query.exec("END TRANSACTION");
         lastId = -1;
     }
     else

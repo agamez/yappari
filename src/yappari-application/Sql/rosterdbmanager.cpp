@@ -67,6 +67,7 @@ void RosterDBManager::init()
     {
         QSqlQuery query(db);
 
+        query.exec("BEGIN TRANSACTION");
         query.exec("create table roster ("
                    "jid varchar(256) primary key,"
                    "type integer,"
@@ -100,6 +101,7 @@ void RosterDBManager::init()
 
         query.exec("insert into settings (version) values (" +
                    QString::number(DB_VERSION) + ")");
+        query.exec("END TRANSACTION");
     }
     else
     {
@@ -194,6 +196,8 @@ void RosterDBManager::updateContact(Contact *c)
 {
     QSqlQuery query(db);
 
+    query.exec("BEGIN TRANSACTION");
+
     query.prepare("select jid from roster "
                   "where jid = :jid");
     query.bindValue(":jid",c->jid);
@@ -262,6 +266,7 @@ void RosterDBManager::updateContact(Contact *c)
 
         gquery.exec();
     }
+    query.exec("END TRANSACTION");
 
 }
 

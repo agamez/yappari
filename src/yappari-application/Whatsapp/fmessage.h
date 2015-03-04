@@ -34,6 +34,7 @@
 #include <QMutex>
 
 #include "key.h"
+#include "receipt.h"
 
 class FMessage
 {
@@ -116,6 +117,7 @@ public:
     int media_wa_type;
 
     QString local_file_uri;
+    QList<Receipt> receipts;
 
 
 private:

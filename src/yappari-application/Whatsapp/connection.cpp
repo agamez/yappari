@@ -854,6 +854,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 message.remote_resource = author;
                 message.setThumbImage("");
                 message.type = FMessage::BodyMessage;
+                message.notify_name = messageNode.getAttributeValue("notify");
                 if (!attribute_t.isEmpty())
                     message.timestamp = attribute_t.toLongLong() * 1000;
 
@@ -870,6 +871,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 message.setKey(k);
                 message.remote_resource = author;
                 message.type = FMessage::MediaMessage;
+                message.notify_name = messageNode.getAttributeValue("notify");
 
                 message.setMediaWAType(child.getAttributeValue("type"));
                 message.media_url = child.getAttributeValue("url");

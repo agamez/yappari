@@ -66,6 +66,7 @@
 #define LOG_MSG_COUNT               20
 #define LOG_MSG_DELIVERED           21
 #define LOG_MSG_READ                22
+#define LOG_MSG_REMOTE_RESOURCE     23
 
 #define LOG_RECEIPT_REMOTE_JID       1
 #define LOG_RECEIPT_TYPE             2
@@ -129,7 +130,8 @@ bool ChatLogger::init(QString jid)
                    "media_caption varchar(160),"
                    "msg_count integer,"
                    "msg_delivered integer,"
-                   "msg_read integer"
+                   "msg_read integer,"
+                   "remote_resource varchar(20)"
                    ")");
 
         query.exec("create table receipt ("
@@ -244,6 +246,7 @@ bool ChatLogger::init(QString jid)
                            "type integer not null,"
 			   "timestamp integer not null,"
 			   "unique(message_id, participant, type))");
+                query.exec("alter table log add remote_resource varchar(20)");
             }
             query.exec("update settings set version=" +
                         QString::number(LOG_VERSION));
@@ -272,13 +275,13 @@ void ChatLogger::logMessage(FMessage message)
                   "media_url, media_mime_type, media_wa_type, media_size, "
                   "media_name, media_duration_seconds, local_file_uri,"
                   "live, latitude, longitude, media_caption,"
-                  "msg_count, msg_delivered, msg_read)"
+                  "msg_count, msg_delivered, msg_read, remote_resource)"
                   "values (:name, :from_me, :timestamp, :id, "
                   ":type, :data, :thumb_image, :status, "
                   ":media_url, :media_mime_type, :media_wa_type, :media_size, "
                   ":media_name, :media_duration_seconds, :local_file_uri,"
                   ":live, :latitude, :longitude, :media_caption,"
-                  ":msg_count, :msg_delivered, :msg_read"
+                  ":msg_count, :msg_delivered, :msg_read, :remote_resource"
                   ")");
 
     query.bindValue(":name",message.notify_name);
@@ -311,6 +314,8 @@ void ChatLogger::logMessage(FMessage message)
     query.bindValue(":msg_count", message.count);
     query.bindValue(":msg_delivered", message.delivered);
     query.bindValue(":msg_read", message.read);
+
+    query.bindValue(":remote_resource", message.remote_resource);
     query.exec();
 
     query.exec("select max(localid) from log");
@@ -365,6 +370,7 @@ FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
     msg.count = query.value(LOG_MSG_COUNT).toInt();
     msg.read = query.value(LOG_MSG_READ).toInt();
     msg.delivered = query.value(LOG_MSG_DELIVERED).toInt();
+    msg.remote_resource = query.value(LOG_MSG_REMOTE_RESOURCE).toString();
 
 
     if (msg.type == FMessage::MediaMessage)

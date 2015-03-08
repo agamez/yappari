@@ -60,6 +60,7 @@ SOURCES += main.cpp \
     client.cpp \
     Whatsapp/ioexception.cpp \
     Whatsapp/protocolexception.cpp \
+    Whatsapp/receipt.cpp \
     Whatsapp/warequest.cpp \
     Whatsapp/waexistsrequest.cpp \
     Whatsapp/phonereg.cpp \
@@ -176,6 +177,7 @@ HEADERS += \
     client.h \
     Whatsapp/ioexception.h \
     Whatsapp/protocolexception.h \
+    Whatsapp/receipt.h \
     Whatsapp/warequest.h \
     Whatsapp/waexistsrequest.h \
     Whatsapp/phonereg.h \

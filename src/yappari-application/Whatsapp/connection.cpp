@@ -1482,11 +1482,6 @@ void Connection::sendMessageRead(FMessage& message)
 
     int bytes = out->write(messageNode);
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
-
-    store.remove(message.key);
-
-    message.status = FMessage::ReceivedByTarget;
-    store.put(message);
 }
 
 /**

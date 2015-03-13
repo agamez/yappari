@@ -55,9 +55,6 @@ bool BinTreeNodeReader::getOneToplevelStream()
     }
 
     //qDebug() << "[[ " + readBuffer.toHex();
-    if (decodedStream.isOpen()) {
-        decodedStream.close();
-    }
 
     if (decodeRawStream(flags, 0, bufferSize)) {
         decodedStream.setBuffer(&decodedBuffer);
@@ -146,6 +143,9 @@ bool BinTreeNodeReader::nextTree(ProtocolTreeNode& node)
     node.setSize(getOneToplevelStreamSize());
 
     result = nextTreeInternal(node);
+    if (decodedStream.isOpen()) {
+        decodedStream.close();
+    }
     Utilities::logData("INCOMING:\n" + node.toString());
     return result;
 }

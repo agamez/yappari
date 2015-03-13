@@ -1,6 +1,14 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.9:</b><br>
+<li>&bull; Better management of input buffers (may solve crashes?) (NerdKnight)</li>
+<li>&bull; Solves regression of non stored contacts (aliases work again since protocol change)</li>
+<li>&bull; Database backend implementation of individual receipts (stores who and when has received and read our messages)</li>
+<li>&bull; Solves some mistakes on blue checks</li>
+<li>&bull; Upgraded registration constants</li>
+<br>
+
 <b>New in this version 2.0.8:</b><br>
 <li>&bull; New checks to avoid crashes on connection error (cepiperez)</li>
 <br>

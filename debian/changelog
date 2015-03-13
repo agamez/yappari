@@ -1,3 +1,15 @@
+yappari (2.0.9) stable; urgency=medium
+
+  * Better management of input buffers (may solve crashes?) (NerdKnight)
+  * Solves regression of non stored contacts
+    (aliases work again since protocol change)
+  * Database backend implementation of individual receipts
+    (stores who and when has received and read our messages)
+  * Solves some mistakes on blue checks
+  * Upgraded registration constants
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Fri, 13 Mar 2015 16:53:08 +0100
+
 yappari (2.0.8) stable; urgency=medium
 
   * New checks to avoid crashes on connection error (cepiperez)

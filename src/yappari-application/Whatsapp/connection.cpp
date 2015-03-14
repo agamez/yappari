@@ -491,6 +491,10 @@ bool Connection::read()
                 Key k(from, true, id);
                 message = store.value(k);
                 message.status = FMessage::ReceivedByServer;
+
+                Receipt receipt(message.key.remote_jid, Receipt::ReceivedByServer);
+                message.receipts.append(receipt);
+
                 message.count = count.toInt();
                 message.read = 0;
                 message.delivered = 0;
@@ -559,6 +563,9 @@ bool Connection::read()
                 } else if(receipt_type == "read") {
                     if(from.right(5) == "@g.us")
                     {
+                        Receipt receipt(participant, Receipt::ReadByTarget, attribute_t.toLongLong() * 1000);
+                        message.receipts.append(receipt);
+
                         message.read++;
                         if(message.read==message.count) message.status = FMessage::ReadByTarget;
                         else store.put(message);
@@ -566,6 +573,9 @@ bool Connection::read()
                 } else {
                     if(from.right(5) == "@g.us")
                     {
+                        Receipt receipt(participant, Receipt::ReceivedByTarget, attribute_t.toLongLong() * 1000);
+                        message.receipts.append(receipt);
+
                         message.delivered++;
                         if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
                     } else message.status = FMessage::ReceivedByTarget;
@@ -854,6 +864,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 message.remote_resource = author;
                 message.setThumbImage("");
                 message.type = FMessage::BodyMessage;
+                message.notify_name = messageNode.getAttributeValue("notify");
                 if (!attribute_t.isEmpty())
                     message.timestamp = attribute_t.toLongLong() * 1000;
 
@@ -870,6 +881,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 message.setKey(k);
                 message.remote_resource = author;
                 message.type = FMessage::MediaMessage;
+                message.notify_name = messageNode.getAttributeValue("notify");
 
                 message.setMediaWAType(child.getAttributeValue("type"));
                 message.media_url = child.getAttributeValue("url");
@@ -919,6 +931,8 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     if (message.key.id == id)
                     {
                         message.status = FMessage::ReceivedByServer;
+                        Receipt receipt(message.key.remote_jid, Receipt::ReceivedByServer);
+                        message.receipts.append(receipt);
 
                         msgType = (from == "s.us") ? UserStatusUpdate : MessageStatusUpdate;
                     }
@@ -949,6 +963,9 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     } else if(receipt_type == "read") {
                         if(from.right(5) == "@g.us")
                         {
+                            Receipt receipt(author, Receipt::ReadByTarget, attribute_t.toLongLong() * 1000);
+                            message.receipts.append(receipt);
+
                             message.read++;
                             if(message.read==message.count) message.status = FMessage::ReadByTarget;
                             else store.put(message);
@@ -956,6 +973,9 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     } else {
                         if(from.right(5) == "@g.us")
                         {
+                            Receipt receipt(author, Receipt::ReceivedByTarget, attribute_t.toLongLong() * 1000);
+                            message.receipts.append(receipt);
+
                             message.delivered++;
                             if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
                         } else message.status = FMessage::ReceivedByTarget;
@@ -1250,6 +1270,8 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
 */
 void Connection::sendMessage(FMessage& message)
 {
+    Receipt receipt(message.key.remote_jid);
+
     switch (message.type)
     {
         case FMessage::ComposingMessage:
@@ -1263,7 +1285,8 @@ void Connection::sendMessage(FMessage& message)
         case FMessage::BodyMessage:
             sendMessageWithBody(message);
             message.status = FMessage::SentByClient;
-            // emit messageStatusUpdate(message);
+            message.receipts.append(receipt);
+            emit messageStatusUpdate(message);
             break;
 
         case FMessage::MediaMessage:
@@ -1461,11 +1484,6 @@ void Connection::sendMessageRead(FMessage& message)
 
     int bytes = out->write(messageNode);
     counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
-
-    store.remove(message.key);
-
-    message.status = FMessage::ReceivedByTarget;
-    store.put(message);
 }
 
 /**

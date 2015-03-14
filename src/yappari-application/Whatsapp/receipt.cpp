@@ -1,4 +1,4 @@
-/* Copyright 2013 Naikel Aparicio. All rights reserved.
+/* Copyright 2015 Alvaro Gamez Machado <alvaro.gamez@hazent.com> All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,46 +26,28 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#ifndef CHATLOGGER_H
-#define CHATLOGGER_H
-
-#include <QSqlDatabase>
-#include <QSqlQuery>
+#include <QDateTime>
 #include <QString>
-#include <QList>
 
-#include "Whatsapp/fmessage.h"
+#include "receipt.h"
 
-#include "Contacts/contact.h"
-
-class ChatLogger : public QObject
+Receipt::Receipt(QString remote_jid)
 {
-    Q_OBJECT
-public:
-    QSqlDatabase db;
+    this->remote_jid = remote_jid;
+    this->type = SentByClient;
+    this->timestamp = QDateTime::currentMSecsSinceEpoch();
+}
 
-    ChatLogger(QObject *parent = 0);
-    ~ChatLogger();
-    bool init(QString jid);
-    QList<FMessage> lastMessages();
-    FMessage lastMessage();
+Receipt::Receipt(QString remote_jid, enum ReceiptType type)
+{
+    this->remote_jid = remote_jid;
+    this->type = type;
+    this->timestamp = QDateTime::currentMSecsSinceEpoch();
+}
 
-    static FMessage lastMessage(QString jid);
-
-public slots:
-    void logMessage(FMessage message);
-    void updateLoggedMessage(FMessage message);
-    void updateUriMessage(FMessage message);
-    void updateDuration(FMessage message);
-    void deleteAllMessages();
-    void deleteMessage(FMessage message);
-
-private:
-    QString jid;
-    int lastId;
-
-    static int getMessageReceipts(QSqlQuery& query, FMessage &msg);
-    static FMessage sqlQueryResultToFMessage(QString jid,QSqlQuery& query);
-};
-
-#endif // CHATLOGGER_H
+Receipt::Receipt(QString remote_jid, enum ReceiptType type, qint64 timestamp)
+{
+    this->remote_jid = remote_jid;
+    this->type = type;
+    this->timestamp = timestamp;
+}

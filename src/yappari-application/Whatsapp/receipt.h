@@ -1,4 +1,4 @@
-/* Copyright 2013 Naikel Aparicio. All rights reserved.
+/* Copyright 2015 Alvaro Gamez Machado <alvaro.gamez@hazent.com> All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,46 +26,34 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#ifndef CHATLOGGER_H
-#define CHATLOGGER_H
+#ifndef RECEIPT_H
+#define RECEIPT_H
 
-#include <QSqlDatabase>
-#include <QSqlQuery>
+#include <QObject>
 #include <QString>
-#include <QList>
 
-#include "Whatsapp/fmessage.h"
-
-#include "Contacts/contact.h"
-
-class ChatLogger : public QObject
+class Receipt
 {
-    Q_OBJECT
 public:
-    QSqlDatabase db;
+    enum ReceiptType {
+        SentByClient,
+        ReceivedByServer,
+        ReceivedByTarget,
+        ReadByTarget
+    };
 
-    ChatLogger(QObject *parent = 0);
-    ~ChatLogger();
-    bool init(QString jid);
-    QList<FMessage> lastMessages();
-    FMessage lastMessage();
+    Receipt(QString remote_jid);
+    Receipt(QString remote_jid, enum ReceiptType type);
+    Receipt(QString remote_jid, enum ReceiptType, qint64 timestamp);
 
-    static FMessage lastMessage(QString jid);
-
-public slots:
-    void logMessage(FMessage message);
-    void updateLoggedMessage(FMessage message);
-    void updateUriMessage(FMessage message);
-    void updateDuration(FMessage message);
-    void deleteAllMessages();
-    void deleteMessage(FMessage message);
+    QString remote_jid;
+    enum ReceiptType type;
+    qint64 timestamp;
 
 private:
-    QString jid;
-    int lastId;
-
-    static int getMessageReceipts(QSqlQuery& query, FMessage &msg);
-    static FMessage sqlQueryResultToFMessage(QString jid,QSqlQuery& query);
+    void init(QString remote_jid, bool from_me);
 };
 
-#endif // CHATLOGGER_H
+
+
+#endif // RECEIPT_H

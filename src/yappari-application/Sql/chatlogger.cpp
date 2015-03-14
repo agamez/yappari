@@ -339,6 +339,26 @@ void ChatLogger::logMessage(FMessage message)
     query.exec("END TRANSACTION");
 }
 
+int ChatLogger::getMessageReceipts(QSqlQuery& query, FMessage &msg)
+{
+    int receipts=0;
+    int localid = query.value(LOG_LOCALID).toInt();
+
+    query.prepare("select * from receipt "
+                  "where message_id = :message_id "),
+    query.bindValue(":message_id",localid);
+    query.exec();
+
+    while (query.next()) {
+        Receipt r(query.value(LOG_RECEIPT_REMOTE_JID).toString(),
+                  (Receipt::ReceiptType)query.value(LOG_RECEIPT_TYPE).toInt(),
+                  query.value(LOG_RECEIPT_TIMESTAMP).toLongLong());
+        msg.receipts.append(r);
+        receipts++;
+    }
+    return receipts;
+}
+
 FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
 {
     QString id = query.value(LOG_ID).toString();
@@ -379,17 +399,7 @@ FMessage ChatLogger::sqlQueryResultToFMessage(QString jid,QSqlQuery& query)
         msg.setData(query.value(LOG_DATA).toString());
 
     int localid = query.value(LOG_LOCALID).toInt();
-    query.prepare("select * from receipt "
-                  "where message_id = :message_id "),
-    query.bindValue(":message_id",localid);
-    query.exec();
 
-    while (query.next()) {
-        Receipt r(query.value(LOG_RECEIPT_REMOTE_JID).toString(),
-                  (Receipt::ReceiptType)query.value(LOG_RECEIPT_TYPE).toInt(),
-                  query.value(LOG_RECEIPT_TIMESTAMP).toLongLong());
-        msg.receipts.append(r);
-    }
 
     return msg;
 }
@@ -531,6 +541,7 @@ FMessage ChatLogger::lastMessage()
 
     if (query.next()) {
         msg = sqlQueryResultToFMessage(jid,query);
+        getMessageReceipts(query, msg);
     } else {
         QString s = "no previous message";
         msg.setData(s);
@@ -564,6 +575,7 @@ FMessage ChatLogger::lastMessage(QString jid)
 
         if (query.next()) {
             msg = sqlQueryResultToFMessage(jid,query);
+            getMessageReceipts(query, msg);
         } else {
             QString s = "no previous message";
             msg.setData(s);

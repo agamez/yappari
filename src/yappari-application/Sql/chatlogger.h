@@ -64,6 +64,7 @@ private:
     QString jid;
     int lastId;
 
+    static int getMessageReceipts(QSqlQuery& query, FMessage &msg);
     static FMessage sqlQueryResultToFMessage(QString jid,QSqlQuery& query);
 };
 

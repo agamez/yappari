@@ -32,15 +32,12 @@
 #include "bintreenodewriter.h"
 #include "protocolexception.h"
 
-BinTreeNodeWriter::BinTreeNodeWriter(QTcpSocket *socket, QStringList& dictionary,
+BinTreeNodeWriter::BinTreeNodeWriter(QTcpSocket *socket, WATokenDictionary *dictionary,
                                      QObject *parent) : QObject(parent)
 {
-    // Fill the token map dictionary
-    for (int i = 0; i < dictionary.length(); i++)
-        tokenMap.insert(dictionary.at(i),i);
-
     this->socket = socket;
     this->crypto = false;
+    this->dict = dictionary;
 }
 
 /*
@@ -59,7 +56,7 @@ int BinTreeNodeWriter::streamStart(QString& domain, QString& resource)
     writeInt8(0x57, out);
     writeInt8(0x41, out);
     writeInt8(1, out);
-    writeInt8(4, out);
+    writeInt8(5, out);
 
     AttributeList streamOpenAttributes;
     streamOpenAttributes.insert("resource",resource);
@@ -267,19 +264,12 @@ void BinTreeNodeWriter::writeString(QString tag, QDataStream& out)
         writeInt8(0, out);
     }
     else {
-
-        int key = tokenMap.value(tag,-1);
-        //qDebug() << "token:" << QString::number(key, 16);
-
-        if (key != -1)
-        {
-            if (key > 235) {
-                writeToken(236, out);
-                writeToken(key - 237, out);
-            }
-            else {
-                writeToken(key, out);
-            }
+        int token;
+        bool subdict;
+        if (dict->tryGetToken(tag, subdict, token)) {
+            if (subdict)
+                writeToken(dict->primarySize(), out);
+            writeToken(token, out);
         }
         else
         {

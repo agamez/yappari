@@ -283,6 +283,9 @@ bool BinTreeNodeReader::readString(int token, QByteArray& s)
     if (token > 0 && token < 0xf5)
         return getToken(token, s);
 
+    QByteArray user,server;
+    bool usr, srv;
+
     //no default value.
     switch (token)
     {
@@ -308,9 +311,8 @@ bool BinTreeNodeReader::readString(int token, QByteArray& s)
             return getToken(0xf5 + token8, s);
 
         case 0xfa:
-            QByteArray user,server;
-            bool usr = readString(user);
-            bool srv = readString(server);
+            usr = readString(user);
+            srv = readString(server);
             if (usr & srv)
             {
                 s = user + "@" + server;

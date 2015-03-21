@@ -519,6 +519,12 @@ signals:
 
     // Connection timeout
     void timeout();
+
+    // Login failed
+    void loginFailed();
+
+    // Login success
+    void loginSuccess();
 };
 
 

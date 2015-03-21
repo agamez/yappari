@@ -281,6 +281,8 @@ public slots:
     void connectionActivated();
     void connectionDeactivated();
     void connectionClosed();
+    void loginSuccess();
+    void loginFailed();
     void read();
     void keepAlive();
     void queueMessage(FMessage message);

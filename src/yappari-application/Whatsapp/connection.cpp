@@ -60,13 +60,6 @@ Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
                        DataCounters *counters, QObject *parent)
     : QObject(parent)
 {
-
-    /*
-     * This is the dictionary Whatsapp uses to compress its data
-     * so the packets are really tiny
-     */
-    dictionary << NULL << NULL << NULL << "account" << "ack" << "action" << "active" << "add" << "after" << "all" << "allow" << "apple" << "auth" << "author" << "available" << "bad-protocol" << "bad-request" << "before" << "body" << "broadcast" << "cancel" << "category" << "challenge" << "chat" << "clean" << "code" << "composing" << "config" << "contacts" << "count" << "create" << "creation" << "debug" << "default" << "delete" << "delivery" << "delta" << "deny" << "digest" << "dirty" << "duplicate" << "elapsed" << "enable" << "encoding" << "error" << "event" << "expiration" << "expired" << "fail" << "failure" << "false" << "favorites" << "feature" << "features" << "feature-not-implemented" << "field" << "first" << "free" << "from" << "g.us" << "get" << "google" << "group" << "groups" << "http://etherx.jabber.org/streams" << "http://jabber.org/protocol/chatstates" << "ib" << "id" << "image" << "img" << "index" << "internal-server-error" << "ip" << "iq" << "item-not-found" << "item" << "jabber:iq:last" << "jabber:iq:privacy" << "jabber:x:event" << "jid" << "kind" << "last" << "leave" << "list" << "max" << "mechanism" << "media" << "message_acks" << "message" << "method" << "microsoft" << "missing" << "modify" << "mute" << "name" << "nokia" << "none" << "not-acceptable" << "not-allowed" << "not-authorized" << "notification" << "notify" << "off" << "offline" << "order" << "owner" << "owning" << "p_o" << "p_t" << "paid" << "participant" << "participants" << "participating" << "paused" << "picture" << "pin" << "ping" << "platform" << "port" << "presence" << "preview" << "probe" << "prop" << "props" << "query" << "raw" << "read" << "reason" << "receipt" << "received" << "relay" << "remote-server-timeout" << "remove" << "request" << "required" << "resource-constraint" << "resource" << "response" << "result" << "retry" << "rim" << "s_o" << "s_t" << "s.us" << "s.whatsapp.net" << "seconds" << "server-error" << "server" << "service-unavailable" << "set" << "show" << "silent" << "stat" << "status" << "stream:error" << "stream:features" << "subject" << "subscribe" << "success" << "sync" << "t" << "text" << "timeout" << "timestamp" << "to" << "true" << "type" << "unavailable" << "unsubscribe" << "uri" << "url" << "urn:ietf:params:xml:ns:xmpp-sasl" << "urn:ietf:params:xml:ns:xmpp-stanzas" << "urn:ietf:params:xml:ns:xmpp-streams" << "urn:xmpp:ping" << "urn:xmpp:receipts" << "urn:xmpp:whatsapp:account" << "urn:xmpp:whatsapp:dirty" << "urn:xmpp:whatsapp:mms" << "urn:xmpp:whatsapp:push" << "urn:xmpp:whatsapp" << "user" << "user-not-found" << "value" << "version" << "w:g" << "w:p:r" << "w:p" << "w:profile:picture" << "w" << "wait" << "WAUTH-2" << "x" << "xmlns:stream" << "xmlns" << "1" << "chatstate" << "crypto" << "enc" << "class" << "off_cnt" << "w:g2" << "promote" << "demote" << "creator" << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << NULL << "Bell.caf" << "Boing.caf" << "Glass.caf" << "Harp.caf" << "TimePassing.caf" << "Tri-tone.caf" << "Xylophone.caf" << "background" << "backoff" << "chunked" << "context" << "full" << "in" << "interactive" << "out" << "registration" <<  "sid" << "urn:xmpp:whatsapp:sync" << "flt" << "s16" << "u8" << "adpcm" << "amrnb" << "amrwb" << "mp3" << "pcm" << "qcelp" << "wma" << "h263" << "h264" << "jpeg" << "mpeg4" <<  "wmv" << "audio/3gpp" << "audio/aac" << "audio/amr" << "audio/mp4" << "audio/mpeg" << "audio/ogg" << "audio/qcelp" << "audio/wav" << "audio/webm" << "audio/x-caf" << "audio/x-ms-wma" << "image/gif" << "image/jpeg" << "image/png" << "video/3gpp" <<  "video/avi" << "video/mp4" << "video/mpeg" << "video/quicktime" << "video/x-flv" << "video/x-ms-asf" << "302" << "400" << "401" << "402" << "403" << "404" << "405" << "406" << "407" << "409" <<  "500" << "501" << "503" << "504" << "abitrate" << "acodec" << "app_uptime" << "asampfmt" << "asampfreq" << "audio" << "bb_db" << "clear" << "conflict" << "conn_no_nna" << "cost" << "currency" <<  "duration" << "extend" << "file" << "fps" << "g_notify" << "g_sound" << "gcm" << "google_play" << "hash" << "height" << "invalid" << "jid-malformed" << "latitude" << "lc" << "lg" << "live" <<  "location" << "log" << "longitude" << "max_groups" << "max_participants" << "max_subject" << "mimetype" << "mode" << "napi_version" << "normalize" << "orighash" << "origin" << "passive" << "password" << "played" << "policy-violation" <<  "pop_mean_time" << "pop_plus_minus" << "price" << "pricing" << "redeem" << "Replaced by new connection" << "resume" << "signature" << "size" << "sound" << "source" << "system-shutdown" << "username" << "vbitrate" << "vcard" << "vcodec" <<  "video" << "width" << "xml-not-well-formed" << "checkmarks" << "image_max_edge" << "image_max_kbytes" << "image_quality" << "ka" << "ka_grow" << "ka_shrink" << "newmedia" << "library" << "caption" << "forward" << "c0" << "c1" <<  "c2" << "c3" << "clock_skew" << "cts" << "k0" << "k1" << "login_rtt" << "m_id" << "nna_msg_rtt" << "nna_no_off_count" << "nna_offline_ratio" << "nna_push_rtt" << "no_nna_con_count" << "off_msg_rtt" << "on_msg_rtt" << "stat_name" <<  "sts" << "suspect_conn" << "lists" << "self" << "qr" << "web" << "w:b" << "recipient" << "w:stats" << "forbidden" << "aurora.m4r" << "bamboo.m4r" << "chord.m4r" << "circles.m4r" << "complete.m4r" << "hello.m4r" <<  "input.m4r" << "keys.m4r" << "note.m4r" << "popcorn.m4r" << "pulse.m4r" << "synth.m4r" << "filehash";
-
     this->socket = socket;
     this->user = user;
     this->domain = domain;
@@ -77,6 +70,7 @@ Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
     this->counters = counters;
     this->myJid = user + "@" + JID_DOMAIN;
 
+    this->dictionary = new WATokenDictionary(this);
     this->out = new BinTreeNodeWriter(socket,dictionary,this);
     this->in = new BinTreeNodeReader(socket,dictionary,this);
 
@@ -110,20 +104,8 @@ void Connection::login(QByteArray nextChallenge)
     outBytes = out->streamStart(domain,resource);
     outBytes += sendFeatures();
     outBytes += sendAuth();
-    inBytes += in->readStreamStart();
-    QByteArray challengeData = readFeaturesUntilChallengeOrSuccess(&inBytes);
-    if (challengeData.size() > 0)
-    {
-        outBytes += sendResponse(challengeData);
-        inBytes += readSuccess();
-    }
 
     counters->increaseCounter(DataCounters::ProtocolBytes, inBytes, outBytes);
-
-    // Successful login at this point
-
-    sendClientConfig("none");
-    sendAvailableForChat();
 }
 
 /**
@@ -145,7 +127,44 @@ bool Connection::read()
         connTimeout.start(CHECK_CONNECTION_INTERVAL);
         QString tag = node.getTag();
 
-        if (tag == "iq")
+        if (tag == "stream:start")
+        {
+            //
+        }
+
+        else if (tag == "stream:close")
+        {
+            //
+        }
+
+        else if (tag == "stream:features")
+        {
+            //
+        }
+
+        else if (tag == "stream:error")
+        {
+            qDebug() << "STREAM_ERROR!";
+            ProtocolTreeNodeListIterator i(node.getChildren());
+            while (i.hasNext())
+            {
+                ProtocolTreeNode child = i.next().value();
+                qDebug() << child.getTag() << child.getDataString();
+            }
+        }
+
+        else if (tag == "challenge")
+        {
+            int outBytes = sendResponse(node.getData());
+            counters->increaseCounter(DataCounters::ProtocolBytes, 0, outBytes);
+        }
+
+        else if (tag == "success")
+        {
+            parseSuccessNode(node);
+        }
+
+        else if (tag == "iq")
         {
             QString type = node.getAttributeValue("type");
             QString id = node.getAttributeValue("id");
@@ -247,7 +266,7 @@ bool Connection::read()
                     {
                         if (child.getAttributeValue("seconds").toLongLong() > 0) {
                             qint64 timestamp = QDateTime::currentMSecsSinceEpoch() -
--                                               (child.getAttributeValue("seconds").toLongLong() * 1000);
+                                               (child.getAttributeValue("seconds").toLongLong() * 1000);
                             emit lastOnline(from, timestamp);
                         }
 
@@ -430,7 +449,7 @@ bool Connection::read()
             }
         }
 
-        if (tag == "presence")
+        else if (tag == "presence")
         {
             QString xmlns = node.getAttributeValue("xmlns");
             QString from = node.getAttributeValue("from");
@@ -461,7 +480,7 @@ bool Connection::read()
         }
 
 
-        if (tag == "chatstate") {
+        else if (tag == "chatstate") {
             QString from = node.getAttributeValue("from");
             QString participant = node.getAttributeValue("participant");
             ProtocolTreeNodeListIterator i(node.getChildren());
@@ -477,7 +496,7 @@ bool Connection::read()
         }
 
 
-        if (tag == "ack") {
+        else if (tag == "ack") {
             QString aclass = node.getAttributeValue("class");
             if (aclass == "message")
             {
@@ -537,7 +556,7 @@ bool Connection::read()
             }
         }
 
-        if (tag == "receipt")
+        else if (tag == "receipt")
         {
             //Sent message received/played/read by target
 
@@ -599,7 +618,7 @@ bool Connection::read()
 
         }
         
-        if (tag == "notification")
+        else if (tag == "notification")
         {
             QString type = node.getAttributeValue("type");
             QString from = node.getAttributeValue("from");
@@ -814,7 +833,7 @@ bool Connection::read()
         }
 
 
-        if (tag == "message")
+        else if (tag == "message")
             parseMessageInitialTagAlreadyChecked(node);
 
         // Update counters
@@ -1147,59 +1166,6 @@ QByteArray Connection::getAuthBlob(QByteArray nonce)
 }
 
 /**
-    Reads the features from the node and the challenge data.
-
-    @param bytes    Pointer to the number of bytes read to be updated.
-    @return         New challenge data.
-*/
-QByteArray Connection::readFeaturesUntilChallengeOrSuccess(int *bytes)
-{
-    ProtocolTreeNode node;
-
-    QByteArray data;
-    bool moreNodes;
-    bool server_supports_receipts_acks = false;
-    int server_properties_version = -1;
-
-    while ((moreNodes = in->nextTree(node)))
-    {
-        *bytes += node.getSize();
-
-        if (node.getTag() == "stream:features")
-        {
-            ProtocolTreeNode receiptAcksNode = node.getChild("receipt_acks");
-            ProtocolTreeNode propsNode = node.getChild("props");
-
-            // ToDo: What can we do with this?
-            server_supports_receipts_acks = receiptAcksNode.getTag() == "receipt_acks";
-
-            if (propsNode.getTag() == "props")
-            {
-                // ToDo: What can we do with this?
-                server_properties_version = propsNode.getAttributeValue("version").toInt();
-            }
-        }
-
-        if (node.getTag() == "challenge")
-        {
-            data = node.getData();
-            Utilities::logData("Challenge: (" + QString::number(data.length()) + ") " +
-                               QString::fromLatin1(data.toHex()));
-
-            return data;
-        }
-
-        if (node.getTag() == "success")
-        {
-            parseSuccessNode(node);
-            return data;
-        }
-    }
-
-    return data;
-}
-
-/**
     Sends authentication response.
 
     @param challengeData    Authentication challenge data (nonce/salt).
@@ -1217,21 +1183,6 @@ int Connection::sendResponse(QByteArray challengeData)
     out->setCrypto(true);
 
     return bytes;
-}
-
-/**
-    Read the authentication success node and parse it.
-
-    @return     number of bytes read from the socket (node size).
-*/
-int Connection::readSuccess()
-{
-    ProtocolTreeNode node;
-
-    in->nextTree(node);
-    parseSuccessNode(node);
-
-    return node.getSize();
 }
 
 /**
@@ -1257,6 +1208,11 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
     accountstatus = node.getAttributeValue("status");
 
     nextChallenge = node.getData();
+
+    // Successful login at this point
+
+    sendClientConfig("none");
+    sendAvailableForChat();
 }
 
 /** ***********************************************************************

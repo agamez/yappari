@@ -35,12 +35,12 @@
 #include "bintreenodereader.h"
 #include "protocolexception.h"
 
-#define READ_TIMEOUT 10000
+#define READ_TIMEOUT 30000
 
-BinTreeNodeReader::BinTreeNodeReader(QTcpSocket *socket, QStringList& dictionary,
+BinTreeNodeReader::BinTreeNodeReader(QTcpSocket *socket, WATokenDictionary *dictionary,
                                      QObject *parent) : QObject(parent)
 {
-    this->dictionary = dictionary;
+    this->dict = dictionary;
     this->socket = socket;
 }
 
@@ -96,42 +96,6 @@ bool BinTreeNodeReader::decodeRawStream(qint8 flags, qint32 offset, qint32 lengt
     return true;
 }
 
-//TODO: remove return int, make bool
-int BinTreeNodeReader::readStreamStart()
-{
-    bool result = getOneToplevelStream();
-    //TODO: count real bytes;
-    int bytes = getOneToplevelStreamSize();
-
-    if (decodedStream.bytesAvailable() < 3) {
-        //TODO: make bool result. remove int.
-        //return false;
-        return bytes;
-    }
-
-    quint8 tag = 0, size;
-    //TODO: check for bool result
-    readInt8(tag);
-    readInt8(size);
-    readInt8(tag);
-    if (tag != 1) {
-        throw ProtocolException("Expecting STREAM_START in readStreamStart.");
-    }
-
-    int attribCount = (size - 2 + size % 2) / 2;
-
-    AttributeList attribs;
-    if (!readAttributes(attribs,attribCount)) {
-        //TODO: make bool result. remove int.
-        //return false;
-        qDebug() << "readStreamStart: failed to read attributes" << attribCount;
-        return bytes;
-    }
-
-    //TODO: make bool result. remove int.
-    return bytes;
-}
-
 bool BinTreeNodeReader::nextTree(ProtocolTreeNode& node)
 {
     bool result;
@@ -164,9 +128,6 @@ bool BinTreeNodeReader::nextTreeInternal(ProtocolTreeNode& node)
         return false;
 
     if (!readInt8(b))
-        return false;
-
-    if (b == 2)
         return false;
 
     QByteArray tag;
@@ -319,7 +280,7 @@ bool BinTreeNodeReader::readString(int token, QByteArray& s)
         throw ProtocolException("-1 token in readString.");
     }
 
-    if (token > 2 && token < 0xf5)
+    if (token > 0 && token < 0xf5)
         return getToken(token, s);
 
     //no default value.
@@ -361,6 +322,22 @@ bool BinTreeNodeReader::readString(int token, QByteArray& s)
                 return true;
             }
             throw ProtocolException("readString couldn't reconstruct jid.");
+            
+        case 0xff: {
+            quint8 nbyte;
+            if (!readInt8(nbyte))
+                return false;
+            int size = nbyte & 0x7f;
+            int numnibbles = size * 2 - ((nbyte & 0x80) ? 1 : 0);
+
+            QByteArray res;
+            if (!fillArray(res, size))
+                return false;
+            res = res.toHex().left(numnibbles);
+            res = res.replace('a', '-').replace('b', '.');
+            s = res;
+            return true;
+        }
     }
     throw ProtocolException("readString invalid token " + QString::number(token));
 
@@ -369,16 +346,21 @@ bool BinTreeNodeReader::readString(int token, QByteArray& s)
 bool BinTreeNodeReader::getToken(int token, QByteArray &s)
 {
     //qDebug() << "getToken:" << QString::number(token, 16);
-    if (token >= 0 && token < dictionary.length())
-    {
-        if (token == 236) {
-            quint8 ext;
-            if (!readInt8(ext))
-                return false;
-            token += ext + 1;
-            //qDebug() << "extToken:" << QString::number(token, 16);
+    bool subdict = false;
+    QString string;
+    dict->getToken(string, subdict, token);
+    if (string.isEmpty()) {
+        quint8 ext;
+        if (!readInt8(ext))
+            return false;
+        dict->getToken(string, subdict, ext);
+        if (!string.isEmpty()) {
+            s = string.toUtf8();
+            return true;
         }
-        s = dictionary.at(token).toUtf8();
+    }
+    else {
+        s = string.toUtf8();
         return true;
     }
 

@@ -38,6 +38,7 @@
 #include "attributelist.h"
 #include "protocoltreenode.h"
 #include "protocoltreenodelist.h"
+#include "watokendictionary.h"
 
 class BinTreeNodeReader : public QObject
 {
@@ -46,17 +47,15 @@ class BinTreeNodeReader : public QObject
 public:
 
     // Constructor
-    BinTreeNodeReader(QTcpSocket *socket, QStringList& dictionary,
+    BinTreeNodeReader(QTcpSocket *socket, WATokenDictionary *dictionary,
                       QObject *parent = 0);
 
-    // Reader methods
-    int readStreamStart();
     bool nextTree(ProtocolTreeNode& node);
 
     void setInputKey(KeyStream *inputKey);
 
 private:
-    QStringList dictionary;
+    WATokenDictionary *dict;
     QTcpSocket *socket;
     KeyStream *inputKey;
 

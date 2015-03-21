@@ -814,7 +814,6 @@ void Client::connected()
     setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &optval, optlen);
 
     connectionStatus = Connected;
-    sendGetStatus();
     Utilities::logData("Connected successfully");
 
     // QString password = Utilities::getChatPassword();

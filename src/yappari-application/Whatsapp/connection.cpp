@@ -106,11 +106,6 @@ void Connection::login(QByteArray nextChallenge)
     outBytes += sendAuth();
 
     counters->increaseCounter(DataCounters::ProtocolBytes, inBytes, outBytes);
-
-    // Successful login at this point
-
-    sendClientConfig("none");
-    sendAvailableForChat();
 }
 
 /**
@@ -1213,6 +1208,11 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
     accountstatus = node.getAttributeValue("status");
 
     nextChallenge = node.getData();
+
+    // Successful login at this point
+
+    sendClientConfig("none");
+    sendAvailableForChat();
 }
 
 /** ***********************************************************************

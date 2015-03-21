@@ -324,21 +324,17 @@ bool BinTreeNodeReader::readString(int token, QByteArray& s)
             throw ProtocolException("readString couldn't reconstruct jid.");
             
         case 0xff: {
-            QByteArray res;
             quint8 nbyte;
             if (!readInt8(nbyte))
                 return false;
             int size = nbyte & 0x7f;
             int numnibbles = size * 2 - ((nbyte & 0x80) ? 1 : 0);
 
-            QByteArray rawd;
-            if (!fillArray(rawd, size))
+            QByteArray res;
+            if (!fillArray(res, size))
                 return false;
-            for (int i = 0; i < numnibbles; i++) {
-                char c = (rawd[i / 2] >> (4 - ((i & 1) << 2))) & 0xF;
-                if (c < 10) res.push_back(c + '0');
-                else res.push_back(c - 10 + '-');
-            }
+            res = res.toHex().left(numnibbles);
+            res = res.replace('a', '-').replace('b', '.');
             s = res;
             return true;
         }

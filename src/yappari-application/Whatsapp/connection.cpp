@@ -1195,11 +1195,10 @@ int Connection::sendResponse(QByteArray challengeData)
 */
 void Connection::parseSuccessNode(ProtocolTreeNode& node)
 {
-    if (node.getTag() == "failure")
-        throw LoginException("Login failed");
-
-    if (node.getTag() != "success")
-        throw LoginException("Login success required");
+    if (node.getTag() != "success") {
+        Q_EMIT loginFailed();
+        return;
+    }
 
     // This has to be converted to a date object
     expiration = node.getAttributeValue("expiration");
@@ -1213,6 +1212,8 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
 
     sendClientConfig("none");
     sendAvailableForChat();
+
+    Q_EMIT loginSuccess();
 }
 
 /** ***********************************************************************

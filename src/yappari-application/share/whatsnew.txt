@@ -1,6 +1,10 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.10:</b><br>
+<li>&bull; WA15 protocol update (coderus)</li>
+<br>
+
 <b>New in this version 2.0.9:</b><br>
 <li>&bull; Better management of input buffers (may solve crashes?) (NerdKnight)</li>
 <li>&bull; Solves regression of non stored contacts (aliases work again since protocol change)</li>

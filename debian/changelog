@@ -1,3 +1,9 @@
+yappari (2.0.10) stable; urgency=medium
+
+  * WA15 protocol update (coderus)
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Sun, 29 Mar 2015 19:19:39 +0200
+
 yappari (2.0.9) stable; urgency=medium
 
   * Better management of input buffers (may solve crashes?) (NerdKnight)

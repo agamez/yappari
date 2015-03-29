@@ -38,6 +38,7 @@
 #include "ioexception.h"
 #include "attributelist.h"
 #include "protocoltreenodelist.h"
+#include "watokendictionary.h"
 
 class BinTreeNodeWriter : public QObject
 {
@@ -45,7 +46,7 @@ class BinTreeNodeWriter : public QObject
 
 public:
 
-    BinTreeNodeWriter(QTcpSocket *socket, QStringList& dictionary,
+    BinTreeNodeWriter(QTcpSocket *socket, WATokenDictionary *dictionary,
                       QObject *parent = 0);
 
     // Writer methods
@@ -57,7 +58,7 @@ public:
     void setCrypto(bool crypto);
 
 private:
-    QHash<QString, int> tokenMap;
+    WATokenDictionary *dict;
     QTcpSocket *socket;
     QByteArray writeBuffer;
     QMutex writeMutex;
@@ -76,9 +77,11 @@ private:
     void writeListStart(qint32 i, QDataStream& out);
     void writeAttributes(AttributeList& attributes, QDataStream& out);
     void writeString(QString tag, QDataStream& out);
-    void writeJid(QString user, QString server, QDataStream& out);
+    void writeJid(QString tag, QDataStream& out);
     void writeToken(qint32 intValue, QDataStream& out);
     void writeArray(QByteArray bytes, QDataStream& out);
+    void writeInt8Array(QByteArray bytes, QDataStream& out);
+    void writeNibbles(QByteArray bytes, QDataStream& out);
     void writeInt8(quint8 v, QDataStream& out);
     void writeInt16(quint16 v, QDataStream& out);
     void writeInt24(quint32 v, QDataStream& out);

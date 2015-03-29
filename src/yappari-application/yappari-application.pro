@@ -149,7 +149,8 @@ SOURCES += main.cpp \
     libjpeg/jpeg-marker.c \
     libjpeg/jpeg-data.c \
     libjpeg/exif-i18n.c \
-    Dbus/dbusnokiaossobrowserif.cpp
+    Dbus/dbusnokiaossobrowserif.cpp \
+    Whatsapp/watokendictionary.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -269,7 +270,9 @@ HEADERS += \
     libjpeg/jpeg-marker.h \
     libjpeg/jpeg-data.h \
     libjpeg/exif-i18n.h \
-    Dbus/dbusnokiaossobrowserif.h
+    Dbus/dbusnokiaossobrowserif.h \
+    Whatsapp/watokendictionary.h
+
 
 FORMS += \
     Gui/ui/mainwindow.ui \

@@ -32,15 +32,12 @@
 #include "bintreenodewriter.h"
 #include "protocolexception.h"
 
-BinTreeNodeWriter::BinTreeNodeWriter(QTcpSocket *socket, QStringList& dictionary,
+BinTreeNodeWriter::BinTreeNodeWriter(QTcpSocket *socket, WATokenDictionary *dictionary,
                                      QObject *parent) : QObject(parent)
 {
-    // Fill the token map dictionary
-    for (int i = 0; i < dictionary.length(); i++)
-        tokenMap.insert(dictionary.at(i),i);
-
     this->socket = socket;
     this->crypto = false;
+    this->dict = dictionary;
 }
 
 /*
@@ -59,7 +56,7 @@ int BinTreeNodeWriter::streamStart(QString& domain, QString& resource)
     writeInt8(0x57, out);
     writeInt8(0x41, out);
     writeInt8(1, out);
-    writeInt8(4, out);
+    writeInt8(5, out);
 
     AttributeList streamOpenAttributes;
     streamOpenAttributes.insert("resource",resource);
@@ -267,45 +264,35 @@ void BinTreeNodeWriter::writeString(QString tag, QDataStream& out)
         writeInt8(0, out);
     }
     else {
-
-        int key = tokenMap.value(tag,-1);
-        //qDebug() << "token:" << QString::number(key, 16);
-
-        if (key != -1)
-        {
-            if (key > 235) {
-                writeToken(236, out);
-                writeToken(key - 237, out);
-            }
-            else {
-                writeToken(key, out);
-            }
+        int token;
+        bool subdict;
+        if (dict->tryGetToken(tag, subdict, token)) {
+            if (subdict)
+                writeToken(dict->primarySize(), out);
+            writeToken(token, out);
         }
-        else
-        {
-            int atIndex = tag.indexOf('@');
-            if (atIndex < 1)
-            {
-                writeArray(tag.toUtf8(), out);
-            }
-            else
-            {
-                QString server = tag.right(tag.length()-atIndex-1);
-                QString user = tag.left(atIndex);
-                writeJid(user, server, out);
-            }
+        else if (tag.split("@").count() == 2) {
+            writeJid(tag, out);
+        }
+        else if (QRegExp("[0-9.-]*").exactMatch(tag)) {
+            writeNibbles(tag.toUtf8(), out);
+        }
+        else {
+            writeArray(tag.toUtf8(), out);
         }
     }
 }
 
-void BinTreeNodeWriter::writeJid(QString user, QString server, QDataStream& out)
+void BinTreeNodeWriter::writeJid(QString tag, QDataStream& out)
 {
-    writeInt8(250, out);
-    if (user.length() > 0)
-        writeString(user, out);
+    QStringList jid = tag.split("@");
+
+    writeInt8(0xfa, out);
+    if (jid[0].length() > 0)
+        writeString(jid[0], out);
     else
         writeToken(0, out);
-    writeString(server, out);
+    writeString(jid[1], out);
 }
 
 void BinTreeNodeWriter::writeToken(qint32 intValue, QDataStream& out)
@@ -333,9 +320,28 @@ void BinTreeNodeWriter::writeArray(QByteArray bytes, QDataStream& out)
         writeInt8(bytes.length(), out);
     }
 
-    const char *constData = bytes.constData();
-    for (int i=0; i < bytes.length(); i++)
-        writeInt8((quint8) constData[i], out);
+    writeInt8Array(bytes, out);
+}
+
+void BinTreeNodeWriter::writeInt8Array(QByteArray bytes, QDataStream &out)
+{
+    out.writeRawData(bytes.constData(), bytes.size());
+}
+
+void BinTreeNodeWriter::writeNibbles(QByteArray bytes, QDataStream &out)
+{
+    QByteArray result(bytes);
+    if (result.size() % 2 == 1) {
+        result.append('0');
+    }
+    result.replace('-', 'a').replace('.', 'b');
+    result = QByteArray::fromHex(result);
+    int numn = (bytes.size() + 1) / 2;
+    if (bytes.size() % 2 != 0) numn |= 0x80;
+
+    writeInt8(0xff, out);
+    writeInt8(numn, out);
+    writeInt8Array(result, out);
 }
 
 void BinTreeNodeWriter::writeInt8(quint8 v, QDataStream& out)

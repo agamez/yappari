@@ -51,6 +51,7 @@
 #include "keystream.h"
 #include "fmessage.h"
 #include "funstore.h"
+#include "watokendictionary.h"
 
 // QtMobility namespace
 QTM_USE_NAMESPACE
@@ -284,7 +285,7 @@ private:
     QString myJid;
 
     // XMPP dictionary
-    QStringList dictionary;
+    WATokenDictionary *dictionary;
 
     // Timestamp of the last successfully node read
     qint64 lastTreeRead;
@@ -332,14 +333,8 @@ private:
     // Constructs the authentication data to be sent
     QByteArray getAuthBlob(QByteArray nonce);
 
-    // Reads the features from the node and the challenge data
-    QByteArray readFeaturesUntilChallengeOrSuccess(int *bytes);
-
     // Sends authentication response
     int sendResponse(QByteArray challengeData);
-
-    // Read authentication success node
-    int readSuccess();
 
     // Parses authentication success node
     void parseSuccessNode(ProtocolTreeNode& node);
@@ -524,6 +519,12 @@ signals:
 
     // Connection timeout
     void timeout();
+
+    // Login failed
+    void loginFailed();
+
+    // Login success
+    void loginSuccess();
 };
 
 

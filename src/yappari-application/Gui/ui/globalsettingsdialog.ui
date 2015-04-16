@@ -136,7 +136,7 @@
         <item>
          <widget class="QCheckBox" name="blueChecksCheckbox">
           <property name="text">
-           <string>Report when the other party has read messages (in both directions)</string>
+           <string>Show and send read receipts for individual chats</string>
           </property>
          </widget>
         </item>

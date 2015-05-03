@@ -1515,7 +1515,7 @@ void Connection::sendDeliveredReceiptAck(QString to, QString id, QString type, Q
     attrs.insert("class","receipt");
     attrs.insert("type",type.isEmpty() ? "delivery" : type);
     attrs.insert("id",id);
-    if (!to.contains("s.us")) attrs.insert("to",to);
+    attrs.insert("to",to);
     if (participant!="") attrs.insert("participant", participant);
     ackNode.setAttributes(attrs);
 

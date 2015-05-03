@@ -57,6 +57,7 @@ bool BinTreeNodeReader::getOneToplevelStream()
     //qDebug() << "[[ " + readBuffer.toHex();
 
     if (decodeRawStream(flags, 0, bufferSize)) {
+        decodedStream.close();
         decodedStream.setBuffer(&decodedBuffer);
         decodedStream.open(QIODevice::ReadOnly);
     } else {

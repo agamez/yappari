@@ -571,36 +571,54 @@ bool Connection::read()
             message = store.value(k);
             if (message.key.id == id)
             {
-                // Remove it from the store if it's not a voice message
-                // Or if it's a voice message already played
-                // It will be restored while waiting for receipts
-                if ((message.live && receipt_type == "played") || !message.live)
-                    store.remove(k);
-
                 if(receipt_type == "played") {
                     message.status = FMessage::Played;
+                    store.remove(k);
                 } else if(receipt_type == "read") {
                     if(from.right(5) == "@g.us")
                     {
+                        Utilities::logData("Adding new read receipt");
                         Receipt receipt(participant, Receipt::ReadByTarget, attribute_t.toLongLong() * 1000);
                         message.receipts.append(receipt);
 
                         message.read++;
-                        if(message.read==message.count) message.status = FMessage::ReadByTarget;
-                        else store.put(message);
-                    } else if(Client::blueChecks) message.status = FMessage::ReadByTarget;
+                        if(message.read==message.count) {
+                            Utilities::logData("Marking message as read by all targets");
+                            message.status = FMessage::ReadByTarget;
+                        }
+                    } else if(Client::blueChecks) {
+                        Utilities::logData("Marking message as read by target");
+                        message.status = FMessage::ReadByTarget;
+                    }
+                    if(message.read!=message.count || message.delivered!=message.count) {
+                        Utilities::logData("Message not finished, moving back to store");
+                        store[k]=message;
+                    }
+                    else store.remove(k);
                 } else {
                     if(from.right(5) == "@g.us")
                     {
+                        Utilities::logData("Adding new received receipt");
                         Receipt receipt(participant, Receipt::ReceivedByTarget, attribute_t.toLongLong() * 1000);
                         message.receipts.append(receipt);
 
                         message.delivered++;
-                        if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
-                    } else message.status = FMessage::ReceivedByTarget;
-                    store.put(message);
+                        if(message.delivered==message.count && message.status!=FMessage::ReadByTarget) {
+                            Utilities::logData("Marking message as received by all targets");
+                            message.status = FMessage::ReceivedByTarget;
+                        }
+                    } else if(message.status!=FMessage::ReadByTarget) {
+                        Utilities::logData("Marking message as received by target");
+                        message.status = FMessage::ReceivedByTarget;
+                    }
+                    if(message.read!=message.count || message.delivered!=message.count) {
+                        Utilities::logData("Message not finished, moving back to store");
+                        store[k]=message;
+                    }
+                    else store.remove(k);
                 }
             }
+
             if (receipt_type == "delivered" || receipt_type == "played" ||
                 receipt_type.isEmpty())
             {
@@ -971,36 +989,54 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 Utilities::logData("parseMessageInitialTagAlreadyChecked: Processing 'received' tag");
                 if (message.key.id == id)
                 {
-                    // Remove it from the store if it's not a voice message
-                    // Or if it's a voice message already played
-                    // It will be restored while waiting for receipts
-                    if ((message.live && receipt_type == "played") || !message.live)
-                        store.remove(k);
-
                     if(receipt_type == "played") {
                         message.status = FMessage::Played;
+                        store.remove(k);
                     } else if(receipt_type == "read") {
                         if(from.right(5) == "@g.us")
                         {
+                            Utilities::logData("Adding new read receipt");
                             Receipt receipt(author, Receipt::ReadByTarget, attribute_t.toLongLong() * 1000);
                             message.receipts.append(receipt);
 
                             message.read++;
-                            if(message.read==message.count) message.status = FMessage::ReadByTarget;
-                            else store.put(message);
-                        } else if(Client::blueChecks) message.status = FMessage::ReadByTarget;
+                            if(message.read==message.count) {
+                                Utilities::logData("Marking message as read by all targets");
+                                message.status = FMessage::ReadByTarget;
+                            }
+                        } else if(Client::blueChecks) {
+                            Utilities::logData("Marking message as read by target");
+                            message.status = FMessage::ReadByTarget;
+                        }
+                        if(message.read!=message.count || message.delivered!=message.count) {
+                            Utilities::logData("Message not finished, moving back to store");
+                            store[k]=message;
+                        }
+                        else store.remove(k);
                     } else {
                         if(from.right(5) == "@g.us")
                         {
+                            Utilities::logData("Adding new received receipt");
                             Receipt receipt(author, Receipt::ReceivedByTarget, attribute_t.toLongLong() * 1000);
                             message.receipts.append(receipt);
 
                             message.delivered++;
-                            if(message.delivered==message.count) message.status = FMessage::ReceivedByTarget;
-                        } else message.status = FMessage::ReceivedByTarget;
-                        store.put(message);
+                            if(message.delivered==message.count && message.status!=FMessage::ReadByTarget) {
+                                Utilities::logData("Marking message as received by all targets");
+                                message.status = FMessage::ReceivedByTarget;
+                            }
+                        } else if(message.status!=FMessage::ReadByTarget) {
+                            Utilities::logData("Marking message as received by target");
+                            message.status = FMessage::ReceivedByTarget;
+                        }
+                        if(message.read!=message.count || message.delivered!=message.count) {
+                            Utilities::logData("Message not finished, moving back to store");
+                            store[k]=message;
+                        }
+                        else store.remove(k);
                     }
                 }
+
                 if (receipt_type == "delivered" || receipt_type == "played" ||
                     receipt_type.isEmpty())
                 {

@@ -43,7 +43,7 @@
         <x>0</x>
         <y>0</y>
         <width>397</width>
-        <height>900</height>
+        <height>1000</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -55,7 +55,7 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>900</height>
+        <height>1000</height>
        </size>
       </property>
       <property name="layoutDirection">
@@ -136,7 +136,7 @@
         <item>
          <widget class="QCheckBox" name="blueChecksCheckbox">
           <property name="text">
-           <string>Report when the other party has read messages (in both directions)</string>
+           <string>Show and send read receipts for individual chats</string>
           </property>
          </widget>
         </item>

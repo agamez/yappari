@@ -1,6 +1,13 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.11:</b><br>
+<li>&bull; New icons (thanks to BlazingBird)</li>
+<li>&bull; Better management of read and receipt reports (should show more up to date info on read status)</li>
+<li>&bull; Some fixes that should avoid a couple segmentation faults and disconnections (coderus and me)</li>
+<li>&bull; GUI option for max download size restored</li>
+<br>
+
 <b>New in this version 2.0.10:</b><br>
 <li>&bull; WA15 protocol update (coderus)</li>
 <br>

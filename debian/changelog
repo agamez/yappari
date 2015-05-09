@@ -1,3 +1,12 @@
+yappari (2.0.11) stable; urgency=medium
+
+  * New icons (thanks to BlazingBird)
+  * Better management of read and receipt reports (should show more up to date info on read status)
+  * Some fixes that should avoid a couple segmentation faults and disconnections (coderus and me)
+  * GUI option for max download size restored
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Fri, 01 May 2015 12:18:00 +0200
+
 yappari (2.0.10) stable; urgency=medium
 
   * WA15 protocol update (coderus)

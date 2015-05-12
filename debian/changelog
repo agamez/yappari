@@ -1,3 +1,9 @@
+yappari (2.0.12-1) stable; urgency=medium
+
+  * Rebuild of 2.0.12
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Tue, 12 May 2015 11:09:38 +0200
+
 yappari (2.0.12) stable; urgency=medium
 
   * Fixed icons with transparency (thanks to BlazingBird).

@@ -1,7 +1,7 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
-<b>New in this version 2.0.11:</b><br>
+<b>New in this version 2.0.12:</b><br>
 <li>&bull; Fixed icons with transparency (thanks to BlazingBird)</li>
 <br>
 

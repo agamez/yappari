@@ -1,3 +1,11 @@
+yappari (2.0.13) stable; urgency=medium
+
+  * Fixed regression on reporting read receipts.
+  * Minor refactorisation to avoid regressions like that one.
+  * Request own status upon loginSuccess and remember last set one (should fix #36)
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Sun, 17 May 2015 14:25:09 +0200
+
 yappari (2.0.12-1) stable; urgency=medium
 
   * Rebuild of 2.0.12

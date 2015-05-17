@@ -1,6 +1,13 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.13:</b><br>
+
+<li>&bull; Fixed regression on reporting read receipts.</li>
+<li>&bull; Minor refactorisation to avoid regressions like that one.</li>
+<li>&bull; Request own status upon loginSuccess and remember last set one (should fix #36)</li>
+<br>
+
 <b>New in this version 2.0.12:</b><br>
 <li>&bull; Fixed icons with transparency (thanks to BlazingBird)</li>
 <br>

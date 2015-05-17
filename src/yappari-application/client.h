@@ -287,7 +287,7 @@ public slots:
     void keepAlive();
     void queueMessage(FMessage message);
     void sendMessagesInQueue();
-    void sendGetStatus();
+    void sendGetConnectionStatus();
     void registrationSuccessful(QVariantMap result);
     void sendSetGroupSubject(QString gjid, QString subject);
     void requestLeaveGroup(QString jid);
@@ -298,6 +298,7 @@ public slots:
     void changeUserName(QString newUserName);
     void synchronizeContacts();
     void sendSyncContacts(QStringList numbers);
+    void sendGetStatus(QString jid);
     void sendGetStatus(QStringList jids);
     void syncHttpError(int error);
     void syncSslError();
@@ -308,7 +309,6 @@ public slots:
     void photoIdReceived(QString jid, QString name, QString pictureId);
     void photoReceived(QString from, QByteArray data,
                        QString photoId, bool largeFormat);
-    void requestContactStatus(QString jid);
     void statusChanged(QString jid, qint64 t, QString status);
     void setPhoto(QString jid, QImage image);
     void requestPresenceSubscription(QString jid);
@@ -384,10 +384,10 @@ private:
 
     bool isNetworkAvailable();
     void updateActiveNetworkID();
-    void showStatus(QString status);
+    void showConnectionStatus(QString status);
     void startRegistration();
     void connectToServer();
-    QString parseStatus();
+    QString parseConnectionStatus();
     void createMyJidContact();
 
 signals:

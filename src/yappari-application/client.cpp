@@ -277,7 +277,7 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
             this,SLOT(updatePhoto(QString,QString,bool)));
 
     connect(mainWin,SIGNAL(requestStatus(QString)),
-            this,SLOT(requestContactStatus(QString)));
+            this,SLOT(sendGetStatus(QString)));
 
     connect(mainWin,SIGNAL(setPhoto(QString,QImage)),
             this,SLOT(setPhoto(QString,QImage)));
@@ -387,7 +387,7 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
             this,SLOT(syncFinished()));
 
     isSynchronizing = false;
-    sendGetStatus();
+    sendGetConnectionStatus();
 
     // Network Manager Configutarion
     manager = new QNetworkConfigurationManager(this);
@@ -666,7 +666,7 @@ void Client::startRegistration()
 {
     connectionMutex.lock();
     connectionStatus = Registering;
-    sendGetStatus();
+    sendGetConnectionStatus();
 
     RegistrationWindow *regWindow = new RegistrationWindow(mainWin);
 
@@ -695,7 +695,7 @@ void Client::registrationSuccessful(QVariantMap result)
     settings->setValue(SETTINGS_PASSWORD,password);
 
     connectionStatus = Disconnected;
-    sendGetStatus();
+    sendGetConnectionStatus();
 
     connectionMutex.unlock();
 
@@ -773,13 +773,13 @@ void Client::connectToServer()
     {
         Utilities::logData("No network available. Waiting for a connection...");
         connectionStatus = WaitingForConnection;
-        sendGetStatus();
+        sendGetConnectionStatus();
         connectionMutex.unlock();
         return;
     }
 
     connectionStatus = Connecting;
-    sendGetStatus();
+    sendGetConnectionStatus();
 
     // If there's a network mode change it will never reach this point
     // so it's safe to unlock de mutex here
@@ -849,7 +849,7 @@ void Client::connected()
         lastError = e.toString();
         Utilities::logData("connected(): There was an IO Exception: " + lastError);
         connectionClosed();
-        showStatus(lastError + " Retrying in 10 seconds..");
+        showConnectionStatus(lastError + " Retrying in 10 seconds..");
         return;
     }
     catch (ProtocolException &e)
@@ -857,7 +857,7 @@ void Client::connected()
         lastError = e.toString();
         Utilities::logData("connected(): There was a Protocol Exception: " + lastError);
         connectionClosed();
-        showStatus("Protocol Exception");
+        showConnectionStatus("Protocol Exception");
         return;
     }
 }
@@ -871,6 +871,11 @@ void Client::sendSyncContacts(QStringList numbers)
 {
     if (connectionStatus == LoggedIn)
         connection->sendSyncContacts(numbers);
+}
+
+void Client::sendGetStatus(QString jid)
+{
+    sendGetStatus(QStringList(jid));
 }
 
 void Client::sendGetStatus(QStringList jids)
@@ -901,22 +906,22 @@ void Client::syncSslError()
 
 void Client::syncProgress(int progress)
 {
-    QString status = parseStatus() + " (Synchronizing contacts ... " +
+    QString status = parseConnectionStatus() + " (Synchronizing contacts ... " +
                      QString::number(progress) + "%)";
 
-    showStatus(status);
+    showConnectionStatus(status);
 }
 
 void Client::syncFinished()
 {
     Utilities::logData("Synchronization finished");
     isSynchronizing = false;
-    sendGetStatus();
+    sendGetConnectionStatus();
 }
 
 void Client::getMyStatus()
 {
-    requestContactStatus(myJid);
+    sendGetStatus(myJid);
 }
 
 void Client::changeStatus(QString newStatus)
@@ -944,7 +949,7 @@ void Client::error(QAbstractSocket::SocketError socketError)
     Utilities::logData(s);
 
     connectionClosed();
-    showStatus(lastError);
+    showConnectionStatus(lastError);
 }
 
 void Client::connectionClosed()
@@ -998,7 +1003,7 @@ void Client::connectionClosed()
         connectionStatus = WaitingForConnection;
     }
 
-    sendGetStatus();
+    sendGetConnectionStatus();
     connectionMutex.unlock();
 }
 
@@ -1012,7 +1017,7 @@ void Client::loginSuccess()
     settings->setValue(SETTINGS_ACCOUNTSTATUS, connection->accountstatus);
 
     connectionStatus = LoggedIn;
-    sendGetStatus();
+    sendGetConnectionStatus();
 
     connect(connection,SIGNAL(timeout()),this,SLOT(connectionClosed()));
 
@@ -1087,6 +1092,7 @@ void Client::loginSuccess()
     connect(connection,SIGNAL(syncError()),
             syncer, SLOT(finishSync()));
 
+    getMyStatus();
 
     // Update participating groups
     connection->updateGroupChats();
@@ -1096,10 +1102,6 @@ void Client::loginSuccess()
 
     pendingMessagesTimer->start(CHECK_QUEUE_INTERVAL);
     pendingMessagesTimer->setSingleShot(true);
-
-    // Set status if hasn't been set before
-    if (this->myStatus.isEmpty())
-        changeStatus(DEFAULT_STATUS);
 
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     if (syncFreq == onConnect ||
@@ -1111,6 +1113,10 @@ void Client::loginSuccess()
         lastSync = now;
         settings->setValue(SETTINGS_LAST_SYNC, lastSync);
     }
+
+    // Set status if hasn't been set before
+    if (this->myStatus.isEmpty())
+        changeStatus(DEFAULT_STATUS);
 }
 
 void Client::loginFailed()
@@ -1136,7 +1142,7 @@ void Client::read()
             lastError = e.toString();
             Utilities::logData("read(): There was an IO Exception: " + lastError);
             connectionClosed();
-            showStatus(lastError + " Retrying in 10 seconds..");
+            showConnectionStatus(lastError + " Retrying in 10 seconds..");
             break;
         }
         catch (ProtocolException &e)
@@ -1144,7 +1150,7 @@ void Client::read()
             lastError = e.toString();
             Utilities::logData("read(): There was a Protocol Exception: " + lastError);
             connectionClosed();
-            showStatus("Protocol Exception. Retrying in 10 seconds...");
+            showConnectionStatus("Protocol Exception. Retrying in 10 seconds...");
             break;
         }
     }
@@ -1257,7 +1263,7 @@ bool Client::isRunning()
     return true;
 }
 
-QString Client::parseStatus()
+QString Client::parseConnectionStatus()
 {
     QString status;
 
@@ -1299,15 +1305,15 @@ QString Client::parseStatus()
     return status;
 }
 
-void Client::sendGetStatus()
+void Client::sendGetConnectionStatus()
 {
-    QString status = parseStatus();
+    QString status = parseConnectionStatus();
 
-    showStatus(status);
+    showConnectionStatus(status);
     applet->status(status);
 }
 
-void Client::showStatus(QString status)
+void Client::showConnectionStatus(QString status)
 {
     QStatusBar *bar = mainWin->statusBar();
     bar->showMessage(status);
@@ -1340,7 +1346,10 @@ void Client::userStatusUpdated(FMessage message)
             message.key.remote_jid = jid;
             roster->updateStatus(&c);
 
-            if(jid==myJid) myStatus=status;
+            if(jid==myJid) {
+                settings->setValue(SETTINGS_STATUS,status);
+                this->myStatus=status;
+            }
             mainWin->statusChanged(message);
         }
     }
@@ -1437,12 +1446,6 @@ void Client::photoDeleted(QString jid, QString alias)
     }
 }
 
-void Client::requestContactStatus(QString jid)
-{
-    if (connectionStatus == LoggedIn)
-        connection->sendGetStatus(QStringList(jid));
-}
-
 void Client::statusChanged(QString jid, qint64 t, QString status)
 {
     Contact &c = roster->getContact(jid);
@@ -1452,7 +1455,10 @@ void Client::statusChanged(QString jid, qint64 t, QString status)
         c.status = status;
         c.statusTimestamp = t;
         roster->updateStatus(&c);
-        if(jid==myJid) myStatus=status;
+        if(jid==myJid) {
+            settings->setValue(SETTINGS_STATUS,status);
+            this->myStatus=status;
+        }
 
         mainWin->statusChanged(jid, status);
     }

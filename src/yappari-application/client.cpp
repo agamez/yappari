@@ -1092,6 +1092,7 @@ void Client::loginSuccess()
     connect(connection,SIGNAL(syncError()),
             syncer, SLOT(finishSync()));
 
+    getMyStatus();
 
     // Update participating groups
     connection->updateGroupChats();
@@ -1101,10 +1102,6 @@ void Client::loginSuccess()
 
     pendingMessagesTimer->start(CHECK_QUEUE_INTERVAL);
     pendingMessagesTimer->setSingleShot(true);
-
-    // Set status if hasn't been set before
-    if (this->myStatus.isEmpty())
-        changeStatus(DEFAULT_STATUS);
 
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     if (syncFreq == onConnect ||
@@ -1116,6 +1113,10 @@ void Client::loginSuccess()
         lastSync = now;
         settings->setValue(SETTINGS_LAST_SYNC, lastSync);
     }
+
+    // Set status if hasn't been set before
+    if (this->myStatus.isEmpty())
+        changeStatus(DEFAULT_STATUS);
 }
 
 void Client::loginFailed()
@@ -1345,7 +1346,10 @@ void Client::userStatusUpdated(FMessage message)
             message.key.remote_jid = jid;
             roster->updateStatus(&c);
 
-            if(jid==myJid) myStatus=status;
+            if(jid==myJid) {
+                settings->setValue(SETTINGS_STATUS,status);
+                this->myStatus=status;
+            }
             mainWin->statusChanged(message);
         }
     }
@@ -1451,7 +1455,10 @@ void Client::statusChanged(QString jid, qint64 t, QString status)
         c.status = status;
         c.statusTimestamp = t;
         roster->updateStatus(&c);
-        if(jid==myJid) myStatus=status;
+        if(jid==myJid) {
+            settings->setValue(SETTINGS_STATUS,status);
+            this->myStatus=status;
+        }
 
         mainWin->statusChanged(jid, status);
     }

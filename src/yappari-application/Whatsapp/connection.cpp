@@ -569,40 +569,37 @@ bool Connection::read()
             FMessage message;
             Key k(from,true,id);
             message = store.value(k);
+            Utilities::logData("Message id="+id+", Recovered id="+message.key.id);
             if (message.key.id == id)
             {
                 if(receipt_type == "played") {
                     message.status = FMessage::Played;
-                    store.remove(k);
+                    message.read++;
                 } else if(receipt_type == "read") {
+                    message.read++;
                     if(from.right(5) == "@g.us")
                     {
                         Utilities::logData("Adding new read receipt");
                         Receipt receipt(participant, Receipt::ReadByTarget, attribute_t.toLongLong() * 1000);
                         message.receipts.append(receipt);
 
-                        message.read++;
                         if(message.read==message.count) {
                             Utilities::logData("Marking message as read by all targets");
                             message.status = FMessage::ReadByTarget;
                         }
                     } else if(Client::blueChecks) {
                         Utilities::logData("Marking message as read by target");
+                        message.read++;
                         message.status = FMessage::ReadByTarget;
                     }
-                    if(message.read!=message.count || message.delivered!=message.count) {
-                        Utilities::logData("Message not finished, moving back to store");
-                        store[k]=message;
-                    }
-                    else store.remove(k);
                 } else {
+                    message.delivered++;
                     if(from.right(5) == "@g.us")
                     {
                         Utilities::logData("Adding new received receipt");
                         Receipt receipt(participant, Receipt::ReceivedByTarget, attribute_t.toLongLong() * 1000);
                         message.receipts.append(receipt);
 
-                        message.delivered++;
                         if(message.delivered==message.count && message.status!=FMessage::ReadByTarget) {
                             Utilities::logData("Marking message as received by all targets");
                             message.status = FMessage::ReceivedByTarget;
@@ -611,12 +608,11 @@ bool Connection::read()
                         Utilities::logData("Marking message as received by target");
                         message.status = FMessage::ReceivedByTarget;
                     }
-                    if(message.read!=message.count || message.delivered!=message.count) {
-                        Utilities::logData("Message not finished, moving back to store");
-                        store[k]=message;
-                    }
-                    else store.remove(k);
                 }
+                if(message.read!=message.count || message.delivered!=message.count) {
+                    Utilities::logData("Message not finished, moving back to store");
+                    store[k]=message;
+                } else store.remove(k);
             }
 
             if (receipt_type == "delivered" || receipt_type == "played" ||
@@ -877,7 +873,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
     QString id = messageNode.getAttributeValue("id");
     QString attribute_t = messageNode.getAttributeValue("t");
     QString from = messageNode.getAttributeValue("from");
-    QString author = messageNode.getAttributeValue("participant");
+    QString participant = messageNode.getAttributeValue("participant");
     QString typeAttribute = messageNode.getAttributeValue("type");
 
 
@@ -898,7 +894,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 Key k(from, false, id);
                 message.setKey(k);
                 message.setData(child.getData());
-                message.remote_resource = author;
+                message.remote_resource = participant;
                 message.setThumbImage("");
                 message.type = FMessage::BodyMessage;
                 message.notify_name = messageNode.getAttributeValue("notify");
@@ -916,7 +912,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
 
                 Key k(from, false, id);
                 message.setKey(k);
-                message.remote_resource = author;
+                message.remote_resource = participant;
                 message.type = FMessage::MediaMessage;
                 message.notify_name = messageNode.getAttributeValue("notify");
 
@@ -987,40 +983,37 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 message = store.value(k);
                 /* This code is duped, but is it ever reached? */
                 Utilities::logData("parseMessageInitialTagAlreadyChecked: Processing 'received' tag");
+                Utilities::logData("Message id="+id+", Recovered id="+message.key.id);
                 if (message.key.id == id)
                 {
                     if(receipt_type == "played") {
                         message.status = FMessage::Played;
-                        store.remove(k);
+                        message.read++;
                     } else if(receipt_type == "read") {
+                        message.read++;
                         if(from.right(5) == "@g.us")
                         {
                             Utilities::logData("Adding new read receipt");
-                            Receipt receipt(author, Receipt::ReadByTarget, attribute_t.toLongLong() * 1000);
+                            Receipt receipt(participant, Receipt::ReadByTarget, attribute_t.toLongLong() * 1000);
                             message.receipts.append(receipt);
 
-                            message.read++;
                             if(message.read==message.count) {
                                 Utilities::logData("Marking message as read by all targets");
                                 message.status = FMessage::ReadByTarget;
                             }
                         } else if(Client::blueChecks) {
                             Utilities::logData("Marking message as read by target");
+                            message.read++;
                             message.status = FMessage::ReadByTarget;
                         }
-                        if(message.read!=message.count || message.delivered!=message.count) {
-                            Utilities::logData("Message not finished, moving back to store");
-                            store[k]=message;
-                        }
-                        else store.remove(k);
                     } else {
+                        message.delivered++;
                         if(from.right(5) == "@g.us")
                         {
                             Utilities::logData("Adding new received receipt");
-                            Receipt receipt(author, Receipt::ReceivedByTarget, attribute_t.toLongLong() * 1000);
+                            Receipt receipt(participant, Receipt::ReceivedByTarget, attribute_t.toLongLong() * 1000);
                             message.receipts.append(receipt);
 
-                            message.delivered++;
                             if(message.delivered==message.count && message.status!=FMessage::ReadByTarget) {
                                 Utilities::logData("Marking message as received by all targets");
                                 message.status = FMessage::ReceivedByTarget;
@@ -1029,12 +1022,11 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                             Utilities::logData("Marking message as received by target");
                             message.status = FMessage::ReceivedByTarget;
                         }
-                        if(message.read!=message.count || message.delivered!=message.count) {
-                            Utilities::logData("Message not finished, moving back to store");
-                            store[k]=message;
-                        }
-                        else store.remove(k);
                     }
+                    if(message.read!=message.count || message.delivered!=message.count) {
+                        Utilities::logData("Message not finished, moving back to store");
+                        store[k]=message;
+                    } else store.remove(k);
                 }
 
                 if (receipt_type == "delivered" || receipt_type == "played" ||
@@ -1080,11 +1072,11 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
         ProtocolTreeNode bodyNode = messageNode.getChild("body");
         ProtocolTreeNode notifyNode = messageNode.getChild("notify");
 
-        QString authorName = notifyNode.getAttributeValue("name");
+        QString participantName = notifyNode.getAttributeValue("name");
         QString newSubject = bodyNode.getDataString();
 
         if (!newSubject.isEmpty())
-            emit groupNewSubject(from, author, authorName, newSubject, attribute_t);
+            emit groupNewSubject(from, participant, participantName, newSubject, attribute_t);
 
         sendSubjectReceived(from, id);
 

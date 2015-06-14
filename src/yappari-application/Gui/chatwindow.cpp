@@ -104,7 +104,7 @@ ChatWindow::ChatWindow(Contact *contact, QWidget *parent) :
     connect(ui->scrollArea,SIGNAL(deleteMessage(FMessage)),
             this,SLOT(deleteMessage(FMessage)));
     connect(ui->sendButton,SIGNAL(clicked()),this,SLOT(sendButtonClicked()));
-    connect(ui->sendButton,SIGNAL(pressed()),this,SLOT(startRecording()));
+    connect(ui->recordButton,SIGNAL(pressed()),this,SLOT(startRecording()));
     connect(ui->selectEmojiButton,SIGNAL(clicked()),
             ui->textEdit,SLOT(selectEmojiButtonClicked()));
 
@@ -311,13 +311,11 @@ void ChatWindow::textChanged()
 {
     if (!ui->textEdit->document()->isEmpty())
     {
-        ui->sendButton->setText("Send");
-        ui->sendButton->setIcon(QIcon());
+        ui->recordButton->setVisible(false);
     }
     else
     {
-        ui->sendButton->setText("");
-        ui->sendButton->setIcon(QIcon("/usr/share/yappari/icons/48x48/voice_overlay_icon.png"));
+        ui->recordButton->setVisible(true);
     }
 }
 
@@ -858,7 +856,7 @@ void ChatWindow::startRecording()
 
         AudioRecorder *recorder = new AudioRecorder(Client::voiceCodec, this);
 
-        connect(ui->sendButton,SIGNAL(released()),recorder,SLOT(stop()));
+        connect(ui->recordButton,SIGNAL(released()),recorder,SLOT(stop()));
         connect(recorder,SIGNAL(finished(QString,int)),this,SLOT(finishedRecording(QString,int)));
         connect(recorder,SIGNAL(progress(int)),this,SLOT(updateRecordingTime(int)));
 

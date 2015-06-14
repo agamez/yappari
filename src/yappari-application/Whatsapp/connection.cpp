@@ -1921,10 +1921,9 @@ void Connection::sendPaused(FMessage message)
 */
 void Connection::sendCreateGroupChat(QString subject, QString id)
 {
-    ProtocolTreeNode groupNode("group");
+    ProtocolTreeNode groupNode("create");
 
     AttributeList attrs;
-    attrs.insert("action", "create");
     attrs.insert("subject", subject);
     groupNode.setAttributes(attrs);
 
@@ -1934,7 +1933,7 @@ void Connection::sendCreateGroupChat(QString subject, QString id)
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to","g.us");
-    attrs.insert("xmlns", "w:g");
+    attrs.insert("xmlns", "w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(groupNode);
 

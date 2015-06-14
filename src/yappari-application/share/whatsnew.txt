@@ -1,6 +1,12 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.14:</b><br>
+
+<li>&bull; Fix group creation.</li>
+<li>&bull; Separate record functionality from 'Send' button so it is more difficult to start recording an audio message by mistake</li>
+<br>
+
 <b>New in this version 2.0.13:</b><br>
 
 <li>&bull; Fixed regression on reporting read receipts.</li>

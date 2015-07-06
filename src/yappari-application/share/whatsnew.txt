@@ -1,6 +1,11 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.15:</b><br>
+
+<li>&bull; Updated Whatsapp S40 version.</li>
+<br>
+
 <b>New in this version 2.0.14:</b><br>
 
 <li>&bull; Fix group creation.</li>

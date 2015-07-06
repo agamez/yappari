@@ -1,3 +1,9 @@
+yappari (2.0.15) stable; urgency=medium
+
+  * Updated Whatsapp S40 version
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Mon, 06 Jul 2015 14:14:04 +0200
+
 yappari (2.0.14) stable; urgency=medium
 
   * Fix group creation

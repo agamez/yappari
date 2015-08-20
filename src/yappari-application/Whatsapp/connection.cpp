@@ -2003,7 +2003,7 @@ void Connection::sendVerbParticipants(QString gjid, QStringList participants,
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to",gjid);
-    attrs.insert("xmlns", "w:g");
+    attrs.insert("xmlns", "w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(innerNode);
 

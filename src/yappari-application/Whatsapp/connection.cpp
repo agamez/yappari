@@ -1970,6 +1970,20 @@ void Connection::sendRemoveParticipants(QString gjid, QStringList participants)
 }
 
 /**
+    Sends a request to promote participants from a group.
+
+    @param gjid             Group jid.
+    @param participants     QStringList containing the jids of the participants
+                            to promote.
+*/
+void Connection::sendPromoteParticipants(QString gjid, QStringList participants)
+{
+    QString id = makeId("promote_group_participants_");
+
+    sendVerbParticipants(gjid, participants, id, "promote");
+}
+
+/**
     Sends a request with participants to a group.
 
     @param gjid             Group jid.

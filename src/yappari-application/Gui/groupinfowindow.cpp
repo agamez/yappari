@@ -440,10 +440,14 @@ bool GroupInfoWindow::eventFilter(QObject *obj, QEvent *event)
                 QMenu *menu = new QMenu(this);
                 QAction *removeContact = new QAction("Remove Contact",this);
                 QAction *viewContact = new QAction("View Contact",this);
+                QAction *promoteContact = new QAction("Make Contact group admin",this);
 
                 menu->addAction(viewContact);
                 if (group->author == Client::myJid)
+                {
                     menu->addAction(removeContact);
+                    menu->addAction(promoteContact);
+                }
 
                 QAction *action = menu->exec(p);
 
@@ -474,6 +478,19 @@ bool GroupInfoWindow::eventFilter(QObject *obj, QEvent *event)
                     window->setAttribute(Qt::WA_DeleteOnClose);
                     window->setWindowFlags(window->windowFlags() | Qt::Window);
                     window->show();
+                }
+
+                else if (action == promoteContact)
+                {
+                    QMessageBox msg(this);
+
+                    msg.setText("Are you sure you want to make this contact admin of this group?");
+                    msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+
+                    if (msg.exec() == QMessageBox::Yes)
+                        Client::mainWin->requestPromoteGroupParticipant(group->jid, jid);
+
+                    return true;
                 }
             }
 

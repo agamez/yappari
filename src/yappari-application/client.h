@@ -323,6 +323,7 @@ public slots:
     void groupUser(QString gjid, QString jid);
     void sendAddGroupParticipant(QString gjid, QString jid);
     void sendRemoveGroupParticipant(QString gjid, QString jid);
+    void sendPromoteGroupParticipant(QString gjid, QString jid);
     void groupAddUser(QString gjid ,QString jid);
     void groupRemoveUser(QString gjid ,QString jid);
     void requestPrivacyList();

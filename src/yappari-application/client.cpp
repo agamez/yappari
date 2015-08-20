@@ -294,6 +294,9 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(mainWin, SIGNAL(removeGroupParticipant(QString,QString)),
             this,SLOT(sendRemoveGroupParticipant(QString,QString)));
 
+    connect(mainWin, SIGNAL(promoteGroupParticipant(QString,QString)),
+            this,SLOT(sendPromoteGroupParticipant(QString,QString)));
+
     connect(mainWin, SIGNAL(requestPrivacyList()),
             this, SLOT(requestPrivacyList()));
 
@@ -1664,6 +1667,16 @@ void Client::sendRemoveGroupParticipant(QString gjid, QString jid)
         QStringList participants;
         participants.append(jid);
         connection->sendRemoveParticipants(gjid, participants);
+    }
+}
+
+void Client::sendPromoteGroupParticipant(QString gjid, QString jid)
+{
+    if (connectionStatus == LoggedIn)
+    {
+        QStringList participants;
+        participants.append(jid);
+        connection->sendPromoteParticipants(gjid, participants);
     }
 }
 

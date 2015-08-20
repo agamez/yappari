@@ -209,6 +209,9 @@ public slots:
     // Sends a request to remove participants from a group
     void sendRemoveParticipants(QString gjid, QStringList participants);
 
+    // Sends a request to promote participants from a group
+    void sendPromoteParticipants(QString gjid, QStringList participants);
+
     // Sends a request with participants to a group
     void sendVerbParticipants(QString gjid, QStringList participants,
                               QString id, QString innerTag);

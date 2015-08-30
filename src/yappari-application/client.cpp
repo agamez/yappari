@@ -930,9 +930,7 @@ void Client::getMyStatus()
 void Client::changeStatus(QString newStatus)
 {
     settings->setValue(SETTINGS_STATUS,newStatus);
-    FMessage message("s.us",newStatus,"");
-    message.type = FMessage::BodyMessage;
-    queueMessage(message);
+    connection->sendSetStatus(newStatus);
 }
 
 void Client::changeUserName(QString newUserName)

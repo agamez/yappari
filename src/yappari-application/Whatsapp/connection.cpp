@@ -1662,6 +1662,34 @@ void Connection::sendGetStatus(QStringList jids)
 }
 
 /**
+    Sends a query to set the current status of a user.
+
+    @param jid           Destination jid.
+*/
+void Connection::sendSetStatus(QString newStatus)
+{
+    QString id = makeId("setstatus_");
+    AttributeList attrs;
+
+    ProtocolTreeNode statusNode("status");
+    attrs.clear();
+    statusNode.setAttributes(attrs);
+    statusNode.setData(newStatus.toUtf8());
+
+    ProtocolTreeNode iqNode("iq");
+    attrs.clear();
+    attrs.insert("id", id);
+    attrs.insert("to", "s.whatsapp.net");
+    attrs.insert("type", "set");
+    attrs.insert("xmlns", "status");
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(statusNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+/**
     Sends a query to request a subscription to a user.
 
     Subscriptions allow servers to send user online status changes in real time

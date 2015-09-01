@@ -87,6 +87,8 @@ void HttpRequestv2::connectToHost() {
 
     // Connect the socket
     socket = new QSslSocket(this);
+    // Avoid SSlV3 as it is unsecure and most servers now refuse to use it
+    socket->setProtocol(QSsl::TlsV1);
 
     connect(socket, SIGNAL(encrypted()), this, SLOT(sendRequest()));
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
@@ -237,7 +239,7 @@ void HttpRequestv2::readResponse() {
 
 void HttpRequestv2::socketErrorHandler(QAbstractSocket::SocketError err)
 {
-    Utilities::logData("HttpRequestv2() Socket Error " + QString::number(err));
+    Utilities::logData("HttpRequestv2() Socket Error " + QString::number(err) + " " + socket->errorString());
 
     if (socket->isOpen())
         socket->close();

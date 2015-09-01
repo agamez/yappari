@@ -331,7 +331,7 @@ void ContactSyncer::syncNextChunk()
         finishSync();
     else
     {
-        emit progress((int)((currentPhone*50) / totalPhones) + 50);
+        emit progress((int)((currentPhone*100) / totalPhones));
 
         int max = currentPhone + 1;
         while (currentPhone < max && currentPhone < totalPhones)

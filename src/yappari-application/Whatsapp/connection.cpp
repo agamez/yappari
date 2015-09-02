@@ -1662,6 +1662,34 @@ void Connection::sendGetStatus(QStringList jids)
 }
 
 /**
+    Sends a query to set the current status of a user.
+
+    @param jid           Destination jid.
+*/
+void Connection::sendSetStatus(QString newStatus)
+{
+    QString id = makeId("setstatus_");
+    AttributeList attrs;
+
+    ProtocolTreeNode statusNode("status");
+    attrs.clear();
+    statusNode.setAttributes(attrs);
+    statusNode.setData(newStatus.toUtf8());
+
+    ProtocolTreeNode iqNode("iq");
+    attrs.clear();
+    attrs.insert("id", id);
+    attrs.insert("to", "s.whatsapp.net");
+    attrs.insert("type", "set");
+    attrs.insert("xmlns", "status");
+    iqNode.setAttributes(attrs);
+    iqNode.addChild(statusNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+/**
     Sends a query to request a subscription to a user.
 
     Subscriptions allow servers to send user online status changes in real time
@@ -1970,6 +1998,20 @@ void Connection::sendRemoveParticipants(QString gjid, QStringList participants)
 }
 
 /**
+    Sends a request to promote participants from a group.
+
+    @param gjid             Group jid.
+    @param participants     QStringList containing the jids of the participants
+                            to promote.
+*/
+void Connection::sendPromoteParticipants(QString gjid, QStringList participants)
+{
+    QString id = makeId("promote_group_participants_");
+
+    sendVerbParticipants(gjid, participants, id, "promote");
+}
+
+/**
     Sends a request with participants to a group.
 
     @param gjid             Group jid.
@@ -2003,7 +2045,7 @@ void Connection::sendVerbParticipants(QString gjid, QStringList participants,
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to",gjid);
-    attrs.insert("xmlns", "w:g");
+    attrs.insert("xmlns", "w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(innerNode);
 

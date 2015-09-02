@@ -117,6 +117,7 @@ public slots:
     void requestGetParticipants(QString gjid);
     void requestAddGroupParticipant(QString gjid, QString participant);
     void requestRemoveGroupParticipant(QString gjid, QString participant);
+    void requestPromoteGroupParticipant(QString gjid, QString participant);
     void groupError(QString gjid);
     void showBlockedContactsWindow();
     void blockOrUnblockContact(QString jid, bool blocked);
@@ -178,6 +179,7 @@ signals:
     void groupSubjectUpdated(QString gjid);
     void addGroupParticipant(QString gjid, QString participant);
     void removeGroupParticipant(QString gjid, QString participant);
+    void promoteGroupParticipant(QString gjid, QString participant);
     void groupParticipantRemoved(QString gjid, QString participant);
     void requestPrivacyList();
     void requestBlockOrUnblockContact(QString jid, bool blocked);

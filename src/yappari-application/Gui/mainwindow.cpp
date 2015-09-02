@@ -1145,6 +1145,11 @@ void MainWindow::requestRemoveGroupParticipant(QString gjid, QString participant
     emit removeGroupParticipant(gjid, participant);
 }
 
+void MainWindow::requestPromoteGroupParticipant(QString gjid, QString participant)
+{
+    emit promoteGroupParticipant(gjid, participant);
+}
+
 void MainWindow::groupError(QString gjid)
 {
     if (chatWindowList.contains(gjid))

@@ -169,6 +169,9 @@ public slots:
     // Sends a query to get the current status of a user
     void sendGetStatus(QStringList jids);
 
+    // Sends a query to set the current status of a user
+    void sendSetStatus(QString newStatus);
+
     // Sends a query to request a subscription to a user
     void sendPresenceSubscriptionRequest(QString jid);
 
@@ -208,6 +211,9 @@ public slots:
 
     // Sends a request to remove participants from a group
     void sendRemoveParticipants(QString gjid, QStringList participants);
+
+    // Sends a request to promote participants from a group
+    void sendPromoteParticipants(QString gjid, QStringList participants);
 
     // Sends a request with participants to a group
     void sendVerbParticipants(QString gjid, QStringList participants,

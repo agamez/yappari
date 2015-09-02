@@ -318,7 +318,7 @@ void ContactSyncer::syncStatusAndPhotos()
     // Utilities::logData("syncStatusAndPhotos(): " + QString::number(currentPhone)
     //                     + " " + QString::number(totalPhones));
 
-    QTimer::singleShot(1000,this,SLOT(syncNextChunk()));
+    QTimer::singleShot(2500,this,SLOT(syncNextChunk()));
 }
 
 void ContactSyncer::syncNextChunk()
@@ -331,9 +331,9 @@ void ContactSyncer::syncNextChunk()
         finishSync();
     else
     {
-        emit progress((int)((currentPhone*50) / totalPhones) + 50);
+        emit progress((int)((currentPhone*100) / totalPhones));
 
-        int max = currentPhone + 5;
+        int max = currentPhone + 1;
         while (currentPhone < max && currentPhone < totalPhones)
         {
             Contact *c = list.at(currentPhone++);
@@ -349,7 +349,7 @@ void ContactSyncer::syncNextChunk()
 
         emit statusListReady(jids);
 
-        QTimer::singleShot(1000,this,SLOT(syncNextChunk()));
+        QTimer::singleShot(2500,this,SLOT(syncNextChunk()));
     }
 }
 

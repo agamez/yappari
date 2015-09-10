@@ -1,6 +1,10 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.17:</b><br>
+<li>&bull; Set platform value to S40 (will force WA to send unencrypted messages? Let's hope so).</li>
+<br>
+
 <b>New in this version 2.0.16:</b><br>
 
 <li>&bull; Slow down contacts synchronization so WA servers doesn't close our connection for being spammers.</li>

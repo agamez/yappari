@@ -1,6 +1,15 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<b>New in this version 2.0.16:</b><br>
+
+<li>&bull; Slow down contacts synchronization so WA servers doesn't close our connection for being spammers.</li>
+<li>&bull; Fixed video downloading and prevent image downloading from breaking in the future.</li>
+<li>&bull; Upgrade status setting method (should work now on for everyone).</li>
+<li>&bull; Implement promote participant to group admin functionality.</li>
+<li>&bull; Fix group participants management (add participant, etc).</li>
+<br>
+
 <b>New in this version 2.0.15:</b><br>
 
 <li>&bull; Updated Whatsapp S40 version.</li>

@@ -1238,7 +1238,7 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
 
     // Successful login at this point
 
-    sendClientConfig("none");
+    sendClientConfig("S40");
     sendAvailableForChat();
 
     Q_EMIT loginSuccess();

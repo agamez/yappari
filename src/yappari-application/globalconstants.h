@@ -39,12 +39,12 @@
 #define YAPPARI_NOTIFICATION_ICON   "yappari-notification"
 
 // WhatsApp Client Spoofing
-#define USER_AGENT_VERSION  "2.12.88"
+#define USER_AGENT_VERSION  "2.13.4"
 #define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/14.26 Device/Nokia302"
 #define RESOURCE            "S40-"USER_AGENT_VERSION"-443"
 
 #define BUILD_KEY   "PdA2DJyKoUrwLw1Bg6EIhzh502dF9noR9uFCllGk"
-#define BUILD_HASH  "1435096901976"
+#define BUILD_HASH  "1441745119487"
 
 
 // WhatsApp URLs

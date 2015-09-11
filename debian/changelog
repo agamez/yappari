@@ -1,3 +1,10 @@
+yappari (2.0.18) stable; urgency=medium
+
+  * Updated group creation code
+  * Updated WA build hash
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Fri, 11 Sep 2015 19:05:25 +0200
+
 yappari (2.0.17) stable; urgency=medium
 
   * Set platform value to S40 (will force WA to send unencrypted messages? Let's hope so).

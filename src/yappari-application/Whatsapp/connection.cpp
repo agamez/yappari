@@ -1947,13 +1947,22 @@ void Connection::sendPaused(FMessage message)
     @param subject  Group name or subject.
     @param id       Id of the request.
 */
-void Connection::sendCreateGroupChat(QString subject, QString id)
+void Connection::sendCreateGroupChat(QString subject, QString id, QStringList participants)
 {
     ProtocolTreeNode groupNode("create");
 
     AttributeList attrs;
     attrs.insert("subject", subject);
     groupNode.setAttributes(attrs);
+
+    foreach (QString jid, participants)
+    {
+        ProtocolTreeNode participantNode("participant");
+        AttributeList attrs;
+        attrs.insert("jid", jid);
+        participantNode.setAttributes(attrs);
+        groupNode.addChild(participantNode);
+    }
 
     ProtocolTreeNode iqNode("iq");
 

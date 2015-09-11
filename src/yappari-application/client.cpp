@@ -1530,7 +1530,7 @@ void Client::createGroupChat(QImage photo, QString subject, QStringList particip
     groups.insert(subject,group);
 
     if (connectionStatus == LoggedIn)
-        connection->sendCreateGroupChat(subject,id);
+        connection->sendCreateGroupChat(subject,id, participants);
 }
 
 void Client::groupInfoFromList(QString id, QString from, QString author,

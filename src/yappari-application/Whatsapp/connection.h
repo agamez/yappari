@@ -204,7 +204,7 @@ public slots:
      **/
 
     // Sends a request to create a group
-    void sendCreateGroupChat(QString subject, QString id, QStringList participants);
+    void sendCreateGroupChat(QString subject, QStringList participants);
 
     // Sends a request to add participants to a group
     void sendAddParticipants(QString gjid, QStringList participants);

@@ -5,6 +5,11 @@ If you like this application and want to see more updates consider contributing 
 It will result in WhatsApp banning you. Do it only at your own risk.</b></font>
 <br>
 
+<b>New in this version 2.0.20:</b><br>
+<li>&bull; Fix sendGetGroups xml message.</li>
+<li>&bull; Fix set initial config_ (will this force clients to send non crypted messages?)</li>
+<br>
+
 <b>New in this version 2.0.19:</b><br>
 <li>&bull; Fix set group subject.</li>
 <br>

@@ -2154,7 +2154,7 @@ void Connection::sendSetGroupSubject(QString gjid, QString subject)
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to",gjid);
-    attrs.insert("xmlns","w:g");
+    attrs.insert("xmlns","w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(subjectNode);
 
@@ -2185,7 +2185,7 @@ void Connection::sendLeaveGroup(QString gjid)
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to","g.us");
-    attrs.insert("xmlns","w:g");
+    attrs.insert("xmlns","w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(leaveNode);
 

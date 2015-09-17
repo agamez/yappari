@@ -2394,7 +2394,6 @@ void Connection::sendClientConfig(QString platform)
     AttributeList attrs;
 
     ProtocolTreeNode configNode("config");
-    attrs.insert("xmlns","urn:xmpp:whatsapp:push");
     attrs.insert("platform", platform);
     attrs.insert("lg", language.isEmpty() ? "zz" : language);
     attrs.insert("lc", country.isEmpty() ?  "ZZ" : country);
@@ -2404,6 +2403,7 @@ void Connection::sendClientConfig(QString platform)
     attrs.clear();
     attrs.insert("id",id);
     attrs.insert("type","set");
+    attrs.insert("xmlns","urn:xmpp:whatsapp:push");
     attrs.insert("to",domain);
     iqNode.setAttributes(attrs);
     iqNode.addChild(configNode);

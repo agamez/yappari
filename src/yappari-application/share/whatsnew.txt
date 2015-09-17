@@ -1,6 +1,14 @@
 <b>Thank you for installing Yappari!</b><br><br>
 If you like this application and want to see more updates consider contributing to this project by clicking on the Donate button.<br><br>
 
+<font color="red"><b>Please, be careful. Creating groups is right now not supported.
+It will result in WhatsApp banning you. Do it only at your own risk.</b></font>
+<br>
+
+<b>New in this version 2.0.19:</b><br>
+<li>&bull; Fix set group subject.</li>
+<br>
+
 <b>New in this version 2.0.18:</b><br>
 <li>&bull; Updated group creation code.</li>
 <li>&bull; Updated WA build hash.</li>

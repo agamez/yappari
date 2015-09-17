@@ -1,3 +1,9 @@
+yappari (2.0.19) stable; urgency=medium
+
+  * Fix set group subject
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Thu, 17 Sep 2015 10:11:44 +0200
+
 yappari (2.0.18) stable; urgency=medium
 
   * Updated group creation code

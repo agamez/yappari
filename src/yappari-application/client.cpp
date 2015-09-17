@@ -1516,8 +1516,6 @@ void Client::createGroupChat(QImage photo, QString subject, QStringList particip
 {
     qint64 creation = QDateTime::currentMSecsSinceEpoch() / 1000;
 
-    QString id = "create_group_" + QString::number(seq++);
-
     Group *group = new Group();
 
     group->subjectOwner = group->author = myJid;
@@ -1530,7 +1528,7 @@ void Client::createGroupChat(QImage photo, QString subject, QStringList particip
     groups.insert(subject,group);
 
     if (connectionStatus == LoggedIn)
-        connection->sendCreateGroupChat(subject,id, participants);
+        connection->sendCreateGroupChat(subject, participants);
 }
 
 void Client::groupInfoFromList(QString id, QString from, QString author,

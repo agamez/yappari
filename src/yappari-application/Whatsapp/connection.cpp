@@ -1947,8 +1947,9 @@ void Connection::sendPaused(FMessage message)
     @param subject  Group name or subject.
     @param id       Id of the request.
 */
-void Connection::sendCreateGroupChat(QString subject, QString id, QStringList participants)
+void Connection::sendCreateGroupChat(QString subject, QStringList participants)
 {
+    QString id = makeId("create_group_");
     ProtocolTreeNode groupNode("create");
 
     AttributeList attrs;
@@ -2153,7 +2154,7 @@ void Connection::sendSetGroupSubject(QString gjid, QString subject)
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to",gjid);
-    attrs.insert("xmlns","w:g");
+    attrs.insert("xmlns","w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(subjectNode);
 
@@ -2184,7 +2185,7 @@ void Connection::sendLeaveGroup(QString gjid)
     attrs.insert("id",id);
     attrs.insert("type","set");
     attrs.insert("to","g.us");
-    attrs.insert("xmlns","w:g");
+    attrs.insert("xmlns","w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(leaveNode);
 

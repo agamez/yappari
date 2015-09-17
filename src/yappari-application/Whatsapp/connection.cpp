@@ -2114,8 +2114,8 @@ void Connection::sendGetGroups(QString id, QString type)
 {
     AttributeList attrs;
 
-    ProtocolTreeNode listNode("list");
-    attrs.insert("type",type);
+    ProtocolTreeNode listNode(type);
+    attrs.insert("type","list");
     listNode.setAttributes(attrs);
 
     ProtocolTreeNode iqNode("iq");
@@ -2124,7 +2124,7 @@ void Connection::sendGetGroups(QString id, QString type)
     attrs.insert("id",id);
     attrs.insert("type","get");
     attrs.insert("to","g.us");
-    attrs.insert("xmlns","w:g");
+    attrs.insert("xmlns","w:g2");
     iqNode.setAttributes(attrs);
     iqNode.addChild(listNode);
 

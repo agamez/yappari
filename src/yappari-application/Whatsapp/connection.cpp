@@ -683,6 +683,16 @@ bool Connection::read()
                 sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
             }
 
+            if (type == "encrypt") {
+                // Not implemented
+                sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
+            }
+
+            else if (type == "features") {
+                // Not implemented
+                sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
+            }
+
 
             if (type == "w:gp2")
             {

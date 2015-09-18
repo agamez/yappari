@@ -665,7 +665,7 @@ bool Connection::read()
                 }
             }
 
-            if (type == "status")
+            else if (type == "status")
             {
                 ProtocolTreeNodeListIterator j(node.getChildren());
                 while (j.hasNext())
@@ -678,12 +678,12 @@ bool Connection::read()
                 }
             }
 
-            if (type == "contacts") {
+            else if (type == "contacts") {
                 // Not implemented
                 sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
             }
 
-            if (type == "encrypt") {
+            else if (type == "encrypt") {
                 // Not implemented
                 sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
             }
@@ -694,7 +694,7 @@ bool Connection::read()
             }
 
 
-            if (type == "w:gp2")
+            else if (type == "w:gp2")
             {
                 ProtocolTreeNodeListIterator k(node.getChildren());
                 while (k.hasNext())
@@ -817,7 +817,7 @@ bool Connection::read()
                 }
             }
 
-            if (type == "participant")
+            else if (type == "participant")
             {
                 ProtocolTreeNodeListIterator k(node.getChildren());
 

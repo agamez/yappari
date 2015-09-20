@@ -665,7 +665,7 @@ bool Connection::read()
                 }
             }
 
-            if (type == "status")
+            else if (type == "status")
             {
                 ProtocolTreeNodeListIterator j(node.getChildren());
                 while (j.hasNext())
@@ -678,13 +678,23 @@ bool Connection::read()
                 }
             }
 
-            if (type == "contacts") {
+            else if (type == "contacts") {
+                // Not implemented
+                sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
+            }
+
+            else if (type == "encrypt") {
+                // Not implemented
+                sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
+            }
+
+            else if (type == "features") {
                 // Not implemented
                 sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
             }
 
 
-            if (type == "w:gp2")
+            else if (type == "w:gp2")
             {
                 ProtocolTreeNodeListIterator k(node.getChildren());
                 while (k.hasNext())
@@ -807,7 +817,7 @@ bool Connection::read()
                 }
             }
 
-            if (type == "participant")
+            else if (type == "participant")
             {
                 ProtocolTreeNodeListIterator k(node.getChildren());
 
@@ -1123,12 +1133,14 @@ int Connection::sendFeatures()
     ProtocolTreeNode child2("readreceipts");
     ProtocolTreeNode child3("groups_v2");
     ProtocolTreeNode child4("presence");
+    ProtocolTreeNode child5("identity");
     ProtocolTreeNode node("stream:features");
 
     node.addChild(child1);
     node.addChild(child2);
     node.addChild(child3);
     node.addChild(child4);
+    node.addChild(child5);
 
     int bytes = out->write(node,false);
     return bytes;
@@ -1958,11 +1970,14 @@ void Connection::sendCreateGroupChat(QString subject, QStringList participants)
 
     foreach (QString jid, participants)
     {
-        ProtocolTreeNode participantNode("participant");
-        AttributeList attrs;
-        attrs.insert("jid", jid);
-        participantNode.setAttributes(attrs);
-        groupNode.addChild(participantNode);
+        if(jid != myJid)
+        {
+            ProtocolTreeNode participantNode("participant");
+            AttributeList attrs;
+            attrs.insert("jid", jid);
+            participantNode.setAttributes(attrs);
+            groupNode.addChild(participantNode);
+        }
     }
 
     ProtocolTreeNode iqNode("iq");

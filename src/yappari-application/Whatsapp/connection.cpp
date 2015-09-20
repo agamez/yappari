@@ -1133,12 +1133,14 @@ int Connection::sendFeatures()
     ProtocolTreeNode child2("readreceipts");
     ProtocolTreeNode child3("groups_v2");
     ProtocolTreeNode child4("presence");
+    ProtocolTreeNode child5("identity");
     ProtocolTreeNode node("stream:features");
 
     node.addChild(child1);
     node.addChild(child2);
     node.addChild(child3);
     node.addChild(child4);
+    node.addChild(child5);
 
     int bytes = out->write(node,false);
     return bytes;

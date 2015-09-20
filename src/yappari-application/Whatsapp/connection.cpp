@@ -1970,11 +1970,14 @@ void Connection::sendCreateGroupChat(QString subject, QStringList participants)
 
     foreach (QString jid, participants)
     {
-        ProtocolTreeNode participantNode("participant");
-        AttributeList attrs;
-        attrs.insert("jid", jid);
-        participantNode.setAttributes(attrs);
-        groupNode.addChild(participantNode);
+        if(jid != myJid)
+        {
+            ProtocolTreeNode participantNode("participant");
+            AttributeList attrs;
+            attrs.insert("jid", jid);
+            participantNode.setAttributes(attrs);
+            groupNode.addChild(participantNode);
+        }
     }
 
     ProtocolTreeNode iqNode("iq");

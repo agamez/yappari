@@ -1,3 +1,12 @@
+yappari (2.0.21) stable; urgency=medium
+
+  * Don't send ourselves as participant of new group, that's redundant
+  * Complete sendFeatures with 'identity' feature
+  * Speed up notification processing (type can only have one value)
+  * Process notification of types "encrypt", "features" to be able to ack them
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Sun, 20 Sep 2015 17:00:37 +0200
+
 yappari (2.0.20) stable; urgency=medium
 
   * Fix sendGetGroups xml message

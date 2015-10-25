@@ -1,3 +1,10 @@
+yappari (2.0.22) stable; urgency=medium
+
+  * Upgraded WA version numbers
+  * Send error on encrypted message reception to ask the server to send clear text messages
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Sun, 25 Oct 2015 20:22:12 +0100
+
 yappari (2.0.21) stable; urgency=medium
 
   * Don't send ourselves as participant of new group, that's redundant

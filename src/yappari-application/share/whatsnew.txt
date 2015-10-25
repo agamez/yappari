@@ -5,12 +5,16 @@ If you like this application and want to see more updates consider contributing 
 It will result in WhatsApp banning you. Do it only at your own risk.</b></font>
 <br>
 
+<b>New in this version 2.0.22:</b><br>
+<li>&bull; Upgraded WA version numbers</li>
+<li>&bull; Send error on encrypted message reception to ask the server to send clear text messages</li>
+<br>
+
 <b>New in this version 2.0.21:</b><br>
 <li>&bull; Don't send ourselves as participant of new group, that's redundant</li>
 <li>&bull; Complete sendFeatures with 'identity' feature</li>
 <li>&bull; Speed up notification processing (type can only have one value)</li>
 <li>&bull; Process notification of types "encrypt", "features" to be able to ack them</li>
-
 <li>&bull; Fix sendGetGroups xml message.</li>
 <li>&bull; Fix set initial config_ (will this force clients to send non crypted messages?)</li>
 <br>

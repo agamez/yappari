@@ -916,6 +916,26 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 sendMessageReceived(message);
 
             }
+            else if (child.getTag() == "enc")
+            {
+                Utilities::logData("Encoded message from " + from);
+
+                ProtocolTreeNode messageNode("receipt");
+                AttributeList attrs;
+                attrs.insert("id", id);
+                attrs.insert("to", from);
+                attrs.insert("type", "error");
+                messageNode.setAttributes(attrs);
+
+                attrs.clear();
+                ProtocolTreeNode errorChild("error");
+                attrs.insert("type", "plaintext-only");
+                errorChild.setAttributes(attrs);
+                messageNode.addChild(errorChild);
+
+                out->write(messageNode);
+                return;
+            }
             else if (child.getTag() == "media")
             {
                 // New mms received

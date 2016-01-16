@@ -190,8 +190,9 @@ bool Connection::read()
             while (i.hasNext())
             {
                 ProtocolTreeNode child = i.next().value();
+                QString firstChildTag = child.getTag();
 
-                if (child.getTag() == "group")
+                if (firstChildTag == "group")
                 {
                     QString childId = child.getAttributeValue("id");
                     QString subject = child.getAttributeValue("subject");
@@ -220,7 +221,7 @@ bool Connection::read()
                     emit groupInfoFromList(id, jid, author, subject, creation, subject_o, subject_t);
                 }
 
-                if (child.getTag() == "list")
+                else if (firstChildTag == "list")
                 {
                     QString childId = child.getAttributeValue("id");
                     QString subject = child.getAttributeValue("name");
@@ -240,7 +241,7 @@ bool Connection::read()
                     //emit broadcastInfoFromList(childId, subject, groupParticipants);
                 }
 
-                if (child.getTag() == "delete" )
+                else if (firstChildTag == "delete" )
                 {
                     if (id.contains("delete_broadcast_"))
                     {
@@ -249,7 +250,7 @@ bool Connection::read()
                     }
                 }
 
-                if (child.getTag() == "leave")
+                else if (firstChildTag == "leave")
                 {
                     ProtocolTreeNodeListIterator j(child.getChildren());
                     while (j.hasNext())
@@ -263,7 +264,7 @@ bool Connection::read()
                     }
                 }
 
-                else if (child.getTag() == "query")
+                else if (firstChildTag == "query")
                 {
                     if (child.getAttributeValue("seconds").toLongLong() > 0) {
                         qint64 timestamp = QDateTime::currentMSecsSinceEpoch() -
@@ -274,14 +275,14 @@ bool Connection::read()
                 }
 
 
-                else if (child.getTag() == "media" || child.getTag() == "duplicate")
+                else if (firstChildTag == "media" || firstChildTag == "duplicate")
                 {
                     Key k(JID_DOMAIN,true,id);
                     FMessage message = store.value(k);
 
                     if (message.key.id == id)
                     {
-                        message.status = (child.getTag() == "media")
+                        message.status = (firstChildTag == "media")
                                     ? FMessage::Uploading
                                     : FMessage::Uploaded;
                         message.media_url = child.getAttributeValue("url");
@@ -304,7 +305,7 @@ bool Connection::read()
                 // This is the result of the sendGetPhotoIds()
                 // That method is not used anymore
 
-                else if (child.getTag() == "list")
+                else if (firstChildTag == "list")
                 {
                     ProtocolTreeNodeListIterator j(child.getChildren());
                     while (j.hasNext())
@@ -320,7 +321,7 @@ bool Connection::read()
                     }
                 }
 
-                else if (child.getTag() == "picture")
+                else if (firstChildTag == "picture")
                 {
                     QString imageType = child.getAttributeValue("type");
                     QString photoId = child.getAttributeValue("id");
@@ -333,7 +334,7 @@ bool Connection::read()
                     counters->increaseCounter(DataCounters::ProfileBytes, node.getSize(), 0);
                 }
 
-                else if (child.getTag() == "add")
+                else if (firstChildTag == "add")
                 {
                     QString participant = child.getAttributeValue("participant");
 
@@ -341,21 +342,23 @@ bool Connection::read()
                         emit groupAddUser(from, participant);
                 }
 
-                else if (child.getTag() == "participant")
+                else if (firstChildTag == "participant")
                 {
                     QString participant = child.getAttributeValue("jid");
 
                     emit groupUser(from, participant);
                 }
 
-                else if (child.getTag() == "sync")
+                else if (firstChildTag == "sync")
                 {
                     synchronization = true;
                     ProtocolTreeNodeListIterator j(child.getChildren());
                     while (j.hasNext())
                     {
                         ProtocolTreeNode syncIn = j.next().value();
-                        if (syncIn.getTag() == "in")
+                        QString syncInTag = syncIn.getTag();
+
+                        if (syncInTag == "in")
                         {
                             ProtocolTreeNodeListIterator k(syncIn.getChildren());
                             while (k.hasNext())
@@ -371,7 +374,7 @@ bool Connection::read()
 
                             }
                         }
-                        else if (syncIn.getTag() == "out")
+                        else if (syncInTag == "out")
                         {
                             ProtocolTreeNodeListIterator k(syncIn.getChildren());
                             while (k.hasNext())
@@ -388,7 +391,7 @@ bool Connection::read()
                                 }
                             }
                         }
-                        else if (syncIn.getTag() == "invalid")
+                        else if (syncInTag == "invalid")
                         {
                             ProtocolTreeNodeListIterator k(syncIn.getChildren());
                             while (k.hasNext())
@@ -410,7 +413,7 @@ bool Connection::read()
                     counters->increaseCounter(DataCounters::SyncBytes, node.getSize(), 0);
                 }
 
-                else if (child.getTag() == "status")
+                else if (firstChildTag == "status")
                 {
                     ProtocolTreeNodeListIterator j(child.getChildren());
                     while (j.hasNext())
@@ -480,7 +483,6 @@ bool Connection::read()
         }
     }
 
-
     else if (tag == "chatstate") {
         QString from = node.getAttributeValue("from");
         QString participant = node.getAttributeValue("participant");
@@ -495,7 +497,6 @@ bool Connection::read()
             }
         }
     }
-
 
     else if (tag == "ack") {
         QString aclass = node.getAttributeValue("class");
@@ -694,14 +695,15 @@ bool Connection::read()
             sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
         }
 
-
         else if (type == "w:gp2")
         {
             ProtocolTreeNodeListIterator k(node.getChildren());
             while (k.hasNext())
             {
                 ProtocolTreeNode l = k.next().value();
-                if (l.getTag() == "create")
+                QString lTag = l.getTag();
+
+                if (lTag == "create")
                 {
                     ProtocolTreeNodeListIterator m(l.getChildren());
                     while (m.hasNext())
@@ -734,7 +736,7 @@ bool Connection::read()
                         }
                     }
                 }
-                else if (l.getTag() == "add")
+                else if (lTag == "add")
                 {
                     ProtocolTreeNodeListIterator m(l.getChildren());
                     while (m.hasNext())
@@ -752,7 +754,7 @@ bool Connection::read()
                         }
                     }
                 }
-                else if (l.getTag() == "remove")
+                else if (lTag == "remove")
                 {
                     ProtocolTreeNodeListIterator m(l.getChildren());
                     while (m.hasNext())
@@ -768,7 +770,7 @@ bool Connection::read()
                         }
                     }
                 }
-                else if (l.getTag() == "promote")
+                else if (lTag == "promote")
                 {
                     ProtocolTreeNodeListIterator m(l.getChildren());
                     while (m.hasNext())
@@ -784,7 +786,7 @@ bool Connection::read()
                         }
                     }
                 }
-                else if (l.getTag() == "demote")
+                else if (lTag == "demote")
                 {
                     ProtocolTreeNodeListIterator m(l.getChildren());
                     while (m.hasNext())
@@ -801,7 +803,7 @@ bool Connection::read()
                     }
                 }
 
-                else if (l.getTag() == "subject")
+                else if (lTag == "subject")
                 {
                     //QString subject_o = l.getAttributeValue("s_o");
                     QString subject_t = l.getAttributeValue("s_t");
@@ -811,7 +813,7 @@ bool Connection::read()
                     sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
                     emit groupNewSubject(from, participant, notify, subject, subject_t);
                 }
-                else if (l.getTag() == "delete")
+                else if (lTag == "delete")
                 {
                     //groupRemoved(from);
                 }
@@ -825,8 +827,9 @@ bool Connection::read()
             while (k.hasNext())
             {
                 ProtocolTreeNode l = k.next().value();
+                QString lTag = l.getTag();
 
-                if (l.getTag() == "add")
+                if (lTag == "add")
                 {
                     QString jid = l.getAttributeValue("jid");
                     if (!jid.isEmpty())
@@ -837,7 +840,7 @@ bool Connection::read()
                     }
                 }
 
-                if (l.getTag() == "remove")
+                if (lTag == "remove")
                 {
                     QString jid = l.getAttributeValue("jid");
                     if (!jid.isEmpty())
@@ -847,7 +850,7 @@ bool Connection::read()
                     }
                 }
 
-                if (l.getTag() == "delete")
+                if (lTag == "delete")
                 {
                     sendNotificationReceived(from, id, to, participant, type, ProtocolTreeNode());
                 }
@@ -856,8 +859,6 @@ bool Connection::read()
         }
 
     }
-
-
     else if (tag == "message")
         parseMessageInitialTagAlreadyChecked(node);
 
@@ -894,8 +895,9 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
         while (i.hasNext())
         {
             ProtocolTreeNode child = i.next().value();
+            QString firstChildTag = child.getTag();
 
-            if (child.getTag() == "body")
+            if (firstChildTag == "body")
             {
                 // New message received
 
@@ -914,7 +916,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 sendMessageReceived(message);
 
             }
-            else if (child.getTag() == "enc")
+            else if (firstChildTag == "enc")
             {
                 Utilities::logData("Encoded message from " + from);
 
@@ -934,7 +936,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 out->write(messageNode);
                 return;
             }
-            else if (child.getTag() == "media")
+            else if (firstChildTag == "media")
             {
                 // New mms received
 
@@ -973,7 +975,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 msgType = MessageReceived;
                 sendMessageReceived(message);
             }
-            else if (child.getTag() == "notify")
+            else if (firstChildTag == "notify")
             {
                 QString xmlns = child.getAttributeValue("xmlns");
                 if (xmlns == "urn:xmpp:whatsapp")
@@ -982,7 +984,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     message.notify_name = notify_name;
                 }
             }
-            else if (child.getTag() == "x")
+            else if (firstChildTag == "x")
             {
                 QString xmlns = child.getAttributeValue("xmlns");
                 if (xmlns == "jabber:x:event" && !id.isEmpty())
@@ -1004,7 +1006,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                     message.timestamp = DateTimeUtilities::stampParser(stamp);
                 }
             }
-            else if (child.getTag() == "received")
+            else if (firstChildTag == "received")
             {
                 QString receipt_type = child.getAttributeValue("type");
                 Key k(from,true,id);

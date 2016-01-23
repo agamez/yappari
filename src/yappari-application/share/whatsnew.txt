@@ -5,6 +5,12 @@ If you like this application and want to see more updates consider contributing 
 It will result in WhatsApp banning you. Do it only at your own risk.</b></font>
 <br>
 
+<b>New in this version 2.0.23:</b><br>
+<li>&bull; Upgraded WA version numbers</li>
+<li>&bull; Jabber message decoding should be faster</li>
+<br>
+
+
 <b>New in this version 2.0.22:</b><br>
 <li>&bull; Upgraded WA version numbers</li>
 <li>&bull; Send error on encrypted message reception to ask the server to send clear text messages</li>

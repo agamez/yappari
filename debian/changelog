@@ -1,3 +1,10 @@
+yappari (2.0.23) stable; urgency=medium
+
+  * Upgraded WA version numbers
+  * Jabber message decoding should be faster
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Sat, 23 Jan 2016 12:48:28 +0100
+
 yappari (2.0.22) stable; urgency=medium
 
   * Upgraded WA version numbers

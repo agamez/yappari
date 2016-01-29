@@ -6,10 +6,13 @@ It will result in WhatsApp banning you. Do it only at your own risk.</b></font>
 <br>
 
 <b>New in this version 2.0.23:</b><br>
+<li>&bull; Notify both group and participant that we don't support encrypted messages</li>
+<br>
+
+<b>New in this version 2.0.23:</b><br>
 <li>&bull; Upgraded WA version numbers</li>
 <li>&bull; Jabber message decoding should be faster</li>
 <br>
-
 
 <b>New in this version 2.0.22:</b><br>
 <li>&bull; Upgraded WA version numbers</li>

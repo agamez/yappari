@@ -934,6 +934,24 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 messageNode.addChild(errorChild);
 
                 out->write(messageNode);
+
+                if(!participant.isEmpty())
+                {
+                    ProtocolTreeNode messageNode("receipt");
+                    AttributeList attrs;
+                    attrs.insert("id", id);
+                    attrs.insert("to", participant);
+                    attrs.insert("type", "error");
+                    messageNode.setAttributes(attrs);
+
+                    attrs.clear();
+                    ProtocolTreeNode errorChild("error");
+                    attrs.insert("type", "plaintext-only");
+                    errorChild.setAttributes(attrs);
+                    messageNode.addChild(errorChild);
+
+                    out->write(messageNode);
+                }
                 return;
             }
             else if (firstChildTag == "media")

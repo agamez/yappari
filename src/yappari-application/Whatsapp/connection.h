@@ -53,6 +53,10 @@
 #include "funstore.h"
 #include "watokendictionary.h"
 
+#include "axolotl/liteaxolotlstore.h"
+#define AXOLOTL_DB_CONNECTION "qt_sql_axolotl_connection"
+
+
 // QtMobility namespace
 QTM_USE_NAMESPACE
 
@@ -261,6 +265,9 @@ public slots:
     void connectionTimeout();
 
 private:
+
+    LiteAxolotlStore *axolotlStore;
+
 
     /** ***********************************************************************
      ** Private members

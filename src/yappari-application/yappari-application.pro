@@ -38,6 +38,7 @@ CONFIG      += mobility qtdbus network link_pkgconfig
 MOBILITY     = systeminfo messaging
 PKGCONFIG   += libosso-abook-1.0 libebook-1.2 gtk+-2.0 gstreamer-0.10 libpulse libexif
 INCLUDEPATH += /usr/include/libosso-abook-1.0 /usr/include/evolution-data-server-1.4/ /usr/include/gtk-2.0 /usr/include/gstreamer-0.10
+LIBS += -laxolotl
 
 TARGET = Yappari
 TEMPLATE = app
@@ -150,7 +151,13 @@ SOURCES += main.cpp \
     libjpeg/jpeg-data.c \
     libjpeg/exif-i18n.c \
     Dbus/dbusnokiaossobrowserif.cpp \
-    Whatsapp/watokendictionary.cpp
+    Whatsapp/watokendictionary.cpp \
+    Whatsapp/axolotl/liteidentitykeystore.cpp \
+    Whatsapp/axolotl/liteprekeystore.cpp \
+    Whatsapp/axolotl/liteaxolotlstore.cpp \
+    Whatsapp/axolotl/litesignedprekeystore.cpp \
+    Whatsapp/axolotl/litesessionstore.cpp
+
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -271,7 +278,13 @@ HEADERS += \
     libjpeg/jpeg-data.h \
     libjpeg/exif-i18n.h \
     Dbus/dbusnokiaossobrowserif.h \
-    Whatsapp/watokendictionary.h
+    Whatsapp/watokendictionary.h \
+    Whatsapp/axolotl/litesessionstore.h \
+    Whatsapp/axolotl/liteaxolotlstore.h \
+    Whatsapp/axolotl/litesignedprekeystore.h \
+    Whatsapp/axolotl/liteidentitykeystore.h \
+    Whatsapp/axolotl/liteprekeystore.h
+
 
 
 FORMS += \

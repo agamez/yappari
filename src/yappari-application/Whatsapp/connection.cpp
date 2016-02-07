@@ -30,10 +30,16 @@
 #include <QRegExp>
 #include <QTime>
 
+#include <libaxolotl/util/keyhelper.h>
+#include <libaxolotl/protocol/prekeywhispermessage.h>
+#include <libaxolotl/protocol/whispermessage.h>
+#include <libaxolotl/whisperexception.h>
+
 #include "Whatsapp/util/qtmd5digest.h"
 #include "Whatsapp/util/utilities.h"
 #include "Whatsapp/util/datetimeutilities.h"
 #include "Whatsapp/protocoltreenodelistiterator.h"
+
 
 #include "globalconstants.h"
 
@@ -73,6 +79,9 @@ Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
     this->dictionary = new WATokenDictionary(this);
     this->out = new BinTreeNodeWriter(socket,dictionary,this);
     this->in = new BinTreeNodeReader(socket,dictionary,this);
+
+    axolotlStore = new LiteAxolotlStore(AXOLOTL_DB_CONNECTION);
+    axolotlStore->setDatabaseName("axolotl-db");
 
     connect(&connTimeout,SIGNAL(timeout()),this,SLOT(connectionTimeout()));
     connTimeout.start(CHECK_CONNECTION_INTERVAL);

@@ -163,14 +163,16 @@ void HttpRequestv2::readResponse() {
 
     Utilities::logData("HttpRequest(): Got response");
 
-    // This function is only called once
+    // Wait for HTTP response
+    if(!socket->canReadLine()) return;
+
+    // We presume that we have all the data ready now
     disconnect(socket,SIGNAL(readyRead()),this,SLOT(readResponse()));
 
     // Prepare the buffer
     QByteArray buffer;
     buffer.resize(MAX_BUFFER);
 
-    // Read response
     qint64 length = socket->readLine(buffer.data(), MAX_BUFFER);
     qint64 totalLength = length;
     QString response = QString::fromUtf8(buffer.data());

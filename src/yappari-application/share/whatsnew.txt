@@ -5,7 +5,12 @@ If you like this application and want to see more updates consider contributing 
 It will result in WhatsApp banning you. Do it only at your own risk.</b></font>
 <br>
 
-<b>New in this version 2.0.23:</b><br>
+<b>New in this version 2.0.25:</b><br>
+<li>&bull; Fix registration issues by waiting for full HTTP response before processing received data</li>
+<li>&bull; Try harder to notify participants of group that we don't want ciphered messages</li>
+<br>
+
+<b>New in this version 2.0.24:</b><br>
 <li>&bull; Notify both group and participant that we don't support encrypted messages</li>
 <br>
 

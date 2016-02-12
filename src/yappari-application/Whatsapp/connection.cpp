@@ -930,6 +930,7 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 attrs.clear();
                 ProtocolTreeNode errorChild("error");
                 attrs.insert("type", "plaintext-only");
+                if(!participant.isEmpty()) attrs.insert("participant", participant);
                 errorChild.setAttributes(attrs);
                 messageNode.addChild(errorChild);
 

@@ -925,12 +925,12 @@ void Connection::parseMessageInitialTagAlreadyChecked(ProtocolTreeNode& messageN
                 attrs.insert("id", id);
                 attrs.insert("to", from);
                 attrs.insert("type", "error");
+                if(!participant.isEmpty()) attrs.insert("participant", participant);
                 messageNode.setAttributes(attrs);
 
                 attrs.clear();
                 ProtocolTreeNode errorChild("error");
                 attrs.insert("type", "plaintext-only");
-                if(!participant.isEmpty()) attrs.insert("participant", participant);
                 errorChild.setAttributes(attrs);
                 messageNode.addChild(errorChild);
 

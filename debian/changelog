@@ -1,9 +1,15 @@
+yappari (2.0.26) stable; urgency=medium
+
+  * Try harder to notify participants of group that we don't want ciphered messages
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Fri, 19 Feb 2016 19:41:53 +0100
+
 yappari (2.0.25) stable; urgency=medium
 
   * Fix registration issues by waiting for full HTTP response before processing received data
   * Try harder to notify participants of group that we don't want ciphered messages
 
- -- Alvaro G. M. <alvaro.gamez@hazent.com>  Fri, 29 Jan 2016 19:41:53 +0100
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Fri, 12 Feb 2016 14:21:12 +0100
 
 yappari (2.0.24) stable; urgency=medium
 

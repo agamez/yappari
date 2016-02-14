@@ -1,6 +1,6 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
-#define BUILD_NUMBER 5226
-#define VERSION "2.0.25"
+#define BUILD_NUMBER 5227
+#define VERSION "2.0.26"
 #define FULL_VERSION VERSION " Build " STR(BUILD_NUMBER)

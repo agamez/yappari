@@ -33,7 +33,7 @@
 
 #include "Contacts/contact.h"
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 class ChatDisplayItem : public QStandardItem
 {

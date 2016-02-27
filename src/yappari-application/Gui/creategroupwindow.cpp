@@ -2,7 +2,7 @@
 #include <QFileDialog>
 
 #include "Whatsapp/util/utilities.h"
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 #include "creategroupwindow.h"
 #include "selectgroupparticipantswindow.h"

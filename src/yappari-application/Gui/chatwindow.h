@@ -34,7 +34,7 @@
 #include <QTimer>
 #include <QMap>
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 #include "Whatsapp/mediaupload.h"
 #include "Whatsapp/mediadownload.h"
 

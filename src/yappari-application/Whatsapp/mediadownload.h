@@ -3,7 +3,7 @@
 
 #include <QFile>
 
-#include "fmessage.h"
+#include "FMessage/fmessage.h"
 
 #include "httprequestv2.h"
 

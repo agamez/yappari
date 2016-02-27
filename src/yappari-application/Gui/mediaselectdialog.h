@@ -31,7 +31,7 @@
 
 #include <QDialog>
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 namespace Ui {
     class MediaSelectDialog;

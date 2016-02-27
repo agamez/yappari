@@ -37,7 +37,7 @@
 #include <QHash>
 #include <QEvent>
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 class ChatArea : public QScrollArea
 {

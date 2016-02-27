@@ -49,7 +49,6 @@ int main(int argc, char *argv[])
     QApplication a(argc,argv);
     Client *client = 0;
     int retval = 0;
-    bool root = false;
 
     //Initialize GStreamer
     gst_init(&argc, &argv);
@@ -62,40 +61,34 @@ int main(int argc, char *argv[])
         msg.setText("You can't run this application as root.");
         msg.exec();
 
-        root = true;
-        retval = -1;
+        return -1;
     }
 
-    if (!root)
+    a.setApplicationName(YAPPARI_APPLICATION_NAME);
+    a.setApplicationVersion(FULL_VERSION);
+    a.setQuitOnLastWindowClosed(false);
+
+    // Check that yappari isn't already running
+    DBusIf *app = new DBusIf(YAPPARI_SERVICE,YAPPARI_OBJECT,QDBusConnection::sessionBus());
+    QDBusReply<bool> reply = app->isRunning();
+
+    if (!reply.isValid())
     {
-
-        a.setApplicationName(YAPPARI_APPLICATION_NAME);
-        a.setApplicationVersion(FULL_VERSION);
-        a.setQuitOnLastWindowClosed(false);
-
-        // Check that yappari isn't already running
-        DBusIf *app = new DBusIf(YAPPARI_SERVICE,YAPPARI_OBJECT,QDBusConnection::sessionBus());
-        QDBusReply<bool> reply = app->isRunning();
-
-        if (!reply.isValid())
-        {
-            bool minimized = false;
-            foreach (QString arg, a.arguments())
-                if (arg == "-m")
-                    minimized = true;
-            client = new Client(minimized,&a);
-            retval = a.exec();
-            delete client;
-        }
-        else
-        {
-            app->ShowWindow();
-            retval = 1;
-        }
-
-       delete app;
-
+        bool minimized = false;
+        foreach (QString arg, a.arguments())
+            if (arg == "-m")
+                minimized = true;
+        client = new Client(minimized,&a);
+        retval = a.exec();
+        delete client;
     }
+    else
+    {
+        app->ShowWindow();
+        retval = 1;
+    }
+
+    delete app;
 
     return retval;
 }

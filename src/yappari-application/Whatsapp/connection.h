@@ -49,8 +49,8 @@
 #include "protocolexception.h"
 #include "loginexception.h"
 #include "keystream.h"
-#include "fmessage.h"
-#include "funstore.h"
+#include "FMessage/fmessage.h"
+#include "FMessage/funstore.h"
 #include "watokendictionary.h"
 
 // QtMobility namespace

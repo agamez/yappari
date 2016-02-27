@@ -31,7 +31,7 @@
 
 #include <QHash>
 
-#include "fmessage.h"
+#include "FMessage/fmessage.h"
 
 class FunStore : public QHash<Key,FMessage>
 {

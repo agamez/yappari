@@ -43,13 +43,14 @@ TARGET = Yappari
 TEMPLATE = app
 
 SOURCES += main.cpp \
+    FMessage/fmessage.cpp \
+    FMessage/funstore.cpp \
+    FMessage/key.cpp \
+    FMessage/receipt.cpp \
     Whatsapp/util/utilities.cpp \
     Whatsapp/util/messagedigest.cpp \
     Whatsapp/util/qtmd5digest.cpp \
     Whatsapp/protocoltreenode.cpp \
-    Whatsapp/fmessage.cpp \
-    Whatsapp/funstore.cpp \
-    Whatsapp/key.cpp \
     Whatsapp/attributelist.cpp \
     Whatsapp/protocoltreenodelist.cpp \
     Whatsapp/bintreenodewriter.cpp \
@@ -60,7 +61,6 @@ SOURCES += main.cpp \
     client.cpp \
     Whatsapp/ioexception.cpp \
     Whatsapp/protocolexception.cpp \
-    Whatsapp/receipt.cpp \
     Whatsapp/warequest.cpp \
     Whatsapp/waexistsrequest.cpp \
     Whatsapp/phonereg.cpp \
@@ -161,13 +161,14 @@ OTHER_FILES += \
     qtc_packaging/debian_fremantle/changelog
 
 HEADERS += \
+    FMessage/fmessage.h \
+    FMessage/funstore.h \
+    FMessage/key.h \
+    FMessage/receipt.h \
     Whatsapp/util/utilities.h \
     Whatsapp/util/messagedigest.h \
     Whatsapp/util/qtmd5digest.h \
     Whatsapp/protocoltreenode.h \
-    Whatsapp/fmessage.h \
-    Whatsapp/funstore.h \
-    Whatsapp/key.h \
     Whatsapp/attributelist.h \
     Whatsapp/protocoltreenodelist.h \
     Whatsapp/bintreenodewriter.h \
@@ -178,7 +179,6 @@ HEADERS += \
     client.h \
     Whatsapp/ioexception.h \
     Whatsapp/protocolexception.h \
-    Whatsapp/receipt.h \
     Whatsapp/warequest.h \
     Whatsapp/waexistsrequest.h \
     Whatsapp/phonereg.h \

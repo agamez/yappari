@@ -31,7 +31,7 @@
 
 #include <QWidget>
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 namespace Ui {
     class ChatImageItem;

@@ -32,7 +32,7 @@
 #include <QThread>
 #include <QHash>
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 #include "Dbus/dbusnotificationsif.h"
 #include "Dbus/dbusnokiahildonsvndif.h"

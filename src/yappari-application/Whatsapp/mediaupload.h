@@ -31,7 +31,7 @@
 
 #include <QHash>
 
-#include "fmessage.h"
+#include "FMessage/fmessage.h"
 #include "multipartuploader.h"
 
 class MediaUpload : public QObject

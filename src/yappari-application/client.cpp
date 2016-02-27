@@ -47,7 +47,7 @@
 #include "Gui/registrationwindow.h"
 #include "Gui/changeusernamedialog.h"
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 #include "Whatsapp/ioexception.h"
 #include "Whatsapp/protocolexception.h"
 #include "Whatsapp/util/utilities.h"

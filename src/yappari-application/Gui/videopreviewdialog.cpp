@@ -32,7 +32,7 @@
 #include <QImageReader>
 #include <phonon>
 #include <phonon/VideoPlayer>
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 VideoPreviewDialog::VideoPreviewDialog(QWidget *parent, const QString & media_path) :
     QDialog(parent),

@@ -34,7 +34,7 @@
 #include <QString>
 #include <QList>
 
-#include "Whatsapp/fmessage.h"
+#include "FMessage/fmessage.h"
 
 #include "Contacts/contact.h"
 

@@ -35,7 +35,7 @@
 #include "conversationsdb.h"
 #include "globalconstants.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #define DB_FILENAME "chats.db"
 #define DB_VERSION  1

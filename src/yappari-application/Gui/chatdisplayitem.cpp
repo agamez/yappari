@@ -34,8 +34,8 @@
 
 #include "chatdisplayitem.h"
 
-#include "Whatsapp/util/utilities.h"
-#include "Whatsapp/util/datetimeutilities.h"
+#include "util/utilities.h"
+#include "util/datetimeutilities.h"
 
 #define TEXT_WIDTH      700
 

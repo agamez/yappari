@@ -31,8 +31,8 @@
 #include "accountinfowindow.h"
 #include "ui_accountinfowindow.h"
 
-#include "Whatsapp/util/datetimeutilities.h"
-#include "Whatsapp/util/qtmd5digest.h"
+#include "util/datetimeutilities.h"
+#include "util/qtmd5digest.h"
 
 #include "client.h"
 

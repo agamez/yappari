@@ -33,7 +33,7 @@
 #include "profilepicturewindow.h"
 #include "ui_profilepicturewindow.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #define MAX_HEIGHT      480
 #define MAX_WIDTH       800

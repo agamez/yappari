@@ -1,7 +1,7 @@
 #include <QMaemo5InformationBox>
 #include <QMaemo5Style>
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "groupsubjectwindow.h"
 #include "ui_groupsubjectwindow.h"

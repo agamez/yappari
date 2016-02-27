@@ -31,7 +31,7 @@
 
 #include <QCryptographicHash>
 
-#include "Whatsapp/util/messagedigest.h"
+#include "util/messagedigest.h"
 
 class QtMD5Digest : public MessageDigest
 {

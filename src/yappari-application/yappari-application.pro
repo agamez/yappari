@@ -47,9 +47,13 @@ SOURCES += main.cpp \
     FMessage/funstore.cpp \
     FMessage/key.cpp \
     FMessage/receipt.cpp \
-    Whatsapp/util/utilities.cpp \
-    Whatsapp/util/messagedigest.cpp \
-    Whatsapp/util/qtmd5digest.cpp \
+    util/datetimeutilities.cpp \
+    util/qthmacsha1.cpp \
+    util/qtrfc2898.cpp \
+    util/datacounters.cpp \
+    util/utilities.cpp \
+    util/messagedigest.cpp \
+    util/qtmd5digest.cpp \
     Whatsapp/protocoltreenode.cpp \
     Whatsapp/attributelist.cpp \
     Whatsapp/protocoltreenodelist.cpp \
@@ -85,7 +89,6 @@ SOURCES += main.cpp \
     Dbus/dbusnokiahildonsvndif.cpp \
     Contacts/contact.cpp \
     Contacts/contactlist.cpp \
-    Whatsapp/util/datetimeutilities.cpp \
     Dbus/dbusnotificationsif.cpp \
     Dbus/dbusnokiamcesignalif.cpp \
     Sql/chatlogger.cpp \
@@ -106,8 +109,6 @@ SOURCES += main.cpp \
     Whatsapp/formdata.cpp \
     Whatsapp/keystream.cpp \
     Whatsapp/rc4.cpp \
-    Whatsapp/util/qthmacsha1.cpp \
-    Whatsapp/util/qtrfc2898.cpp \
     Whatsapp/mediaupload.cpp \
     Whatsapp/multipartuploader.cpp \
     Sql/conversationsdb.cpp \
@@ -128,7 +129,6 @@ SOURCES += main.cpp \
     Gui/videopreviewdialog.cpp \
     Gui/audiopreviewdialog.cpp \
     Gui/accountinfowindow.cpp \
-    Whatsapp/util/datacounters.cpp \
     Gui/networkusagewindow.cpp \
     Gui/profilewindow.cpp \
     Gui/chattextedit.cpp \
@@ -165,9 +165,13 @@ HEADERS += \
     FMessage/funstore.h \
     FMessage/key.h \
     FMessage/receipt.h \
-    Whatsapp/util/utilities.h \
-    Whatsapp/util/messagedigest.h \
-    Whatsapp/util/qtmd5digest.h \
+    util/utilities.h \
+    util/messagedigest.h \
+    util/qtmd5digest.h \
+    util/datetimeutilities.h \
+    util/qthmacsha1.h \
+    util/qtrfc2898.h \
+    util/datacounters.h \
     Whatsapp/protocoltreenode.h \
     Whatsapp/attributelist.h \
     Whatsapp/protocoltreenodelist.h \
@@ -204,7 +208,6 @@ HEADERS += \
     Dbus/dbusnokiahildonsvndif.h \
     Contacts/contact.h \
     Contacts/contactlist.h \
-    Whatsapp/util/datetimeutilities.h \
     Dbus/dbusnotificationsif.h \
     Dbus/dbusnokiamcesignalif.h \
     Sql/chatlogger.h \
@@ -227,8 +230,6 @@ HEADERS += \
     Whatsapp/formdata.h \
     Whatsapp/keystream.h \
     Whatsapp/rc4.h \
-    Whatsapp/util/qthmacsha1.h \
-    Whatsapp/util/qtrfc2898.h \
     Whatsapp/mediaupload.h \
     Whatsapp/multipartuploader.h \
     Sql/conversationsdb.h \
@@ -248,7 +249,6 @@ HEADERS += \
     Gui/videopreviewdialog.h \
     Gui/audiopreviewdialog.h \
     Gui/accountinfowindow.h \
-    Whatsapp/util/datacounters.h \
     Gui/networkusagewindow.h \
     Gui/profilewindow.h \
     Gui/chattextedit.h \

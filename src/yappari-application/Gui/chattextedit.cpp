@@ -33,7 +33,7 @@
 #include <QInputMethodEvent>
 #include <QDateTime>
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "chattextedit.h"
 #include "client.h"

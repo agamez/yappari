@@ -32,7 +32,7 @@
 #include "selectemojiwidget.h"
 #include "ui_selectemojiwidget.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "emojibutton.h"
 

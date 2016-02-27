@@ -33,8 +33,8 @@
 
 #include "Dbus/dbusnokiaimageviewerif.h"
 
-#include "Whatsapp/util/utilities.h"
-#include "Whatsapp/util/datetimeutilities.h"
+#include "util/utilities.h"
+#include "util/datetimeutilities.h"
 
 #include "groupinfowindow.h"
 #include "groupsubjectwindow.h"

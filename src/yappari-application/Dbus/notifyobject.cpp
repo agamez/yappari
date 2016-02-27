@@ -31,7 +31,7 @@
 
 #include "Gui/mainwindow.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "notifyobject.h"
 #include "globalconstants.h"

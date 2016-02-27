@@ -31,7 +31,7 @@
 
 #include "registrationwindow.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "Gui/accountinfowindow.h"
 #include "Gui/phonenumberwidget.h"

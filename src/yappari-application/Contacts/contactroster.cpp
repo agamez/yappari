@@ -36,7 +36,7 @@
 #include <libebook/e-book.h>
 #include <libosso-abook/osso-abook.h>
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "contactlistiterator.h"
 

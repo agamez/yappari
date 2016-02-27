@@ -36,8 +36,8 @@
 #include <QImageReader>
 #include <QPainter>
 
-#include "Whatsapp/util/datetimeutilities.h"
-#include "Whatsapp/util/utilities.h"
+#include "util/datetimeutilities.h"
+#include "util/utilities.h"
 
 #include "Dbus/dbusnokiaimageviewerif.h"
 #include "Dbus/dbusnokiamediaplayerif.h"

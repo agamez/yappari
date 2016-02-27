@@ -69,7 +69,7 @@
 DataCounters Client::dataCounters;
 
 // Status of the connection
-Client::ConnectionStatus Client::connectionStatus;
+Client::ConnectionStatus Client::connectionStatus = Disconnected;
 
 // Context to make calls to libosso functions
 osso_context_t *Client::osso_context;
@@ -368,8 +368,6 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
             }
         }
     }
-    else
-        connectionStatus = Disconnected;
 
     // Contacts syncer
     syncer = new ContactSyncer(roster, this);

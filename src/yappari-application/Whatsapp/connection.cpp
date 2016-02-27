@@ -35,9 +35,9 @@
 #include <libaxolotl/protocol/whispermessage.h>
 #include <libaxolotl/whisperexception.h>
 
-#include "Whatsapp/util/qtmd5digest.h"
-#include "Whatsapp/util/utilities.h"
-#include "Whatsapp/util/datetimeutilities.h"
+#include "util/qtmd5digest.h"
+#include "util/utilities.h"
+#include "util/datetimeutilities.h"
 #include "Whatsapp/protocoltreenodelistiterator.h"
 
 

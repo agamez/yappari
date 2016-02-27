@@ -31,8 +31,8 @@
 #include "networkusagewindow.h"
 #include "ui_networkusagewindow.h"
 
-#include "Whatsapp/util/datacounters.h"
-#include "Whatsapp/util/utilities.h"
+#include "util/datacounters.h"
+#include "util/utilities.h"
 
 #include "client.h"
 

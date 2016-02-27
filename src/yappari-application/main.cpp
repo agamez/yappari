@@ -38,7 +38,7 @@
 
 #include "Dbus/dbusif.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "client.h"
 #include "version.h"

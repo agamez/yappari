@@ -1,4 +1,4 @@
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "groupparticipantitem.h"
 

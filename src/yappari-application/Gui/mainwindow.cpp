@@ -59,7 +59,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "Sql/chatlogger.h"
 

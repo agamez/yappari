@@ -37,7 +37,7 @@
 #include "groupinfowindow.h"
 #include "groupsubjectwindow.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 GroupWindow::GroupWindow(Group *group, QWidget *parent) :
     ChatWindow(group,parent)

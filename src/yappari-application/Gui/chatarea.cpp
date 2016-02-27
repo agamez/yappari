@@ -40,8 +40,8 @@
 #include "client.h"
 #include "chatarea.h"
 
-#include "Whatsapp/util/datetimeutilities.h"
-#include "Whatsapp/util/utilities.h"
+#include "util/datetimeutilities.h"
+#include "util/utilities.h"
 
 #include "Dbus/dbusnokiaossobrowserif.h"
 

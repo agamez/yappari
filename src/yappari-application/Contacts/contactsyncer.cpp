@@ -37,8 +37,8 @@
 #include <libosso-abook/osso-abook.h>
 #include <gdk/gdkpixbuf.h>
 
-#include "Whatsapp/util/utilities.h"
-#include "Whatsapp/util/qtmd5digest.h"
+#include "util/utilities.h"
+#include "util/qtmd5digest.h"
 
 #include "qt-json/json.h"
 

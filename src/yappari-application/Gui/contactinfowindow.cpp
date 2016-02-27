@@ -11,8 +11,8 @@
 #include "Dbus/dbusnokiaimageviewerif.h"
 #include "Dbus/dbusnokiacsdcallif.h"
 
-#include "Whatsapp/util/utilities.h"
-#include "Whatsapp/util/datetimeutilities.h"
+#include "util/utilities.h"
+#include "util/datetimeutilities.h"
 
 #include "mainwindow.h"
 #include "client.h"

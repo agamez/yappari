@@ -1,7 +1,7 @@
 #include <QMaemo5InformationBox>
 #include <QFileDialog>
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 #include "FMessage/fmessage.h"
 
 #include "creategroupwindow.h"

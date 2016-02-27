@@ -31,7 +31,7 @@
 
 #include "contactdisplaydelegate.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #define TEXT_WIDTH      510
 

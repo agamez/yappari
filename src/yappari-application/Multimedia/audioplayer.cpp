@@ -29,7 +29,7 @@
 
 #include "audioplayer.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 /**
     Constructs an AudioPlayer object.

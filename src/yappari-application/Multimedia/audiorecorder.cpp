@@ -32,7 +32,7 @@
 
 #include "audiorecorder.h"
 
-#include "Whatsapp/util/utilities.h"
+#include "util/utilities.h"
 
 #include "globalconstants.h"
 

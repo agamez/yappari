@@ -58,13 +58,13 @@
 
 #include "Multimedia/audiorecorder.h"
 
-#include "Whatsapp/util/utilities.h"
-#include "Whatsapp/util/datetimeutilities.h"
+#include "util/utilities.h"
+#include "util/datetimeutilities.h"
 #include "Whatsapp/ioexception.h"
 
 #include "hildon-input-method/hildon-im-protocol.h"
 
-#include "Whatsapp/util/rfc6234/sha224-256.c"
+#include "util/rfc6234/sha224-256.c"
 
 #include "client.h"
 

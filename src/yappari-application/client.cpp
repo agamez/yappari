@@ -50,9 +50,9 @@
 #include "FMessage/fmessage.h"
 #include "Whatsapp/ioexception.h"
 #include "Whatsapp/protocolexception.h"
-#include "Whatsapp/util/utilities.h"
-#include "Whatsapp/util/qtmd5digest.h"
-#include "Whatsapp/util/datetimeutilities.h"
+#include "util/utilities.h"
+#include "util/qtmd5digest.h"
+#include "util/datetimeutilities.h"
 
 /** ***********************************************************************
  ** Local definitions

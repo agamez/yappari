@@ -49,7 +49,7 @@
 #include "Dbus/dbusappletif.h"
 #include "Dbus/dbusnokiamcesignalif.h"
 
-#include "Whatsapp/util/datacounters.h"
+#include "util/datacounters.h"
 
 #include "Whatsapp/warequest.h"
 #include "Whatsapp/connection.h"

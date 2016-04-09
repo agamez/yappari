@@ -56,23 +56,7 @@ SOURCES += main.cpp \
     util/utilities.cpp \
     util/messagedigest.cpp \
     util/qtmd5digest.cpp \
-    Whatsapp/protocoltreenode.cpp \
-    Whatsapp/attributelist.cpp \
-    Whatsapp/protocoltreenodelist.cpp \
-    Whatsapp/bintreenodewriter.cpp \
-    Whatsapp/protocoltreenodelistiterator.cpp \
-    Whatsapp/attributelistiterator.cpp \
-    Whatsapp/connection.cpp \
-    Whatsapp/bintreenodereader.cpp \
     client.cpp \
-    Whatsapp/ioexception.cpp \
-    Whatsapp/protocolexception.cpp \
-    Whatsapp/warequest.cpp \
-    Whatsapp/waexistsrequest.cpp \
-    Whatsapp/phonereg.cpp \
-    Whatsapp/wacoderequest.cpp \
-    Whatsapp/smslistener.cpp \
-    Whatsapp/waregrequest.cpp \
     Gui/mainwindow.cpp \
     Gui/chatwindow.cpp \
     Gui/conversationdelegate.cpp \
@@ -85,7 +69,6 @@ SOURCES += main.cpp \
     Gui/registrationwindow.cpp \
     Gui/phonenumberwidget.cpp \
     Gui/registrationprogresswidget.cpp \
-    Whatsapp/phoneregreply.cpp \
     Dbus/notifyobject.cpp \
     Gui/aboutdialog.cpp \
     Dbus/dbusnokiahildonsvndif.cpp \
@@ -97,8 +80,6 @@ SOURCES += main.cpp \
     Gui/chatarea.cpp \
     Contacts/group.cpp \
     Gui/groupwindow.cpp \
-    Whatsapp/exception.cpp \
-    Whatsapp/loginexception.cpp \
     Contacts/contactsyncer.cpp \
     Gui/contactselectionmodel.cpp \
     Gui/contactdisplaydelegate.cpp \
@@ -108,11 +89,6 @@ SOURCES += main.cpp \
     Gui/emojibutton.cpp \
     Gui/changeusernamedialog.cpp \
     Gui/chatimageitem.cpp \
-    Whatsapp/formdata.cpp \
-    Whatsapp/keystream.cpp \
-    Whatsapp/rc4.cpp \
-    Whatsapp/mediaupload.cpp \
-    Whatsapp/multipartuploader.cpp \
     Sql/conversationsdb.cpp \
     Gui/chatdisplayitem.cpp \
     Gui/chatdisplaydelegate.cpp \
@@ -122,8 +98,6 @@ SOURCES += main.cpp \
     Gui/chattextitem.cpp \
     qt-json/json.cpp \
     Gui/whatsnewwindow.cpp \
-    Whatsapp/httprequestv2.cpp \
-    Whatsapp/mediadownload.cpp \
     Dbus/dbusnokiaimageviewerif.cpp \
     Dbus/dbusnokiamediaplayerif.cpp \
     Gui/mediaselectdialog.cpp \
@@ -152,6 +126,32 @@ SOURCES += main.cpp \
     libjpeg/jpeg-data.c \
     libjpeg/exif-i18n.c \
     Dbus/dbusnokiaossobrowserif.cpp \
+    Whatsapp/protocoltreenode.cpp \
+    Whatsapp/attributelist.cpp \
+    Whatsapp/protocoltreenodelist.cpp \
+    Whatsapp/bintreenodewriter.cpp \
+    Whatsapp/protocoltreenodelistiterator.cpp \
+    Whatsapp/attributelistiterator.cpp \
+    Whatsapp/connection.cpp \
+    Whatsapp/bintreenodereader.cpp \
+    Whatsapp/ioexception.cpp \
+    Whatsapp/protocolexception.cpp \
+    Whatsapp/warequest.cpp \
+    Whatsapp/waexistsrequest.cpp \
+    Whatsapp/phonereg.cpp \
+    Whatsapp/wacoderequest.cpp \
+    Whatsapp/smslistener.cpp \
+    Whatsapp/waregrequest.cpp \
+    Whatsapp/phoneregreply.cpp \
+    Whatsapp/exception.cpp \
+    Whatsapp/loginexception.cpp \
+    Whatsapp/formdata.cpp \
+    Whatsapp/keystream.cpp \
+    Whatsapp/rc4.cpp \
+    Whatsapp/mediaupload.cpp \
+    Whatsapp/multipartuploader.cpp \
+    Whatsapp/httprequestv2.cpp \
+    Whatsapp/mediadownload.cpp \
     Whatsapp/watokendictionary.cpp
 
 OTHER_FILES += \
@@ -174,23 +174,7 @@ HEADERS += \
     util/qthmacsha1.h \
     util/qtrfc2898.h \
     util/datacounters.h \
-    Whatsapp/protocoltreenode.h \
-    Whatsapp/attributelist.h \
-    Whatsapp/protocoltreenodelist.h \
-    Whatsapp/bintreenodewriter.h \
-    Whatsapp/protocoltreenodelistiterator.h \
-    Whatsapp/attributelistiterator.h \
-    Whatsapp/bintreenodereader.h \
-    Whatsapp/connection.h \
     client.h \
-    Whatsapp/ioexception.h \
-    Whatsapp/protocolexception.h \
-    Whatsapp/warequest.h \
-    Whatsapp/waexistsrequest.h \
-    Whatsapp/phonereg.h \
-    Whatsapp/wacoderequest.h \
-    Whatsapp/smslistener.h \
-    Whatsapp/waregrequest.h \
     Contacts/contactitem.h \
     Contacts/contactroster.h \
     Gui/conversationdelegate.h \
@@ -202,7 +186,6 @@ HEADERS += \
     Gui/registrationwindow.h \
     Gui/phonenumberwidget.h \
     Gui/registrationprogresswidget.h \
-    Whatsapp/phoneregreply.h \
     Gui/selectcontactdialog.h \
     Dbus/notifyobject.h \
     Gui/aboutdialog.h \
@@ -216,8 +199,6 @@ HEADERS += \
     Gui/chatarea.h \
     Contacts/group.h \
     Gui/groupwindow.h \
-    Whatsapp/exception.h \
-    Whatsapp/loginexception.h \
     version.h \
     globalconstants.h \
     Contacts/contactsyncer.h \
@@ -229,11 +210,6 @@ HEADERS += \
     Gui/emojibutton.h \
     Gui/changeusernamedialog.h \
     Gui/chatimageitem.h \
-    Whatsapp/formdata.h \
-    Whatsapp/keystream.h \
-    Whatsapp/rc4.h \
-    Whatsapp/mediaupload.h \
-    Whatsapp/multipartuploader.h \
     Sql/conversationsdb.h \
     Gui/chatdisplayitem.h \
     Gui/chatdisplaydelegate.h \
@@ -242,8 +218,6 @@ HEADERS += \
     Gui/voiceregistrationwidget.h \
     Gui/chattextitem.h \
     Gui/whatsnewwindow.h \
-    Whatsapp/httprequestv2.h \
-    Whatsapp/mediadownload.h \
     Dbus/dbusnokiaimageviewerif.h \
     Dbus/dbusnokiamediaplayerif.h \
     Gui/mediaselectdialog.h \
@@ -273,6 +247,32 @@ HEADERS += \
     libjpeg/jpeg-data.h \
     libjpeg/exif-i18n.h \
     Dbus/dbusnokiaossobrowserif.h \
+    Whatsapp/protocoltreenode.h \
+    Whatsapp/attributelist.h \
+    Whatsapp/protocoltreenodelist.h \
+    Whatsapp/bintreenodewriter.h \
+    Whatsapp/protocoltreenodelistiterator.h \
+    Whatsapp/attributelistiterator.h \
+    Whatsapp/bintreenodereader.h \
+    Whatsapp/connection.h \
+    Whatsapp/ioexception.h \
+    Whatsapp/protocolexception.h \
+    Whatsapp/warequest.h \
+    Whatsapp/waexistsrequest.h \
+    Whatsapp/phonereg.h \
+    Whatsapp/wacoderequest.h \
+    Whatsapp/smslistener.h \
+    Whatsapp/waregrequest.h \
+    Whatsapp/phoneregreply.h \
+    Whatsapp/exception.h \
+    Whatsapp/loginexception.h \
+    Whatsapp/formdata.h \
+    Whatsapp/keystream.h \
+    Whatsapp/rc4.h \
+    Whatsapp/mediaupload.h \
+    Whatsapp/multipartuploader.h \
+    Whatsapp/httprequestv2.h \
+    Whatsapp/mediadownload.h \
     Whatsapp/watokendictionary.h
 
 

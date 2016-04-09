@@ -39,6 +39,8 @@ MOBILITY     = systeminfo messaging
 PKGCONFIG   += libosso-abook-1.0 libebook-1.2 gtk+-2.0 gstreamer-0.10 libpulse libexif
 INCLUDEPATH += /usr/include/libosso-abook-1.0 /usr/include/evolution-data-server-1.4/ /usr/include/gtk-2.0 /usr/include/gstreamer-0.10
 
+LIBS += -lwa-qt4
+
 TARGET = Yappari
 TEMPLATE = app
 

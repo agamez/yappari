@@ -1,3 +1,9 @@
+yappari (2.0.27) stable; urgency=medium
+
+  * Upgrade S40 version
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Wed, 13 Apr 2016 09:40:15 +0200
+
 yappari (2.0.26) stable; urgency=medium
 
   * Try harder to notify participants of group that we don't want ciphered messages

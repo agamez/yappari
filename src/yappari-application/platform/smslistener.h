@@ -26,36 +26,33 @@
  * official policies, either expressed or implied, of the copyright holder.
  */
 
-#ifndef WAREQUEST_H
-#define WAREQUEST_H
+#ifndef SMSLISTENER_H
+#define SMSLISTENER_H
 
-#include "httprequestv2.h"
+#include <QPointer>
+#include <QMessage>
+#include <QMessageManager>
 
-class WARequest : public HttpRequestv2
+// QtMobility namespace
+QTM_USE_NAMESPACE
+
+class SMSListener : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit WARequest(QObject *parent = 0);
-
-    void addParam(QString name, QString value);
-    void getRequest();
+    explicit SMSListener(QObject *parent = 0);
 
 signals:
-    void finished(WARequest *, bool, QVariantMap);
-    void httpError(WARequest *, int);
-    void sslError(WARequest *);
+    void codeReceived(QString);
 
 public slots:
-    void onResponse();
-    void readResult();
-    void errorHandler(QAbstractSocket::SocketError error);
-
-protected:
-    QString method;
+    void messageAdded(const QMessageId&,
+                      const QMessageManager::NotificationFilterIdSet&);
 
 private:
-    QByteArray writeBuffer;
+    QPointer<QMessageManager> m_manager;
+    QMessageManager::NotificationFilterIdSet m_notifFilterSet;
+    QMessageId m_messageId;
 };
 
-#endif // WAREQUEST_H
+#endif // SMSLISTENER_H

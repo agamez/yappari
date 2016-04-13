@@ -51,9 +51,7 @@
 
 #include "util/datacounters.h"
 
-#include "Whatsapp/warequest.h"
 #include "Whatsapp/connection.h"
-#include "Whatsapp/phonereg.h"
 
 #include "Contacts/contactroster.h"
 #include "Contacts/contactsyncer.h"

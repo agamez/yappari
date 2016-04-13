@@ -28,14 +28,18 @@
 
 #include <QMaemo5InformationBox>
 #include <QMessageBox>
+#include <QSystemNetworkInfo>
 
 #include "registrationwindow.h"
 
 #include "util/utilities.h"
+#include "util/qtmd5digest.h"
 
 #include "Gui/accountinfowindow.h"
 #include "Gui/phonenumberwidget.h"
 #include "Gui/voiceregistrationwidget.h"
+
+#include "globalconstants.h"
 
 #include "client.h"
 
@@ -49,12 +53,8 @@ RegistrationWindow::RegistrationWindow(QWidget *parent) :
     voiceRegistration = false;
 
     // Get the country of the phone
-#ifndef Q_WS_SCRATCHBOX
     QSystemInfo deviceInfo;
     cc = deviceInfo.currentCountryCode();
-#else
-    cc = "US";
-#endif
     Utilities::logData("Country code: " + cc);
 
     PhoneNumberWidget *widget = new PhoneNumberWidget(cc,this);
@@ -67,103 +67,110 @@ RegistrationWindow::RegistrationWindow(QWidget *parent) :
     setCentralWidget(widget);
 }
 
-void RegistrationWindow::phoneNumberEntered(QString cc, QString number)
+void RegistrationWindow::phoneNumberEntered(const QString &_cc, const QString &_number)
 {
     // Phone number and country code entered successfully
+    cc = _cc;
+    number = _number;
 
-    this->cc = cc;
-    this->number = number;
+    /* TODO: move to platform/MobileInfo */
+    QSystemInfo systemInfo(this);
+    QSystemNetworkInfo networkInfo(this);
+    QString language = systemInfo.currentLanguage();
+    QString country = systemInfo.currentCountryCode();
+    mcc = networkInfo.currentMobileCountryCode();
+    mnc = networkInfo.currentMobileNetworkCode();
+    if (mcc.length() < 3)
+        mcc = mcc.rightJustified(3, '0');
+    if (mnc.length() < 3)
+        mnc = mnc.rightJustified(3, '0');
+    /* */
+
+    if (m_id.isEmpty()) {
+        m_id = QCryptographicHash::hash(QUuid::createUuid().toString().toAscii(), QCryptographicHash::Md5).toHex();
+        //AccountSettings::GetInstance()->setValue("id", m_id);
+    }
+
+    //m_device = AccountSettings::GetInstance()->value("device", QString()).toString();
+    if (m_device.isEmpty()) {
+        m_device = RegTools::getDevice("S40");
+        //AccountSettings::GetInstance()->setValue("device", m_device);
+    }
+    m_useragent = RegTools::getUseragent(m_device);
+
+    qDebug() << "Registering with m_id:" << m_id << "as" << m_device << m_useragent;
 
     // Start registration
-    reg = new PhoneReg(cc,number);
+    reg = new WARegistration(this);
+    connect(reg, SIGNAL(finished(QVariantMap)),
+            this, SLOT(onRegReply(QVariantMap)));
 
-    connect(reg,SIGNAL(finished(PhoneRegReply*)),
-            this,SLOT(registrationFinished(PhoneRegReply *)));
-
-    connect(reg,SIGNAL(expired(QVariantMap)),
-            this,SLOT(expired(QVariantMap)));
-
+    reg->init(cc, number, mcc, mnc, RegTools::getId(m_id, number), m_useragent, "sms", RegTools::getToken(number));
+    reg->codeRequest();
 
     // Show progress dialog
     progressWidget = new RegistrationProgressWidget(this);
-
     progressWidget->setAttribute(Qt::WA_DeleteOnClose);
-
     connect(&registrationTimeoutTimer,SIGNAL(timeout()),
             progressWidget,SLOT(increaseProgress()));
+    connect(progressWidget,SIGNAL(timeout()),
+            this,SLOT(onSMSRequestTimeout()));
 
     registrationTimeoutTimer.start(1000);
 
-    connect(progressWidget,SIGNAL(timeout()),reg,SLOT(onSMSRequestTimeout()));
-
     setCentralWidget(progressWidget);
-
-    QTimer::singleShot(500, reg, SLOT(start()));
 }
 
-void RegistrationWindow::registrationFinished(PhoneRegReply *reply)
+void RegistrationWindow::onRegReply(const QVariantMap &result)
 {
-    registrationTimeoutTimer.stop();
-
-    if (reply->isValid())
-    {
-        QVariantMap result = reply->result;
-        result.insert("cc", this->cc);
-        result.insert("number", this->number);
-        emit accept(result);
-
-        reg->deleteLater();
+    qDebug() << "Registration::onRegReply" << result;
+    QString status = result["status"].toString();
+    if (status == "sent" && result["method"].toString() == "sms") {
+        qDebug() << "Whatsapp has sent SMS. Starting SMS Listener";
+        SMSListener *smsListener = new SMSListener(this);
+        connect(smsListener,SIGNAL(codeReceived(QString)),
+                this,SLOT(codeReceived(QString)));
+    } else if (status == "ok") {
+        //AccountSettings::GetInstance()->setValue("login", result["login"]);
+        //AccountSettings::GetInstance()->setValue("password", result["pw"]);
+        //AccountSettings::GetInstance()->setValue("kind", result["kind"]);
+        //AccountSettings::GetInstance()->setValue("expiration", result["expiration"]);
+        QVariantMap reply = result;
+        reply.insert("cc", this->cc);
+        reply.insert("number", this->number);
+        emit accept(reply);
         close();
+    } else if (status == "fail") {
+        QString fail_reason= result["reason"].toString();
+        if(fail_reason == "sms_timeout") {
+            VoiceRegistrationWidget *widget = new VoiceRegistrationWidget(this);
+            connect(widget,SIGNAL(codeReceived(QString)),
+                    this,SLOT(codeReceived(QString)));
+            connect(widget,SIGNAL(requestCall()),
+                    this,SLOT(requestCall()));
+            setCentralWidget(widget);
+        } else if(fail_reason == "old_version") {
+        } else if(fail_reason == "mismatch") {
+        } else if(fail_reason == "too_recent") {
+        }
     }
-    else if (!voiceRegistration)
-    {
-        voiceRegistration = true;
+}
 
-        VoiceRegistrationWidget *widget = new VoiceRegistrationWidget(this);
+void RegistrationWindow::onSMSRequestTimeout()
+{
+    QVariantMap result;
+    result.insert("status", "fail");
+    result.insert("reason", "sms_timeout");
+    this->onRegReply(result);
+}
 
-        connect(widget,SIGNAL(requestCall()),this,SLOT(requestCall()));
-        connect(widget,SIGNAL(codeReceived(QString)),reg,SLOT(startRegRequest(QString)));
-
-        setCentralWidget(widget);
-    } else {
-
-        QMessageBox msg(this);
-
-        msg.setText("Registration couldn't be completed.\n" + reply->getReason());
-        msg.exec();
-    }
-
-    reply->deleteLater();
+void RegistrationWindow::codeReceived(const QString &code)
+{
+    reg->enterCode(code);
 }
 
 void RegistrationWindow::requestCall()
 {
-    QMaemo5InformationBox::information(this,"A call is being requested");
-
-    reg->startVoiceRequest();
-}
-
-void RegistrationWindow::expired(QVariantMap result)
-{
-    registrationTimeoutTimer.stop();
-
-    QMaemo5InformationBox::information(this,
-                                       "Your account has expired.\n\n"\
-                                       "You have to pay to WhatsApp Inc. to renew your account",
-                                       QMaemo5InformationBox::NoTimeout);
-
-    // Refresh some values
-
-    Client::phoneNumber = result["login"].toString();
-    Client::accountstatus = result["status"].toString();
-    Client::kind = result["kind"].toString();
-    Client::expiration = result["expiration"].toString();
-
-    AccountInfoWindow *window = new AccountInfoWindow(this);
-    window->setAttribute(Qt::WA_Maemo5StackedWindow);
-    window->setAttribute(Qt::WA_DeleteOnClose);
-    window->setWindowFlags(window->windowFlags() | Qt::Window);
-    window->show();
-
-    connect(window,SIGNAL(destroyed()),this,SLOT(close()));
+    reg->init(cc, number, mcc, mnc, RegTools::getId(m_id, number), m_useragent, "voice", RegTools::getToken(number));
+    reg->codeRequest();
 }

@@ -45,6 +45,9 @@ TARGET = Yappari
 TEMPLATE = app
 
 SOURCES += main.cpp \
+    libwa-classes/emoji.cpp \
+    libwa-classes/regtools.cpp \
+    platform/smslistener.cpp \
     FMessage/fmessage.cpp \
     FMessage/funstore.cpp \
     FMessage/key.cpp \
@@ -136,13 +139,6 @@ SOURCES += main.cpp \
     Whatsapp/bintreenodereader.cpp \
     Whatsapp/ioexception.cpp \
     Whatsapp/protocolexception.cpp \
-    Whatsapp/warequest.cpp \
-    Whatsapp/waexistsrequest.cpp \
-    Whatsapp/phonereg.cpp \
-    Whatsapp/wacoderequest.cpp \
-    Whatsapp/smslistener.cpp \
-    Whatsapp/waregrequest.cpp \
-    Whatsapp/phoneregreply.cpp \
     Whatsapp/exception.cpp \
     Whatsapp/loginexception.cpp \
     Whatsapp/formdata.cpp \
@@ -163,6 +159,9 @@ OTHER_FILES += \
     qtc_packaging/debian_fremantle/changelog
 
 HEADERS += \
+    libwa-classes/emoji.h \
+    libwa-classes/regtools.h \
+    platform/smslistener.h \
     FMessage/fmessage.h \
     FMessage/funstore.h \
     FMessage/key.h \
@@ -257,13 +256,6 @@ HEADERS += \
     Whatsapp/connection.h \
     Whatsapp/ioexception.h \
     Whatsapp/protocolexception.h \
-    Whatsapp/warequest.h \
-    Whatsapp/waexistsrequest.h \
-    Whatsapp/phonereg.h \
-    Whatsapp/wacoderequest.h \
-    Whatsapp/smslistener.h \
-    Whatsapp/waregrequest.h \
-    Whatsapp/phoneregreply.h \
     Whatsapp/exception.h \
     Whatsapp/loginexception.h \
     Whatsapp/formdata.h \

@@ -3,14 +3,14 @@ OLD_BUILD_NUMBER=$(sed -rn 's/#define BUILD_NUMBER ([0-9]+)/\1/gp' yappari-appli
 NEW_BUILD_NUMBER=$(expr $OLD_BUILD_NUMBER + 1)
 VERSION=$(head -1 ../debian/changelog | sed 's/.*(\(.*\)).*/\1/')
 
-cat > yappari-application/version.h << __EOF__
+#cat > yappari-application/version.h << __EOF__
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
 #define BUILD_NUMBER ${NEW_BUILD_NUMBER}
 #define VERSION "${VERSION}"
 #define FULL_VERSION VERSION "${VERSION_NUMBER} Build " STR(BUILD_NUMBER)
-__EOF__
+#__EOF__
 
 mkdir build-scratchbox
 rsync -Pa --exclude=build-scratchbox . build-scratchbox

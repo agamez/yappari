@@ -74,7 +74,7 @@ void SMSListener::messageAdded(const QMessageId& id,
             // Remove message from inbox
             m_manager->removeMessage(m_messageId);
 
-            emit codeReceived(this,code);
+            emit codeReceived(code);
         }
     }
 }

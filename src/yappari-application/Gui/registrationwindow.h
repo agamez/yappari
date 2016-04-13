@@ -33,10 +33,11 @@
 #include <QMainWindow>
 #include <QTimer>
 
-#include "Gui/registrationprogresswidget.h"
+#include <libwa-qt4/waregistration.h>
 
-#include "Whatsapp/phonereg.h"
-#include "Whatsapp/phoneregreply.h"
+#include "libwa-classes/regtools.h"
+#include "platform/smslistener.h"
+#include "Gui/registrationprogresswidget.h"
 
 // QtMobility namespace
 QTM_USE_NAMESPACE
@@ -51,18 +52,26 @@ signals:
     void accept(QVariantMap result);
 
 public slots:
-    void phoneNumberEntered(QString,QString);
-    void registrationFinished(PhoneRegReply *);
+    void onRegReply(const QVariantMap &result);
+    void phoneNumberEntered(const QString &_cc, const QString &_number);
+
+    void onSMSRequestTimeout();
+    void codeReceived(const QString &code);
     void requestCall();
-    void expired(QVariantMap result);
 
 private:
-    RegistrationProgressWidget *progressWidget;
-    QTimer registrationTimeoutTimer;
-    PhoneReg *reg;
     QString cc;
     QString number;
+    QString mcc;
+    QString mnc;
+    QString m_id;
+    QString m_device;
+    QString m_useragent;
+
+    RegistrationProgressWidget *progressWidget;
+    QTimer registrationTimeoutTimer;
     bool voiceRegistration;
+    WARegistration *reg;
 };
 
 #endif // REGISTRATIONWINDOW_H

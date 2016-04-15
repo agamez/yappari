@@ -1,3 +1,9 @@
+yappari (2.0.28) stable; urgency=medium
+
+  * Yappari is broken. Do not use it.
+
+ -- Alvaro G. M. <alvaro.gamez@hazent.com>  Wed, 15 Apr 2016 10:22:05 +0200
+
 yappari (2.0.27) stable; urgency=medium
 
   * Upgrade S40 version

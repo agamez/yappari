@@ -923,7 +923,7 @@ void Client::getMyStatus()
 void Client::changeStatus(QString newStatus)
 {
     settings->setValue(SETTINGS_STATUS,newStatus);
-    connection->sendSetStatus(newStatus);
+    waconnection->sendSetStatusMessage(newStatus);
 }
 
 void Client::changeUserName(QString newUserName)

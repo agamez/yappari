@@ -60,7 +60,6 @@
 
 #include "util/utilities.h"
 #include "util/datetimeutilities.h"
-#include "Whatsapp/ioexception.h"
 
 #include "hildon-input-method/hildon-im-protocol.h"
 
@@ -514,7 +513,7 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
 {
 
     Utilities::logData("Media upload accepted: " + msg.media_url);
-
+/*
     MediaUpload *mediaUpload = new MediaUpload();
 
     connect(mediaUpload,SIGNAL(sendMessage(MediaUpload*,FMessage)),
@@ -531,17 +530,17 @@ void ChatWindow::mediaUploadAccepted(FMessage msg)
 
     connect(mediaUpload,SIGNAL(headersReceived(qint64)),
             this,SLOT(increaseDownloadCounter(qint64)));
-
+*/
     /*
     connect(mediaUpload,SIGNAL(requestSent(qint64)),
             this,SLOT(increaseUploadCounter(qint64)));
     */
-
+/*
     mediaUpload->sendMedia(contact->jid,msg);
-
+*/
 }
 
-
+/*
 void ChatWindow::mediaUploadStarted(MediaUpload *mediaUpload, FMessage msg)
 {
     if (!ui->scrollArea->isMessageInUI(msg))
@@ -630,11 +629,11 @@ void ChatWindow::httpErrorHandler(MediaUpload *mediaUpload, QString error)
     messageStatusUpdate(msg);
     ui->scrollArea->resetButton(msg);
 }
-
+*/
 void ChatWindow::mediaDownloadRequested(FMessage msg)
 {
     Utilities::logData("Media download requested: " + msg.media_url);
-
+/*
     MediaDownload *mediaDownload = new MediaDownload();
 
     connect(mediaDownload,SIGNAL(progress(FMessage,float)),
@@ -653,8 +652,9 @@ void ChatWindow::mediaDownloadRequested(FMessage msg)
             this,SLOT(increaseUploadCounter(qint64)));
 
     mediaDownload->backgroundTransfer(msg);
+*/
 }
-
+/*
 void ChatWindow::mediaDownloadFinished(MediaDownload *mediaDownload, FMessage msg)
 {
     disconnect(mediaDownload, 0, 0, 0);
@@ -717,7 +717,7 @@ void ChatWindow::mediaDownloadError(MediaDownload *mediaDownload, FMessage msg, 
 
     ui->scrollArea->resetButton(msg);
 }
-
+*/
 
 void ChatWindow::deleteAllMessages()
 {

@@ -372,8 +372,8 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     // Contacts syncer
     syncer = new ContactSyncer(roster, this);
 
-    connect(syncer,SIGNAL(phoneListReady(QStringList)),
-            this, SLOT(sendSyncContacts(QStringList)));
+    connect(syncer,SIGNAL(phoneListReady(QVariantMap)),
+            this, SLOT(sendSyncContacts(QVariantMap)));
 
     connect(syncer,SIGNAL(statusListReady(QStringList)),
             this, SLOT(sendGetStatus(QStringList)));
@@ -868,10 +868,10 @@ void Client::synchronizeContacts()
     QTimer::singleShot(0,syncer,SLOT(syncContacts()));
 }
 
-void Client::sendSyncContacts(QStringList numbers)
+void Client::sendSyncContacts(QVariantMap contacts)
 {
     if (connectionStatus == LoggedIn)
-        connection->sendSyncContacts(numbers);
+        waconnection->syncContacts(contacts);
 }
 
 void Client::sendGetStatus(QString jid)

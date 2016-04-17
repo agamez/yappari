@@ -201,19 +201,16 @@ void ContactSyncer::syncAddressBook()
 {
     totalPhones = currentPhone = 0;
 
-    QStringList numbers;
+    QVariantMap contacts;
 
-    if (abook.size() > 0)
-    {
-        foreach(Contact *c, abook.values())
-            if (c->type == Contact::TypeContact && c->jid != Client::myJid)
-            {
-                totalPhones++;
-                numbers << c->phone;
-            }
+    foreach(Contact *c, abook.values())
+        if (c->type == Contact::TypeContact && c->jid != Client::myJid)
+        {
+            totalPhones++;
+            contacts[c->phone] = c->name;
+        }
 
-        emit phoneListReady(numbers);
-    }
+    emit phoneListReady(contacts);
 }
 
 void ContactSyncer::syncPhone(QString jid, QString phone)

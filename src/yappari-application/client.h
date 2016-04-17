@@ -295,7 +295,7 @@ public slots:
     void changeStatus(QString newStatus);
     void changeUserName(QString newUserName);
     void synchronizeContacts();
-    void sendSyncContacts(QStringList numbers);
+    void sendSyncContacts(QVariantMap contacts);
     void sendGetStatus(QString jid);
     void sendGetStatus(QStringList jids);
     void syncHttpError(int error);

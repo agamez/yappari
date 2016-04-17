@@ -31,6 +31,7 @@
 
 #include <QByteArray>
 #include <QMap>
+#include <QVariant>
 
 #include "contactlist.h"
 #include "contactroster.h"
@@ -68,7 +69,7 @@ signals:
     void updatePhoto(QString jid, QString expectedPhotoId, bool largeFormat);
     void syncFinished();
     void progress(int);
-    void phoneListReady(QStringList numbers);
+    void phoneListReady(QVariantMap contacts);
     void statusListReady(QStringList jids);
 };
 

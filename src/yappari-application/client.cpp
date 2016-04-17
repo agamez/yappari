@@ -1597,13 +1597,12 @@ void Client::groupNewSubject(QString from, QString author, QString authorName, Q
     mainWin->updateGroup(group, true);
 
     if (group.author.isEmpty())
-        connection->updateGroupChats();
+        waconnection->sendGetGroups("participating");
 }
 
 void Client::getParticipants(QString gjid)
 {
-    if (connectionStatus == LoggedIn)
-        connection->sendGetParticipants(gjid);
+    if (connectionStatus == LoggedIn) waconnection->sendGetGroups("participating");
 }
 
 void Client::groupUser(QString gjid, QString jid)

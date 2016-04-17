@@ -29,6 +29,8 @@
 #ifndef GLOBALCONSTANTS_H
 #define GLOBALCONSTANTS_H
 
+#include "constants.h"
+
 // Application constants
 
 #define YAPPARI_APPLICATION_NAME    "Yappari"
@@ -40,19 +42,16 @@
 
 // WhatsApp Client Spoofing
 /* coderus mantains this: https://coderus.openrepos.net/whitesoft/whatsapp_scratch e, i, j */
-#define USER_AGENT_VERSION  "2.16.4"
+#define USER_AGENT_VERSION  S40_VERSION
 #define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/14.26 Device/Nokia302"
-#define RESOURCE            "S40-"USER_AGENT_VERSION"-443"
+#define RESOURCE            S40_RESOURCE
 
-#define BUILD_KEY   "PdA2DJyKoUrwLw1Bg6EIhzh502dF9noR9uFCllGk"
-#define BUILD_HASH  "1459919684044"
+#define BUILD_KEY   S40_KEY
+#define BUILD_HASH  S40_BUILD
 
-
-// WhatsApp URLs
-#define URL_REGISTRATION_V2     "https://v.whatsapp.net/v2/"
-#define URL_CONTACTS_AUTH       "https://sro.whatsapp.net/v2/sync/a"
-#define URL_CONTACTS_SYNC       "https://sro.whatsapp.net/v2/sync/q"
+// URLs
 #define URL_LOCATION_SHARING    "https://maps.google.com/maps?q=loc:"
+
 
 // WhatsApp Servers
 #define JID_DOMAIN              "s.whatsapp.net"

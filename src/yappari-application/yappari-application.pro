@@ -162,6 +162,7 @@ HEADERS += \
     libwa-classes/emoji.h \
     libwa-classes/regtools.h \
     platform/smslistener.h \
+    constants.h \
     FMessage/fmessage.h \
     FMessage/funstore.h \
     FMessage/key.h \

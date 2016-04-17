@@ -1246,22 +1246,24 @@ void Client::sendSetGroupSubject(QString gjid, QString subject)
     {
         Group &g = roster->getGroup(gjid);
         roster->updateSubject(&g);
-
-        connection->sendSetGroupSubject(gjid,subject);
+        // Not implemented on libwa
+        // waconnection->sendSetGroupSubject(gjid,subject);
     }
 
 }
 
 void Client::requestLeaveGroup(QString gjid)
 {
-    if (connectionStatus == LoggedIn)
-        connection->sendLeaveGroup(gjid);
+//    if (connectionStatus == LoggedIn)
+// Not implemented on libwa
+//        waconnection->sendLeaveGroup(gjid);
 }
 
 void Client::requestQueryLastOnline(QString jid)
 {
-    if (connectionStatus == LoggedIn)
-        connection->sendQueryLastOnline(jid);
+//    if (connectionStatus == LoggedIn)
+// Not implemented on libwa
+//        waconnection->sendQueryLastOnline(jid);
 }
 
 void Client::queueMessage(FMessage message)
@@ -1386,8 +1388,9 @@ void Client::photoIdReceived(QString jid, QString alias, QString photoId)
     {
         Utilities::logData("Contact " + jid + " has changed his profile photo");
 
-        if (connectionStatus == LoggedIn)
-            waconnection->sendPicture(jid);
+//        if (connectionStatus == LoggedIn)
+// Not implemented on libwa
+//            waconnection->sendPicture(jid);
     }
 
     if (!c.alias.isEmpty() && c.alias != alias)
@@ -1517,8 +1520,8 @@ void Client::setPhoto(QString jid, QImage image)
         } while ((quality > 10) && thumbnail.size() > MAX_PROFILE_PICTURE_SIZE);
     }
 
-    if (connectionStatus == LoggedIn)
-        connection->sendSetPhoto(jid, data, thumbnail);
+// Not implemented on libwa
+//    if (connectionStatus == LoggedIn) waconnection->sendSetPhoto(jid, data, thumbnail);
 }
 
 void Client::requestPresenceSubscription(QString jid)
@@ -1548,8 +1551,8 @@ void Client::createGroupChat(QImage photo, QString subject, QStringList particip
 
     groups.insert(subject,group);
 
-    if (connectionStatus == LoggedIn)
-        connection->sendCreateGroupChat(subject, participants);
+// Not implemented on libwa
+//    if (connectionStatus == LoggedIn) waconnection->sendCreateGroupChat(subject, participants);
 }
 
 void Client::groupInfoFromList(QString id, QString from, QString author,
@@ -1568,7 +1571,8 @@ void Client::groupInfoFromList(QString id, QString from, QString author,
 
         if (connectionStatus == LoggedIn)
         {
-            connection->sendAddParticipants(from, group->participants);
+// Not implemented on libwa
+//            waconnection->sendAddParticipants(from, group->participants);
             if (!group->photo.isNull())
                 setPhoto(from,group->photo);
         }
@@ -1650,7 +1654,8 @@ void Client::sendAddGroupParticipant(QString gjid, QString jid)
     {
         QStringList participants;
         participants.append(jid);
-        connection->sendAddParticipants(gjid, participants);
+// Not implemented on libwa
+//        waconnection->sendAddParticipants(gjid, participants);
     }
 }
 
@@ -1682,7 +1687,8 @@ void Client::sendRemoveGroupParticipant(QString gjid, QString jid)
     {
         QStringList participants;
         participants.append(jid);
-        connection->sendRemoveParticipants(gjid, participants);
+// Not implemented on libwa
+//        waconnection->sendRemoveParticipants(gjid, participants);
     }
 }
 
@@ -1699,15 +1705,16 @@ void Client::sendPromoteGroupParticipant(QString gjid, QString jid)
 
 void Client::requestPrivacyList()
 {
-    if (connectionStatus == LoggedIn)
-        waconnection->sendGetPrivacyList();
+// Not implemented on libwa
+//    if (connectionStatus == LoggedIn) waconnection->sendGetPrivacyList();
 }
 
 void Client::setPrivacyList()
 {
     QStringList list = roster->getBlockedJidsList().keys();
     Utilities::logData("Blocked people count: " + QString::number(list.size()));
-    waconnection->sendSetPrivacyList(list, QStringList());
+// Not implemented on libwa
+//  if (connectionStatus == LoggedIn) waconnection->sendSetPrivacyList(list, QStringList());
 }
 
 void Client::blockOrUnblockContact(QString jid, bool blocked)

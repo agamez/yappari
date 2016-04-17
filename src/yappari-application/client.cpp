@@ -932,7 +932,7 @@ void Client::changeUserName(QString newUserName)
 
     settings->setValue(SETTINGS_USERNAME,userName);
 
-    connection->setNewUserName(userName);
+    waconnection->sendAvailable(userName);
 }
 
 void Client::error(QAbstractSocket::SocketError socketError)

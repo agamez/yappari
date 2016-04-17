@@ -1027,7 +1027,7 @@ void MainWindow::requestPhotoUpdate(QString jid, QString photoId, bool largeForm
 
 void MainWindow::requestContactStatus(QString jid)
 {
-    emit requestStatus(jid);
+    emit requestStatuses(QStringList(jid));
 }
 
 void MainWindow::sendVoiceNotePlayed(FMessage message)
@@ -1076,7 +1076,7 @@ void MainWindow::viewContact(Contact *c)
 {
     ContactInfoWindow *contactInfoWindow = new ContactInfoWindow(c,this);
 
-    emit requestStatus(c->jid);
+    emit requestStatuses(QStringList(c->jid));
     emit queryLastOnline(c->jid);
 
     showWindow(contactInfoWindow);

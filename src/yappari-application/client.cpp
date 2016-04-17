@@ -276,8 +276,8 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(mainWin,SIGNAL(photoRequest(QString,QString,bool)),
             this,SLOT(updatePhoto(QString,QString,bool)));
 
-    connect(mainWin,SIGNAL(requestStatus(QString)),
-            this,SLOT(sendGetStatus(QString)));
+    connect(mainWin,SIGNAL(requestStatus(QStringList)),
+            this,SLOT(sendGetStatuses(QStringList)));
 
     connect(mainWin,SIGNAL(setPhoto(QString,QImage)),
             this,SLOT(setPhoto(QString,QImage)));
@@ -376,7 +376,7 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
             this, SLOT(sendSyncContacts(QVariantMap)));
 
     connect(syncer,SIGNAL(statusListReady(QStringList)),
-            this, SLOT(sendGetStatus(QStringList)));
+            this, SLOT(sendGetStatuses(QStringList)));
 
     connect(syncer,SIGNAL(progress(int)),
             this, SLOT(syncProgress(int)));
@@ -874,17 +874,12 @@ void Client::sendSyncContacts(QVariantMap contacts)
         waconnection->syncContacts(contacts);
 }
 
-void Client::sendGetStatus(QString jid)
-{
-    sendGetStatus(QStringList(jid));
-}
-
-void Client::sendGetStatus(QStringList jids)
+void Client::sendGetStatuses(QStringList jids)
 {
     Utilities::logData("sendGetStatus(): Requesting status of " + jids.join(" "));
 
     if (connectionStatus == LoggedIn)
-        connection->sendGetStatus(jids);
+        waconnection->sendGetStatuses(jids);
 }
 
 void Client::syncHttpError(int error)
@@ -922,7 +917,7 @@ void Client::syncFinished()
 
 void Client::getMyStatus()
 {
-    sendGetStatus(myJid);
+    sendGetStatuses(QStringList(myJid));
 }
 
 void Client::changeStatus(QString newStatus)

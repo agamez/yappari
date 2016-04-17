@@ -166,7 +166,7 @@ signals:
     void subscribe(QString jid);
     void unsubscribe(QString jid);
     void photoRequest(QString jid, QString expectedPhotoId, bool largeFormat);
-    void requestStatus(QString jid);
+    void requestStatuses(QStringList jids);
     void setPhoto(QString jid, QImage photo);
     void createGroupChat(QImage photo, QString subject, QStringList participants);
     void getParticipants(QString gjid);

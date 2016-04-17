@@ -1190,26 +1190,54 @@ void Client::keepAlive()
 
 void Client::sendMessagesInQueue()
 {
-    if (connectionStatus == LoggedIn)
+    if (connectionStatus != LoggedIn) return;
+
+    while (!pendingMessagesQueue.isEmpty())
     {
+        pendingMessagesMutex.lock();
+        FMessage message = pendingMessagesQueue.dequeue();
+        pendingMessagesMutex.unlock();
 
-        while (!pendingMessagesQueue.isEmpty())
+        // What if connection is not "connected" ?
+        // maybe a timer and recall this function?
+        // or a sleep?
+
+        Receipt receipt(message.key.remote_jid);
+        switch (message.type)
         {
-            pendingMessagesMutex.lock();
-            FMessage message = pendingMessagesQueue.dequeue();
-            pendingMessagesMutex.unlock();
+            case FMessage::ComposingMessage:
+                waconnection->sendTyping(message.key.remote_jid, true);
+                break;
 
-            // What if connection is not "connected" ?
-            // maybe a timer and recall this function?
-            // or a sleep?
+            case FMessage::PausedMessage:
+                waconnection->sendTyping(message.key.remote_jid, false);
+                break;
 
-            connection->sendMessage(message);
+            case FMessage::BodyMessage:
+                waconnection->sendText(message.key.remote_jid, message.data);
+                message.status = FMessage::SentByClient;
+                message.receipts.append(receipt);
+                mainWin->messageStatusUpdate(message);
+                break;
+
+            case FMessage::MediaMessage:
+                // Not implemented on libwa
+                //sendMessageWithMedia(message);
+                break;
+
+            case FMessage::RequestMediaMessage:
+                // Not implemented on libwa
+                //requestMessageWithMedia(message);
+                break;
+
+            default:
+                break;
         }
-
-        // If we are not logged in the timer will be restarted
-        // in the next login
-        pendingMessagesTimer->start(CHECK_QUEUE_INTERVAL);
     }
+
+    // If we are not logged in the timer will be restarted
+    // in the next login
+    pendingMessagesTimer->start(CHECK_QUEUE_INTERVAL);
 }
 
 void Client::sendSetGroupSubject(QString gjid, QString subject)

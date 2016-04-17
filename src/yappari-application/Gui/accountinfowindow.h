@@ -30,6 +30,7 @@
 #define ACCOUNTINFOWINDOW_H
 
 #include <QMainWindow>
+#include <QSystemInfo>
 
 namespace Ui {
     class AccountInfoWindow;
@@ -45,13 +46,6 @@ public:
 
 private:
     Ui::AccountInfoWindow *ui;
-
-    void goToPaymentSite(int years);
-
-public slots:
-    void pay1Year();
-    void pay3Years();
-    void pay5Years();
 };
 
 #endif // ACCOUNTINFOWINDOW_H

@@ -36,8 +36,6 @@
 
 #include "client.h"
 
-#define PAYMENT_URL    "http://www.whatsapp.com/payments/cksum_pay.php?"
-
 AccountInfoWindow::AccountInfoWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::AccountInfoWindow)
@@ -57,53 +55,9 @@ AccountInfoWindow::AccountInfoWindow(QWidget *parent) :
 
     ui->serviceExpiration->setText(DateTimeUtilities::simpleDayFormat(
                                      Client::expiration.toLongLong() * 1000));
-
-    connect(ui->pay1Button,SIGNAL(clicked()),this,SLOT(pay1Year()));
-    connect(ui->pay3Button,SIGNAL(clicked()),this,SLOT(pay3Years()));
-    connect(ui->pay5Button,SIGNAL(clicked()),this,SLOT(pay5Years()));
-
-    // These two don't work
-    ui->pay3Button->hide();
-    ui->pay5Button->hide();
-
 }
 
 AccountInfoWindow::~AccountInfoWindow()
 {
     delete ui;
-}
-
-void AccountInfoWindow::goToPaymentSite(int years)
-{
-    QtMD5Digest digest;
-
-    QString phone = Client::phoneNumber + "abc";
-    digest.update(phone.toUtf8());
-
-    QSystemInfo systemInfo(this);
-
-    QString language = systemInfo.currentLanguage();
-    QString country = systemInfo.currentCountryCode();
-
-    QDesktopServices::openUrl(QUrl(PAYMENT_URL"phone=" + Client::phoneNumber +
-                                   "&cksum=" + QString::fromUtf8(
-                                       digest.digest().toHex().constData()) +
-                                   "&sku=" + QString::number(years) +
-                                   "&lg=" + (language.isEmpty() ? "en" : language) +
-                                   "&lc=" + (country.isEmpty() ?  "US" : country)));
-}
-
-void AccountInfoWindow::pay1Year()
-{
-    goToPaymentSite(1);
-}
-
-void AccountInfoWindow::pay3Years()
-{
-    goToPaymentSite(3);
-}
-
-void AccountInfoWindow::pay5Years()
-{
-    goToPaymentSite(5);
 }

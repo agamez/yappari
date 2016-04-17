@@ -825,7 +825,7 @@ void Client::connected()
 
     // Utilities::logData("Password: " + password);
 
-    connection = new Connection(socket,JID_DOMAIN,RESOURCE,phoneNumber,
+    connection = new Connection(socket,JID_DOMAIN,S40_RESOURCE,phoneNumber,
                                 userName,password,&dataCounters,this);
 
     QByteArray nextChallenge = QByteArray::fromBase64(settings->value(SETTINGS_NEXTCHALLENGE).toByteArray());

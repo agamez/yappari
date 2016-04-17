@@ -42,9 +42,7 @@
 
 // WhatsApp Client Spoofing
 /* coderus mantains this: https://coderus.openrepos.net/whitesoft/whatsapp_scratch e, i, j */
-#define USER_AGENT_VERSION  S40_VERSION
-#define USER_AGENT          "WhatsApp/"USER_AGENT_VERSION" S40Version/14.26 Device/Nokia302"
-#define RESOURCE            S40_RESOURCE
+#define USER_AGENT          "WhatsApp/"S40_VERSION" S40Version/14.26 Device/Nokia302"
 
 #define BUILD_KEY   S40_KEY
 #define BUILD_HASH  S40_BUILD

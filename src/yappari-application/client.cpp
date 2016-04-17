@@ -1692,21 +1692,22 @@ void Client::sendPromoteGroupParticipant(QString gjid, QString jid)
     {
         QStringList participants;
         participants.append(jid);
-        connection->sendPromoteParticipants(gjid, participants);
+// Not implemented on libwa
+//        waconnection->sendPromoteParticipants(gjid, participants);
     }
 }
 
 void Client::requestPrivacyList()
 {
     if (connectionStatus == LoggedIn)
-        connection->sendGetPrivacyList();
+        waconnection->sendGetPrivacyList();
 }
 
 void Client::setPrivacyList()
 {
     QStringList list = roster->getBlockedJidsList().keys();
     Utilities::logData("Blocked people count: " + QString::number(list.size()));
-    connection->sendSetPrivacyBlockedList(list);
+    waconnection->sendSetPrivacyList(list, QStringList());
 }
 
 void Client::blockOrUnblockContact(QString jid, bool blocked)

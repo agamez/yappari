@@ -45,13 +45,13 @@
 #include <QSettings>
 #include <QNetworkConfigurationManager>
 
+#include <libwa-qt4/libwa.h>
+
 #include "Dbus/dbusifadaptor.h"
 #include "Dbus/dbusappletif.h"
 #include "Dbus/dbusnokiamcesignalif.h"
 
 #include "util/datacounters.h"
-
-#include "Whatsapp/connection.h"
 
 #include "Contacts/contactroster.h"
 #include "Contacts/contactsyncer.h"
@@ -337,7 +337,7 @@ public Q_SLOTS:
     bool isRunning();
 
 private:
-    Connection *connection;
+    WAConnection *waconnection;
     QTcpSocket *socket;
     QNetworkConfigurationManager *manager;
     QString lastError;

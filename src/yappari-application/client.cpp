@@ -1757,14 +1757,13 @@ void Client::privacyListReceived(QStringList list)
 
 void Client::sendVoiceNotePlayed(FMessage message)
 {
-    if (connectionStatus == LoggedIn)
-        connection->sendVoiceNotePlayed(message);
+// Not implemented on libwa
+//    if (connectionStatus == LoggedIn) waconnection->sendVoiceNotePlayed(message);
 }
 
 void Client::sendMessageRead(FMessage message)
 {
-    if (connectionStatus == LoggedIn)
-        connection->sendMessageRead(message);
+    if (connectionStatus == LoggedIn) waconnection->sendMessageRead(message.key.remote_jid, message.key.id, message.remote_resource);
 }
 
 void Client::updateLastDir(int waType, QString dir)

@@ -128,27 +128,7 @@ SOURCES += main.cpp \
     libjpeg/jpeg-marker.c \
     libjpeg/jpeg-data.c \
     libjpeg/exif-i18n.c \
-    Dbus/dbusnokiaossobrowserif.cpp \
-    Whatsapp/protocoltreenode.cpp \
-    Whatsapp/attributelist.cpp \
-    Whatsapp/protocoltreenodelist.cpp \
-    Whatsapp/bintreenodewriter.cpp \
-    Whatsapp/protocoltreenodelistiterator.cpp \
-    Whatsapp/attributelistiterator.cpp \
-    Whatsapp/connection.cpp \
-    Whatsapp/bintreenodereader.cpp \
-    Whatsapp/ioexception.cpp \
-    Whatsapp/protocolexception.cpp \
-    Whatsapp/exception.cpp \
-    Whatsapp/loginexception.cpp \
-    Whatsapp/formdata.cpp \
-    Whatsapp/keystream.cpp \
-    Whatsapp/rc4.cpp \
-    Whatsapp/mediaupload.cpp \
-    Whatsapp/multipartuploader.cpp \
-    Whatsapp/httprequestv2.cpp \
-    Whatsapp/mediadownload.cpp \
-    Whatsapp/watokendictionary.cpp
+    Dbus/dbusnokiaossobrowserif.cpp
 
 OTHER_FILES += \
     qtc_packaging/debian_fremantle/rules \
@@ -246,28 +226,7 @@ HEADERS += \
     libjpeg/jpeg-marker.h \
     libjpeg/jpeg-data.h \
     libjpeg/exif-i18n.h \
-    Dbus/dbusnokiaossobrowserif.h \
-    Whatsapp/protocoltreenode.h \
-    Whatsapp/attributelist.h \
-    Whatsapp/protocoltreenodelist.h \
-    Whatsapp/bintreenodewriter.h \
-    Whatsapp/protocoltreenodelistiterator.h \
-    Whatsapp/attributelistiterator.h \
-    Whatsapp/bintreenodereader.h \
-    Whatsapp/connection.h \
-    Whatsapp/ioexception.h \
-    Whatsapp/protocolexception.h \
-    Whatsapp/exception.h \
-    Whatsapp/loginexception.h \
-    Whatsapp/formdata.h \
-    Whatsapp/keystream.h \
-    Whatsapp/rc4.h \
-    Whatsapp/mediaupload.h \
-    Whatsapp/multipartuploader.h \
-    Whatsapp/httprequestv2.h \
-    Whatsapp/mediadownload.h \
-    Whatsapp/watokendictionary.h
-
+    Dbus/dbusnokiaossobrowserif.h
 
 FORMS += \
     Gui/ui/mainwindow.ui \

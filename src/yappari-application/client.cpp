@@ -1524,13 +1524,13 @@ void Client::setPhoto(QString jid, QImage image)
 void Client::requestPresenceSubscription(QString jid)
 {
     if (connectionStatus == LoggedIn)
-        connection->sendPresenceSubscriptionRequest(jid);
+        waconnection->sendSubscribe(jid);
 }
 
 void Client::requestPresenceUnsubscription(QString jid)
 {
     if (connectionStatus == LoggedIn)
-        connection->sendUnsubscribeHim(jid);
+        waconnection->sendUnsubscribe(jid);
 }
 
 void Client::createGroupChat(QImage photo, QString subject, QStringList participants)

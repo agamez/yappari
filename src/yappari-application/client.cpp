@@ -1387,7 +1387,7 @@ void Client::photoIdReceived(QString jid, QString alias, QString photoId)
         Utilities::logData("Contact " + jid + " has changed his profile photo");
 
         if (connectionStatus == LoggedIn)
-            connection->sendGetPhoto(jid, QString(), false);
+            waconnection->sendPicture(jid);
     }
 
     if (!c.alias.isEmpty() && c.alias != alias)
@@ -1435,7 +1435,7 @@ void Client::photoReceived(QString from, QByteArray data,
 void Client::updatePhoto(QString jid, QString expectedPhotoId, bool largeFormat)
 {
     if (connectionStatus == LoggedIn)
-        connection->sendGetPhoto(jid, expectedPhotoId, largeFormat);
+        waconnection->sendGetPicture(jid);
 }
 
 void Client::photoDeleted(QString jid, QString alias)

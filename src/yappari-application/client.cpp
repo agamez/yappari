@@ -1090,7 +1090,7 @@ void Client::loginSuccess()
     getMyStatus();
 
     // Update participating groups
-    connection->updateGroupChats();
+    waconnection->sendGetGroups("participating");
 
     keepAliveTimer->start(MIN_INTERVAL);
     keepAliveTimer->setSingleShot(true);

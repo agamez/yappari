@@ -274,14 +274,10 @@ public slots:
 
     void networkConfigurationChanged(QNetworkConfiguration);
     void verifyAndConnect();
-    void connected();
     void error(QAbstractSocket::SocketError socketError);
     void connectionActivated();
     void connectionDeactivated();
     void connectionClosed();
-    void loginSuccess();
-    void loginFailed();
-    void read();
     void keepAlive();
     void queueMessage(FMessage message);
     void sendMessagesInQueue();
@@ -338,7 +334,6 @@ public Q_SLOTS:
 
 private:
     WAConnection *waconnection;
-    QTcpSocket *socket;
     QNetworkConfigurationManager *manager;
     QString lastError;
     QString activeNetworkID;
@@ -384,7 +379,11 @@ private:
     void updateActiveNetworkID();
     void showConnectionStatus(QString status);
     void startRegistration();
+
     void connectToServer();
+    void authSuccess(const AttributeList &accountData);
+    void authFailed();
+
     QString parseConnectionStatus();
     void createMyJidContact();
 

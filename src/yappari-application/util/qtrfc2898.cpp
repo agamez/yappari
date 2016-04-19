@@ -29,8 +29,6 @@
 #include "qtrfc2898.h"
 #include "qthmacsha1.h"
 
-#include "Whatsapp/protocolexception.h"
-
 #define SHA1_DIGEST_LENGTH          20
 
 QtRFC2898::QtRFC2898()
@@ -41,12 +39,12 @@ QByteArray QtRFC2898::deriveBytes(QByteArray& password, QByteArray& salt, int it
 {
     if (iterations == 0)
     {
-        throw new ProtocolException("PBKDF2: Invalid iteration count");
+        return NULL;//throw new ProtocolException("PBKDF2: Invalid iteration count");
     }
 
     if (password.length() == 0)
     {
-        throw new ProtocolException("PBKDF2: Empty password is invalid");
+        return NULL;//throw new ProtocolException("PBKDF2: Empty password is invalid");
     }
 
     QByteArray obuf, output;

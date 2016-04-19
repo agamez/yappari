@@ -48,8 +48,6 @@
 #include "Gui/changeusernamedialog.h"
 
 #include "FMessage/fmessage.h"
-#include "Whatsapp/ioexception.h"
-#include "Whatsapp/protocolexception.h"
 #include "util/utilities.h"
 #include "util/qtmd5digest.h"
 #include "util/datetimeutilities.h"
@@ -665,7 +663,6 @@ void Client::updateActiveNetworkID()
 
 void Client::startRegistration()
 {
-    connectionMutex.lock();
     connectionStatus = Registering;
     sendGetConnectionStatus();
 
@@ -697,8 +694,6 @@ void Client::registrationSuccessful(QVariantMap result)
 
     connectionStatus = Disconnected;
     sendGetConnectionStatus();
-
-    connectionMutex.unlock();
 
     while (this->userName.isEmpty())
     {
@@ -753,20 +748,12 @@ void Client::verifyAndConnect()
     else
         connectToServer();
 
-    connectionMutex.unlock();
-
 }
 
 void Client::connectToServer()
 {
-    connectionMutex.lock();
-
-    if (connectionStatus == Connected || connectionStatus == Connecting ||
-        connectionStatus == Registering)
-    {
-        connectionMutex.unlock();
+    if (connectionStatus == Connected || connectionStatus == Connecting || connectionStatus == Registering)
         return;
-    }
 
     // Verify there's an available connection
 
@@ -775,92 +762,152 @@ void Client::connectToServer()
         Utilities::logData("No network available. Waiting for a connection...");
         connectionStatus = WaitingForConnection;
         sendGetConnectionStatus();
-        connectionMutex.unlock();
         return;
     }
 
     connectionStatus = Connecting;
     sendGetConnectionStatus();
 
-    // If there's a network mode change it will never reach this point
-    // so it's safe to unlock de mutex here
-    connectionMutex.unlock();
-
-    // There's a connection available, now connect
-    QString host = SERVER_DOMAIN;
-
-    Utilities::logData("Connecting to " + host + ":" + QString::number(port) + "...");
-
-    socket = new QTcpSocket(this);
-    socket->connectToHost(host,port);
-
-    // qRegisterMetaType<QAbstractSocket::SocketError>("SocketError");
-    // connect(socket,SIGNAL(hostFound()),this,SLOT(desktopFound()));
-    connect(socket,SIGNAL(connected()),this,SLOT(connected()));
-    connect(socket,SIGNAL(error(QAbstractSocket::SocketError)),
-            this,SLOT(error(QAbstractSocket::SocketError)));
-    connect(socket,SIGNAL(disconnected()),this,SLOT(connectionClosed()));
-}
-
-void Client::connected()
-{
-    // Set SO_KEEPALIVE option
-    socket->setSocketOption(QAbstractSocket::KeepAliveOption,1);
-    int fd = socket->socketDescriptor();
-
-    // Set TCP_KEEPIDLE option
-    int optval = 300;
-    socklen_t optlen = sizeof(optval);
-
-    setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &optval, optlen);
-
-    connectionStatus = Connected;
-    Utilities::logData("Connected successfully");
-
-    // QString password = Utilities::getChatPassword();
-
     QByteArray password = (this->password.isEmpty())
                                 ? Utilities::getChatPassword().toUtf8()
                                 : QByteArray::fromBase64(this->password.toUtf8());
-
-    // Utilities::logData("Password: " + password);
-
-    connection = new Connection(socket,JID_DOMAIN,S40_RESOURCE,phoneNumber,
-                                userName,password,&dataCounters,this);
-
     QByteArray nextChallenge = QByteArray::fromBase64(settings->value(SETTINGS_NEXTCHALLENGE).toByteArray());
     settings->remove(SETTINGS_NEXTCHALLENGE);
 
-    // Utilities::logData("Challenge: " + QString::fromLatin1(nextChallenge.toHex()));
+    connect(waconnection,SIGNAL(authSuccess(const AttributeList &accountData)),this,SLOT(authSuccess(const AttributeList &accountData)));
+    connect(waconnection,SIGNAL(authFailed()),this,SLOT(authFailed()));
 
-    try
+    QVariantMap loginData;
+    loginData["login"] = this->userName;
+    loginData["password"] = password;
+    loginData["resource"] = S40_RESOURCE;
+    loginData["encryptionav"] = RegTools::getEncryptionAV("S40");
+    loginData["userAgent"] = USER_AGENT;
+    loginData["mcc"] = "";
+    loginData["mnc"] = "";
+    loginData["nextChallenge"] = nextChallenge;
+    loginData["servers"] = RegTools::getServers();
+    loginData["passive"] = false;
+    qDebug() << "Trying to login into server using loginData:" << loginData;
+    waconnection->login(loginData);
+}
+
+void Client::authSuccess(const AttributeList &accountData)
+{
+    settings->setValue(SETTINGS_NEXTCHALLENGE, accountData["nextChallenge"].toString());
+    settings->setValue(SETTINGS_CREATION, accountData["creation"].toString());
+    settings->setValue(SETTINGS_EXPIRATION, accountData["expiration"].toString());
+    settings->setValue(SETTINGS_KIND, accountData["kind"].toString());
+    settings->setValue(SETTINGS_ACCOUNTSTATUS, accountData["status"].toString());
+
+    connectionStatus = LoggedIn;
+    sendGetConnectionStatus();
+
+    //connect(waconnection,SIGNAL(timeout()),this,SLOT(connectionClosed()));
+
+    connect(waconnection,SIGNAL(groupNewSubject(QString,QString,QString,QString,QString)),
+            this,SLOT(groupNewSubject(QString,QString,QString,QString,QString)));
+
+    connect(waconnection,SIGNAL(groupInfoFromList(QString,QString,QString,QString,
+                                                QString,QString,QString)),
+            this,SLOT(groupInfoFromList(QString,QString,QString,QString,
+                                        QString,QString,QString)));
+
+    connect(waconnection,SIGNAL(messageReceived(FMessage)),
+            mainWin,SLOT(messageReceived(FMessage)));
+
+    connect(waconnection,SIGNAL(messageStatusUpdate(FMessage)),
+            mainWin,SLOT(messageStatusUpdate(FMessage)));
+
+    connect(waconnection,SIGNAL(available(QString,bool)),
+            mainWin,SLOT(available(QString,bool)));
+
+    connect(waconnection,SIGNAL(composing(QString,QString,QString)),
+            mainWin,SLOT(composing(QString,QString,QString)));
+
+    connect(waconnection,SIGNAL(paused(QString,QString)),
+            mainWin,SLOT(paused(QString,QString)));
+
+    connect(waconnection,SIGNAL(groupLeft(QString)),
+            mainWin,SLOT(groupLeft(QString)));
+
+    connect(waconnection,SIGNAL(userStatusUpdated(FMessage)),
+            this,SLOT(userStatusUpdated(FMessage)));
+
+    connect(waconnection,SIGNAL(lastOnline(QString,qint64)),
+            mainWin,SLOT(available(QString,qint64)));
+
+    connect(waconnection,SIGNAL(mediaUploadAccepted(FMessage)),
+            mainWin,SLOT(mediaUploadAccepted(FMessage)));
+
+    connect(waconnection,SIGNAL(photoIdReceived(QString,QString,QString)),
+            this,SLOT(photoIdReceived(QString,QString,QString)));
+
+    connect(waconnection,SIGNAL(photoReceived(QString,QByteArray,QString,bool)),
+            this,SLOT(photoReceived(QString,QByteArray,QString,bool)));
+
+    connect(waconnection,SIGNAL(photoDeleted(QString,QString)),
+            this,SLOT(photoDeleted(QString,QString)));
+
+    connect(waconnection,SIGNAL(groupUser(QString,QString)),
+            this,SLOT(groupUser(QString,QString)));
+
+    connect(waconnection,SIGNAL(groupAddUser(QString,QString)),
+            this,SLOT(groupAddUser(QString,QString)));
+
+    connect(waconnection,SIGNAL(groupRemoveUser(QString,QString)),
+            this,SLOT(groupRemoveUser(QString,QString)));
+
+    connect(waconnection,SIGNAL(groupError(QString)),
+            mainWin,SLOT(groupError(QString)));
+
+    connect(waconnection,SIGNAL(privacyListReceived(QStringList)),
+            this,SLOT(privacyListReceived(QStringList)));
+
+    connect(waconnection,SIGNAL(contactSync(QString,QString)),
+            syncer, SLOT(syncPhone(QString, QString)));
+
+    connect(waconnection,SIGNAL(statusChanged(QString,qint64,QString)),
+            this,SLOT(statusChanged(QString,qint64,QString)));
+
+    connect(waconnection,SIGNAL(contactDeleted(QString,QString)),
+            syncer, SLOT(deletePhone(QString, QString)));
+
+    connect(waconnection,SIGNAL(syncError()),
+            syncer, SLOT(finishSync()));
+
+    getMyStatus();
+
+    // Update participating groups
+    waconnection->sendGetGroups("participating");
+
+    keepAliveTimer->start(MIN_INTERVAL);
+    keepAliveTimer->setSingleShot(true);
+
+    pendingMessagesTimer->start(CHECK_QUEUE_INTERVAL);
+    pendingMessagesTimer->setSingleShot(true);
+
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (syncFreq == onConnect ||
+            (syncFreq == onceADay && (lastSync + 86400000U) < now) ||
+            (syncFreq == onceAWeek && (lastSync + 604800000U) < now) ||
+            (syncFreq == onceAMonth && (lastSync + 2419200000U) < now))
     {
-        // Never send previous challenge to avoid expiration of it
-        nextChallenge.clear();
-
-        connect(socket,SIGNAL(readyRead()),this,SLOT(read()));
-
-        connect(connection,SIGNAL(loginSuccess()),this,SLOT(loginSuccess()));
-        connect(connection,SIGNAL(loginFailed()),this,SLOT(loginFailed()));
-
-        connection->login(nextChallenge);
+        synchronizeContacts();
+        lastSync = now;
+        settings->setValue(SETTINGS_LAST_SYNC, lastSync);
     }
-    catch (IOException &e)
-    {
-        lastError = e.toString();
-        Utilities::logData("connected(): There was an IO Exception: " + lastError);
-        connectionClosed();
-        showConnectionStatus(lastError + " Retrying in 10 seconds..");
-        return;
-    }
-    catch (ProtocolException &e)
-    {
-        lastError = e.toString();
-        Utilities::logData("connected(): There was a Protocol Exception: " + lastError);
-        connectionClosed();
-        showConnectionStatus("Protocol Exception");
-        return;
-    }
+
+    // Set status if hasn't been set before
+    if (this->myStatus.isEmpty())
+        changeStatus(DEFAULT_STATUS);
+}
+
+void Client::authFailed()
+{
+    Utilities::logData("login(): failed");
+    isRegistered = false;
+    connectionClosed();
 }
 
 void Client::synchronizeContacts()
@@ -937,8 +984,8 @@ void Client::changeUserName(QString newUserName)
 
 void Client::error(QAbstractSocket::SocketError socketError)
 {
-    IOException e(socketError);
-    lastError = e.toString();
+//    WAException e(socketError);
+//    lastError = e.toString();
 
     QString s = "There was an IO error: " + lastError;
     Utilities::logData(s);
@@ -949,7 +996,6 @@ void Client::error(QAbstractSocket::SocketError socketError)
 
 void Client::connectionClosed()
 {
-    connectionMutex.lock();
     Utilities::logData("Connection closed.");
 
     // Stop all timers
@@ -960,14 +1006,11 @@ void Client::connectionClosed()
     Utilities::logData("Freeing up the connection.");
     if (connectionStatus == Connected || connectionStatus == LoggedIn ||
             connectionStatus == LoginFailure)
-         connection->deleteLater();
+         waconnection->deleteLater();
 
     if (connectionStatus != Disconnected)
     {
         Utilities::logData("Freeing up the socket.");
-        disconnect(socket,0,0,0);
-            socket->disconnectFromHost();
-        socket->deleteLater();
     }
 
     if (isSynchronizing)
@@ -999,164 +1042,13 @@ void Client::connectionClosed()
     }
 
     sendGetConnectionStatus();
-    connectionMutex.unlock();
 }
 
-void Client::loginSuccess()
-{
-    settings->setValue(SETTINGS_NEXTCHALLENGE, QString::fromUtf8(connection->nextChallenge.toBase64()));
-
-    settings->setValue(SETTINGS_CREATION, connection->creation);
-    settings->setValue(SETTINGS_EXPIRATION, connection->expiration);
-    settings->setValue(SETTINGS_KIND, connection->kind);
-    settings->setValue(SETTINGS_ACCOUNTSTATUS, connection->accountstatus);
-
-    connectionStatus = LoggedIn;
-    sendGetConnectionStatus();
-
-    connect(connection,SIGNAL(timeout()),this,SLOT(connectionClosed()));
-
-    connect(connection,SIGNAL(groupNewSubject(QString,QString,QString,QString,QString)),
-            this,SLOT(groupNewSubject(QString,QString,QString,QString,QString)));
-
-    connect(connection,SIGNAL(groupInfoFromList(QString,QString,QString,QString,
-                                                QString,QString,QString)),
-            this,SLOT(groupInfoFromList(QString,QString,QString,QString,
-                                        QString,QString,QString)));
-
-    connect(connection,SIGNAL(messageReceived(FMessage)),
-            mainWin,SLOT(messageReceived(FMessage)));
-
-    connect(connection,SIGNAL(messageStatusUpdate(FMessage)),
-            mainWin,SLOT(messageStatusUpdate(FMessage)));
-
-    connect(connection,SIGNAL(available(QString,bool)),
-            mainWin,SLOT(available(QString,bool)));
-
-    connect(connection,SIGNAL(composing(QString,QString,QString)),
-            mainWin,SLOT(composing(QString,QString,QString)));
-
-    connect(connection,SIGNAL(paused(QString,QString)),
-            mainWin,SLOT(paused(QString,QString)));
-
-    connect(connection,SIGNAL(groupLeft(QString)),
-            mainWin,SLOT(groupLeft(QString)));
-
-    connect(connection,SIGNAL(userStatusUpdated(FMessage)),
-            this,SLOT(userStatusUpdated(FMessage)));
-
-    connect(connection,SIGNAL(lastOnline(QString,qint64)),
-            mainWin,SLOT(available(QString,qint64)));
-
-    connect(connection,SIGNAL(mediaUploadAccepted(FMessage)),
-            mainWin,SLOT(mediaUploadAccepted(FMessage)));
-
-    connect(connection,SIGNAL(photoIdReceived(QString,QString,QString)),
-            this,SLOT(photoIdReceived(QString,QString,QString)));
-
-    connect(connection,SIGNAL(photoReceived(QString,QByteArray,QString,bool)),
-            this,SLOT(photoReceived(QString,QByteArray,QString,bool)));
-
-    connect(connection,SIGNAL(photoDeleted(QString,QString)),
-            this,SLOT(photoDeleted(QString,QString)));
-
-    connect(connection,SIGNAL(groupUser(QString,QString)),
-            this,SLOT(groupUser(QString,QString)));
-
-    connect(connection,SIGNAL(groupAddUser(QString,QString)),
-            this,SLOT(groupAddUser(QString,QString)));
-
-    connect(connection,SIGNAL(groupRemoveUser(QString,QString)),
-            this,SLOT(groupRemoveUser(QString,QString)));
-
-    connect(connection,SIGNAL(groupError(QString)),
-            mainWin,SLOT(groupError(QString)));
-
-    connect(connection,SIGNAL(privacyListReceived(QStringList)),
-            this,SLOT(privacyListReceived(QStringList)));
-
-    connect(connection,SIGNAL(contactSync(QString,QString)),
-            syncer, SLOT(syncPhone(QString, QString)));
-
-    connect(connection,SIGNAL(statusChanged(QString,qint64,QString)),
-            this,SLOT(statusChanged(QString,qint64,QString)));
-
-    connect(connection,SIGNAL(contactDeleted(QString,QString)),
-            syncer, SLOT(deletePhone(QString, QString)));
-
-    connect(connection,SIGNAL(syncError()),
-            syncer, SLOT(finishSync()));
-
-    getMyStatus();
-
-    // Update participating groups
-    waconnection->sendGetGroups("participating");
-
-    keepAliveTimer->start(MIN_INTERVAL);
-    keepAliveTimer->setSingleShot(true);
-
-    pendingMessagesTimer->start(CHECK_QUEUE_INTERVAL);
-    pendingMessagesTimer->setSingleShot(true);
-
-    qint64 now = QDateTime::currentMSecsSinceEpoch();
-    if (syncFreq == onConnect ||
-            (syncFreq == onceADay && (lastSync + 86400000U) < now) ||
-            (syncFreq == onceAWeek && (lastSync + 604800000U) < now) ||
-            (syncFreq == onceAMonth && (lastSync + 2419200000U) < now))
-    {
-        synchronizeContacts();
-        lastSync = now;
-        settings->setValue(SETTINGS_LAST_SYNC, lastSync);
-    }
-
-    // Set status if hasn't been set before
-    if (this->myStatus.isEmpty())
-        changeStatus(DEFAULT_STATUS);
-}
-
-void Client::loginFailed()
-{
-    Utilities::logData("connected(): There was a Login Exception: " + lastError);
-    isRegistered = false;
-    connectionClosed();
-}
-
-void Client::read()
-{
-    if (connectionStatus==Disconnected || connectionStatus==WaitingForConnection)
-        return;
-
-    connectionMutex.lock();
-    while (socket->bytesAvailable() > 0)
-    {
-        try {
-            connection->read();
-        }
-        catch (IOException &e)
-        {
-            lastError = e.toString();
-            Utilities::logData("read(): There was an IO Exception: " + lastError);
-            connectionClosed();
-            showConnectionStatus(lastError + " Retrying in 10 seconds..");
-            break;
-        }
-        catch (ProtocolException &e)
-        {
-            lastError = e.toString();
-            Utilities::logData("read(): There was a Protocol Exception: " + lastError);
-            connectionClosed();
-            showConnectionStatus("Protocol Exception. Retrying in 10 seconds...");
-            break;
-        }
-    }
-
-    connectionMutex.unlock();
-}
 
 void Client::keepAlive()
 {
     qint64 now = QDateTime::currentMSecsSinceEpoch();
-    qint64 timeElapsed = now - connection->getLastTreeReadTimestamp();
+    qint64 timeElapsed; // = now - waconnection->getLastTreeReadTimestamp();
 
     if (timeElapsed >= MIN_INTERVAL)
     {
@@ -1171,7 +1063,7 @@ void Client::keepAlive()
         }
         else
             // connection->sendNop();
-            connection->sendPing();
+            waconnection->sendPing();
 
         keepAliveTimer->start(MIN_INTERVAL);
     }

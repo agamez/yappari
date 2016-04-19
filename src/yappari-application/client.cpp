@@ -211,6 +211,10 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     // Read Settings
     readSettings();
 
+    // Initialize libwa
+    waconnection = WAConnection::GetInstance(0);
+    waconnection->init();
+
     // Initialization of sequence for messages IDs
     seq = 0;
 

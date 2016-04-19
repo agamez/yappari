@@ -152,6 +152,7 @@ void RegistrationWindow::onRegReply(const QVariantMap &result)
         } else if(fail_reason == "old_version") {
         } else if(fail_reason == "mismatch") {
         } else if(fail_reason == "too_recent") {
+        } else if(fail_reason == "ssl_error") {
         }
     }
 }

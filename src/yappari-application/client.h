@@ -326,6 +326,8 @@ public slots:
     void sendVoiceNotePlayed(FMessage message);
     void sendMessageRead(FMessage message);
     void updateLastDir(int waType, QString dir);
+    void authSuccess(const AttributeList &accountData);
+    void authFailed();
 
 
 public Q_SLOTS:
@@ -381,8 +383,6 @@ private:
     void startRegistration();
 
     void connectToServer();
-    void authSuccess(const AttributeList &accountData);
-    void authFailed();
 
     QString parseConnectionStatus();
     void createMyJidContact();

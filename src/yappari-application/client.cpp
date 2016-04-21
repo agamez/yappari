@@ -36,6 +36,7 @@
 #include <QDateTime>
 #include <QStatusBar>
 #include <QSystemInfo>
+#include <QSystemNetworkInfo>
 #include <QMessageBox>
 #include <QMaemo5InformationBox>
 
@@ -278,7 +279,7 @@ Client::Client(bool minimized, QObject *parent) : QObject(parent)
     connect(mainWin,SIGNAL(photoRequest(QString,QString,bool)),
             this,SLOT(updatePhoto(QString,QString,bool)));
 
-    connect(mainWin,SIGNAL(requestStatus(QStringList)),
+    connect(mainWin,SIGNAL(requestStatuses(QStringList)),
             this,SLOT(sendGetStatuses(QStringList)));
 
     connect(mainWin,SIGNAL(setPhoto(QString,QImage)),
@@ -440,8 +441,7 @@ void Client::readSettings()
     this->settings = new QSettings(SETTINGS_ORGANIZATION,SETTINGS_APPLICATION,this);
 
     // Need registration verification
-    isRegistered = ((settings->contains(SETTINGS_REGISTERED) &&
-        settings->value(SETTINGS_REGISTERED).toBool())) ? true : false;
+    isRegistered = settings->contains(SETTINGS_REGISTERED) ? settings->value(SETTINGS_REGISTERED).toBool() : false;
 
     // Colors
     this->mycolor = settings->value(SETTINGS_MYCOLOR).toString();
@@ -778,26 +778,29 @@ void Client::connectToServer()
     QByteArray nextChallenge = QByteArray::fromBase64(settings->value(SETTINGS_NEXTCHALLENGE).toByteArray());
     settings->remove(SETTINGS_NEXTCHALLENGE);
 
-    connect(waconnection,SIGNAL(authSuccess(const AttributeList &accountData)),this,SLOT(authSuccess(const AttributeList &accountData)));
+    connect(waconnection,SIGNAL(authSuccess(const AttributeList &)),this,SLOT(authSuccess(const AttributeList &)));
     connect(waconnection,SIGNAL(authFailed()),this,SLOT(authFailed()));
 
     QVariantMap loginData;
-    loginData["login"] = this->userName;
+    loginData["login"] = phoneNumber;
     loginData["password"] = password;
-    loginData["resource"] = S40_RESOURCE;
+    loginData["resource"] =  RegTools::getResource("S40");;
     loginData["encryptionav"] = RegTools::getEncryptionAV("S40");
     loginData["userAgent"] = USER_AGENT;
-    loginData["mcc"] = "";
-    loginData["mnc"] = "";
+    QSystemNetworkInfo networkInfo(this);
+    loginData["mcc"] = networkInfo.currentMobileCountryCode().rightJustified(3, '0');;
+    loginData["mnc"] = networkInfo.currentMobileNetworkCode().rightJustified(3, '0');;
+    loginData["database"] = "/tmp/axo.db";
     loginData["nextChallenge"] = nextChallenge;
     loginData["servers"] = RegTools::getServers();
     loginData["passive"] = false;
-    qDebug() << "Trying to login into server using loginData:" << loginData;
+    qDebug() << "Initiating login through libwa";
     waconnection->login(loginData);
 }
 
 void Client::authSuccess(const AttributeList &accountData)
 {
+    qDebug() << "Auth success!";
     settings->setValue(SETTINGS_NEXTCHALLENGE, accountData["nextChallenge"].toString());
     settings->setValue(SETTINGS_CREATION, accountData["creation"].toString());
     settings->setValue(SETTINGS_EXPIRATION, accountData["expiration"].toString());
@@ -909,6 +912,7 @@ void Client::authSuccess(const AttributeList &accountData)
 
 void Client::authFailed()
 {
+    qDebug() << "Auth failed!";
     Utilities::logData("login(): failed");
     isRegistered = false;
     connectionClosed();

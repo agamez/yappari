@@ -790,7 +790,8 @@ void Client::connectToServer()
     QSystemNetworkInfo networkInfo(this);
     loginData["mcc"] = networkInfo.currentMobileCountryCode().rightJustified(3, '0');;
     loginData["mnc"] = networkInfo.currentMobileNetworkCode().rightJustified(3, '0');;
-    loginData["database"] = "/tmp/axo.db";
+    QDir home = QDir::home();
+    loginData["database"] = home.path() + CONF_DIR + "/axo.db";
     loginData["nextChallenge"] = nextChallenge;
     loginData["servers"] = RegTools::getServers();
     loginData["passive"] = false;

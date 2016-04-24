@@ -13,7 +13,7 @@ cat > yappari-application/version.h << __EOF__
 __EOF__
 
 mkdir build-scratchbox
-tar cpf - . --exclude=build-scratchbox | tar xpf - -C build-scratchbox
+rsync -Pa --exclude=build-scratchbox . build-scratchbox
 
 if [ -z $1 ]; then
 	echo DEFINES += Q_WS_SCRATCHBOX=1 >> build-scratchbox/yappari-application/yappari-application.pro

@@ -1296,6 +1296,8 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
 
     nextChallenge = node.getData();
 
+    if(axolotlStore->countPreKeys() == 0) sendEncrypt(true);
+
     // Successful login at this point
 
     sendClientConfig("S40");
@@ -1303,6 +1305,109 @@ void Connection::parseSuccessNode(ProtocolTreeNode& node)
 
     Q_EMIT loginSuccess();
 }
+
+void Connection::sendEncrypt(bool fresh)
+{
+    qDebug() << "Generating keys...";
+
+    IdentityKeyPair identityKeyPair = fresh ? KeyHelper::generateIdentityKeyPair() : axolotlStore->getIdentityKeyPair();
+    quint64 registrationId          = fresh ? KeyHelper::generateRegistrationId() : axolotlStore->getLocalRegistrationId();
+    QList<PreKeyRecord> preKeys     = KeyHelper::generatePreKeys(KeyHelper::getRandomFFFFFFFF(), 200);
+    SignedPreKeyRecord signedPreKey = KeyHelper::generateSignedPreKey(identityKeyPair, 0);
+
+    ProtocolTreeNode iqNode("iq");
+    AttributeList attrs;
+    attrs.insert("xmlns", "encrypt");
+    attrs.insert("to", domain);
+    attrs.insert("type", "set");
+    attrs.insert("id", makeId("iq"));
+    iqNode.setAttributes(attrs);
+
+    ProtocolTreeNode identityNode("identity");
+    identityNode.setData(identityKeyPair.getPublicKey().serialize().mid(1));
+
+    // STORE
+    if (fresh) {
+        axolotlStore->storeLocalData(registrationId, identityKeyPair);
+    }
+
+    ProtocolTreeNode listNode("list");
+    QListIterator<PreKeyRecord> iter(preKeys);
+    while (iter.hasNext()) {
+        PreKeyRecord preKey = iter.next();
+        ProtocolTreeNode keyNode("key");
+        ProtocolTreeNode idNode("id");
+        QByteArray keyId = QByteArray::number(preKey.getId(), 16);
+        keyId = QByteArray::fromHex(keyId).rightJustified(3, '\0');
+        idNode.setData(keyId);
+        ProtocolTreeNode valueNode("value");
+        valueNode.setData(preKey.getKeyPair().getPublicKey().serialize().mid(1));
+        keyNode.addChild(idNode);
+        keyNode.addChild(valueNode);
+        listNode.addChild(keyNode);
+
+        // STORE
+        axolotlStore->storePreKey(preKey.getId(), preKey);
+    }
+
+    ProtocolTreeNode registrationNode("registration");
+    registrationNode.setData(QByteArray::fromHex(QByteArray::number(registrationId, 16)).rightJustified(4, '\0'));
+
+    ProtocolTreeNode typeNode("type");
+    typeNode.setData(QByteArray(1, '\5'));
+
+    ProtocolTreeNode skeyNode("skey");
+    ProtocolTreeNode idNode("id");
+    QByteArray keyId = QByteArray::number(signedPreKey.getId(), 16);
+    keyId = QByteArray::fromHex(keyId).rightJustified(3, '\0');
+    idNode.setData(keyId);
+    ProtocolTreeNode valueNode("value");
+    valueNode.setData(signedPreKey.getKeyPair().getPublicKey().serialize().mid(1));
+    ProtocolTreeNode signatureNode("signature");
+    signatureNode.setData(signedPreKey.getSignature());
+    skeyNode.addChild(idNode);
+    skeyNode.addChild(valueNode);
+    skeyNode.addChild(signatureNode);
+
+    // STORE
+    axolotlStore->storeSignedPreKey(signedPreKey.getId(), signedPreKey);
+
+    iqNode.addChild(identityNode);
+    iqNode.addChild(listNode);
+    iqNode.addChild(registrationNode);
+    iqNode.addChild(typeNode);
+    iqNode.addChild(skeyNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
+void Connection::sendGetEncryptKeys(const QStringList &jids)
+{
+    ProtocolTreeNode iqNode("iq");
+    AttributeList attrs;
+    attrs.insert("id", makeId("iq"));
+    attrs.insert("to", domain);
+    attrs.insert("type", "get");
+    attrs.insert("xmlns", "encrypt");
+    iqNode.setAttributes(attrs);
+
+    ProtocolTreeNode keyNode("key");
+
+    foreach (const QString &jid, jids) {
+        ProtocolTreeNode userNode("user");
+        AttributeList userAttrs;
+        userAttrs.insert("jid", jid);
+        userNode.setAttributes(userAttrs);
+        keyNode.addChild(userNode);
+    }
+
+    iqNode.addChild(keyNode);
+
+    int bytes = out->write(iqNode);
+    counters->increaseCounter(DataCounters::ProtocolBytes, 0, bytes);
+}
+
 
 /** ***********************************************************************
  ** Message handling methods

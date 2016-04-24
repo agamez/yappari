@@ -352,6 +352,8 @@ private:
     // Parses authentication success node
     void parseSuccessNode(ProtocolTreeNode& node);
 
+    void sendEncrypt(bool fresh);
+    void sendGetEncryptKeys(const QStringList &jids);
 
     /** ***********************************************************************
      ** Message handling

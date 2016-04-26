@@ -2605,3 +2605,13 @@ void Connection::connectionTimeout()
     emit timeout();
 }
 
+SessionCipher *Connection::getSessionCipher(qulonglong recepient)
+{
+    if (cipherHash.contains(recepient)) {
+        return cipherHash.value(recepient);
+    } else {
+        SessionCipher *cipher = new SessionCipher(axolotlStore, recepient, 1);
+        cipherHash[recepient] = cipher;
+        return cipher;
+    }
+}

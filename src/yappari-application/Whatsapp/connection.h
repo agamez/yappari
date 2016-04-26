@@ -40,6 +40,8 @@
 #include <QMap>
 #include <QHash>
 
+#include <libaxolotl/sessioncipher.h>
+
 #include "util/messagedigest.h"
 #include "util/datacounters.h"
 
@@ -267,6 +269,8 @@ public slots:
 private:
 
     QSharedPointer<LiteAxolotlStore> axolotlStore;
+    QHash<qulonglong, SessionCipher*> cipherHash;
+    SessionCipher *getSessionCipher(qulonglong recepient);
 
     /** ***********************************************************************
      ** Private members

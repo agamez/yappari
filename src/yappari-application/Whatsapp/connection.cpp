@@ -80,7 +80,8 @@ Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
     this->out = new BinTreeNodeWriter(socket,dictionary,this);
     this->in = new BinTreeNodeReader(socket,dictionary,this);
 
-    axolotlStore = new LiteAxolotlStore(AXOLOTL_DB_CONNECTION);
+    axolotlStore.clear();
+    axolotlStore = QSharedPointer<LiteAxolotlStore>(new LiteAxolotlStore(AXOLOTL_DB_CONNECTION));
     axolotlStore->setDatabaseName(axodatabase);
 
     connect(&connTimeout,SIGNAL(timeout()),this,SLOT(connectionTimeout()));

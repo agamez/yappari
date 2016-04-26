@@ -266,8 +266,7 @@ public slots:
 
 private:
 
-    LiteAxolotlStore *axolotlStore;
-
+    QSharedPointer<LiteAxolotlStore> axolotlStore;
 
     /** ***********************************************************************
      ** Private members

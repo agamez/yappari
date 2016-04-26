@@ -62,7 +62,7 @@ FunStore Connection::store;
     @param parent       QObject parent.
 */
 Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
-                       QString user, QString push_name, QByteArray password,
+                       QString user, QString push_name, QString axodatabase, QByteArray password,
                        DataCounters *counters, QObject *parent)
     : QObject(parent)
 {
@@ -81,7 +81,7 @@ Connection::Connection(QTcpSocket *socket, QString domain, QString resource,
     this->in = new BinTreeNodeReader(socket,dictionary,this);
 
     axolotlStore = new LiteAxolotlStore(AXOLOTL_DB_CONNECTION);
-    axolotlStore->setDatabaseName("axolotl-db");
+    axolotlStore->setDatabaseName(axodatabase);
 
     connect(&connTimeout,SIGNAL(timeout()),this,SLOT(connectionTimeout()));
     connTimeout.start(CHECK_CONNECTION_INTERVAL);

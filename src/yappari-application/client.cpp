@@ -827,8 +827,10 @@ void Client::connected()
 
     // Utilities::logData("Password: " + password);
 
+    QDir home = QDir::home();
+    QString axodb = home.path() + CONF_DIR"/axo.db";
     connection = new Connection(socket,JID_DOMAIN,RESOURCE,phoneNumber,
-                                userName,password,&dataCounters,this);
+                                userName,axodb,password,&dataCounters,this);
 
     QByteArray nextChallenge = QByteArray::fromBase64(settings->value(SETTINGS_NEXTCHALLENGE).toByteArray());
     settings->remove(SETTINGS_NEXTCHALLENGE);

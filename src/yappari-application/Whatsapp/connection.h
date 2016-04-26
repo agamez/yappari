@@ -122,7 +122,7 @@ public:
 
     // Create a Connection object
     explicit Connection(QTcpSocket *socket, QString domain, QString resource,
-                        QString user, QString push_name, QByteArray password,
+                        QString user, QString push_name, QString axodatabase, QByteArray password,
                         DataCounters *counters, QObject *parent = 0);
 
     // Destroy a Connection object

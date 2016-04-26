@@ -783,7 +783,7 @@ void Client::connectToServer()
     loginData["password"] = password;
     loginData["resource"] =  RegTools::getResource("S40");;
     loginData["encryptionav"] = RegTools::getEncryptionAV("S40");
-    loginData["userAgent"] = USER_AGENT;
+    loginData["userAgent"] = RegTools::getUseragent(RegTools::getDevice("S40"), "S40");
     QSystemNetworkInfo networkInfo(this);
     loginData["mcc"] = networkInfo.currentMobileCountryCode().rightJustified(3, '0');;
     loginData["mnc"] = networkInfo.currentMobileNetworkCode().rightJustified(3, '0');;

@@ -40,7 +40,6 @@ public:
     static void logData(QString s);
     static QString decodeString(const char data[]);
     static QString getChatPassword();
-    static QString getToken(QString phoneNumber);
     static QString WATextToHtml(QString data, int iconSize = 32, bool urlConversion = true);
     static QString htmlToWAText(QString html);
     static QString shortURL(QString url);

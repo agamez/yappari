@@ -42,10 +42,6 @@
 
 // WhatsApp Client Spoofing
 /* coderus mantains this: https://coderus.openrepos.net/whitesoft/whatsapp_scratch e, i, j */
-#define USER_AGENT          "WhatsApp/"S40_VERSION" S40Version/14.26 Device/Nokia302"
-
-#define BUILD_KEY   S40_KEY
-#define BUILD_HASH  S40_BUILD
 
 // URLs
 #define URL_LOCATION_SHARING    "https://maps.google.com/maps?q=loc:"
@@ -53,7 +49,6 @@
 
 // WhatsApp Servers
 #define JID_DOMAIN              "s.whatsapp.net"
-#define SERVER_DOMAIN           "c.whatsapp.net"
 
 // DBus Services
 

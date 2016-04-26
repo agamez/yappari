@@ -112,22 +112,6 @@ QString Utilities::getChatPassword()
     return (result);
 }
 
-QString Utilities::getToken(QString phoneNumber)
-{
-    QString key = BUILD_KEY;
-    QString buildHash = BUILD_HASH;
-    QString token = key + buildHash + phoneNumber;
-
-    QtMD5Digest digest;
-    digest.reset();
-
-    digest.update(token.toUtf8());
-
-    QByteArray bytes = digest.digest();
-
-    return QString::fromLatin1(bytes.toHex().constData());
-}
-
 void Utilities::initEmojiMapping()
 {
     QList<quint32> emojiList;

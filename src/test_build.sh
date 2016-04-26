@@ -30,6 +30,7 @@ if [ $RET -ne 0 ]; then
 fi
 
 cp yappari-application/share/whatsnew.txt /usr/share/yappari
+cp build-scratchbox/yappari-application/Yappari .
 if [ -z $1 ]; then
-    run-standalone.sh build-scratchbox/yappari-application/Yappari
+    run-standalone.sh ./Yappari
 fi

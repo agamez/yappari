@@ -772,9 +772,6 @@ void Client::connectToServer()
     connectionStatus = Connecting;
     sendGetConnectionStatus();
 
-    QByteArray password = (this->password.isEmpty())
-                                ? Utilities::getChatPassword().toUtf8()
-                                : QByteArray::fromBase64(this->password.toUtf8());
     QByteArray nextChallenge = QByteArray::fromBase64(settings->value(SETTINGS_NEXTCHALLENGE).toByteArray());
     settings->remove(SETTINGS_NEXTCHALLENGE);
 

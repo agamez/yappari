@@ -781,9 +781,9 @@ void Client::connectToServer()
     QVariantMap loginData;
     loginData["login"] = phoneNumber;
     loginData["password"] = password;
-    loginData["resource"] =  RegTools::getResource("S40");;
-    loginData["encryptionav"] = RegTools::getEncryptionAV("S40");
-    loginData["userAgent"] = RegTools::getUseragent(RegTools::getDevice("S40"), "S40");
+    loginData["resource"] =  RegTools::getResource("Android");;
+    loginData["encryptionav"] = RegTools::getEncryptionAV("Android");
+    loginData["userAgent"] = RegTools::getUseragent(RegTools::getDevice("Android"), "Android");
     QSystemNetworkInfo networkInfo(this);
     loginData["mcc"] = networkInfo.currentMobileCountryCode().rightJustified(3, '0');;
     loginData["mnc"] = networkInfo.currentMobileNetworkCode().rightJustified(3, '0');;

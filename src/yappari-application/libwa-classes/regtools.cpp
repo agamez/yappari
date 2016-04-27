@@ -15,14 +15,20 @@ QString RegTools::getToken(const QString &phone, const QString &platform)
         return QString(bytes.toHex());
     }
     else if (platform == "Android") {
-        QByteArray ipad = QByteArray::fromBase64(QByteArray(ANDROID_S1));
-        QByteArray opad = QByteArray::fromBase64(QByteArray(ANDROID_S2));
-        QByteArray data = QByteArray::fromBase64(QByteArray(ANDROID_S3));
-        data.append(QByteArray::fromBase64(QByteArray(ANDROID_KEY)));
-        data.append(phone.toLatin1());
-        ipad.append(data);
-        opad.append(QCryptographicHash::hash(ipad, QCryptographicHash::Sha1));
-        return QCryptographicHash::hash(opad, QCryptographicHash::Sha1).toBase64();
+        QByteArray keyDecoded = QByteArray::fromBase64(QByteArray(ANDROID_KEY));
+        QByteArray sigDecoded = QByteArray::fromBase64(QByteArray(ANDROID_SIGNATURE));
+        QByteArray clsDecoded = QByteArray::fromBase64(QByteArray(ANDROID_MD5_CLASSES));
+        QByteArray data = sigDecoded + clsDecoded + phone.toLatin1();
+
+        QByteArray opad, ipad;
+        for(unsigned int i=0; i<64; i++) {
+            opad[i] = 0x5C ^ keyDecoded[i];
+            ipad[i] = 0x36 ^ keyDecoded[i];
+        }
+        QByteArray subHash = QCryptographicHash::hash(ipad + data, QCryptographicHash::Sha1);
+        QByteArray hash = QCryptographicHash::hash(opad + subHash, QCryptographicHash::Sha1);
+        qDebug() << "Hash" << hash.toBase64();
+        return hash.toBase64();
     }
 
     return "";
@@ -33,9 +39,9 @@ QString RegTools::getId(const QString &id, const QString &phone)
 {
     QCryptographicHash digest(QCryptographicHash::Md5);
     digest.addData(id.toLatin1());
-    digest.addData("yapari");
+    digest.addData("yappari");
     digest.addData(phone.toLatin1());
-    return digest.result().toHex();
+    return digest.result().toHex().left(20);
 }
 
 QString RegTools::getDevice(const QString &platform)
@@ -93,7 +99,7 @@ QString RegTools::getDevice(const QString &platform)
         return devicesList.at(qrand() % devicesList.size());
     }
     else if (platform == "Android") {
-        return "unknown-Jolla/4.1.2";
+        return "GalaxyS3/4.3";
     }
     return "";
 }
@@ -127,8 +133,14 @@ QStringList RegTools::getServers()
 
 QString RegTools::getUseragent(const QString &device, const QString &platform)
 {
-    QString version = platform == "S40" ? S40_VERSION : ANDROID_VERSION;
-    return QString(USERAGENT_FMT_STRING).arg(device.split("/").first()).arg(device.split("/").last()).arg(version).arg(platform == "S40" ? "S40Version" : platform);
+    qDebug() << "Device:" << device << "Platform" << platform;
+    QString version =    ((platform == "S40") ? S40_VERSION : ANDROID_VERSION);
+    QString platform_s = ((platform == "S40") ? "S40Version" : platform);
+    return QString(USERAGENT_FMT_STRING).arg(
+        version,
+        platform_s,
+        device.split("/").last(),
+        device.split("/").first());
 }
 
 QString RegTools::getResource(const QString &platform)

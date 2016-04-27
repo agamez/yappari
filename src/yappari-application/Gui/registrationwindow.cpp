@@ -93,10 +93,10 @@ void RegistrationWindow::phoneNumberEntered(const QString &_cc, const QString &_
 
     //m_device = AccountSettings::GetInstance()->value("device", QString()).toString();
     if (m_device.isEmpty()) {
-        m_device = RegTools::getDevice("S40");
+        m_device = RegTools::getDevice("Android");
         //AccountSettings::GetInstance()->setValue("device", m_device);
     }
-    m_useragent = RegTools::getUseragent(m_device);
+    m_useragent = RegTools::getUseragent(RegTools::getDevice("Android"), "Android");
 
     qDebug() << "Registering with m_id:" << m_id << "as" << m_device << m_useragent;
 
@@ -105,7 +105,7 @@ void RegistrationWindow::phoneNumberEntered(const QString &_cc, const QString &_
     connect(reg, SIGNAL(finished(QVariantMap)),
             this, SLOT(onRegReply(QVariantMap)));
 
-    reg->init(cc, number, mcc, mnc, RegTools::getId(m_id, number), m_useragent, "sms", RegTools::getToken(number));
+    reg->init(cc, number, mcc, mnc, RegTools::getId(m_id, number), m_useragent, "sms", RegTools::getToken(number, "Android"));
     reg->codeRequest();
 
     // Show progress dialog
@@ -172,6 +172,6 @@ void RegistrationWindow::codeReceived(const QString &code)
 
 void RegistrationWindow::requestCall()
 {
-    reg->init(cc, number, mcc, mnc, RegTools::getId(m_id, number), m_useragent, "voice", RegTools::getToken(number));
+    reg->init(cc, number, mcc, mnc, RegTools::getId(m_id, number), m_useragent, "voice", RegTools::getToken(number, "Android"));
     reg->codeRequest();
 }

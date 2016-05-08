@@ -73,45 +73,6 @@ QString Utilities::decodeString(const char data[])
     return QString(newData);
 }
 
-QString Utilities::getChatPassword()
-{
-    QtMobility::QSystemDeviceInfo deviceInfo;
-    QString imei = (Client::imei.isEmpty()) ? deviceInfo.imei() : Client::imei;
-
-    logData("IMEI: " + imei);
-
-    // ToDo: Verify imei not empty
-
-    // Reverse the string
-    QByteArray utf8  = imei.toUtf8();
-    QByteArray utf8reversed;
-
-    for (int i=0; i<utf8.length(); i++)
-        utf8reversed.prepend(utf8.at(i));
-
-    QtMD5Digest digest;
-    digest.reset();
-
-    digest.update(utf8reversed);
-
-    QByteArray bytes = digest.digest();
-
-    QString result;
-
-    if (Client::android)
-        result = QString::fromLatin1(bytes.toHex().constData());
-    else
-    {
-        // Craziest conversion to hex ever
-        // but this is what Whatsapp for Nokia S40 does :S
-
-        for (int i=0; i<bytes.length(); i++)
-            result.append(QString::number(((quint8)(bytes.at(i) + 128)),16));
-    }
-
-    return (result);
-}
-
 void Utilities::initEmojiMapping()
 {
     QList<quint32> emojiList;

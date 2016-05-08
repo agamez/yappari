@@ -133,12 +133,6 @@ public:
     // Own JID
     static QString myJid;
 
-    // Country code
-    static QString cc;
-
-    // Phone number in local format (without the country code)
-    static QString number;
-
     // Phone number in international format (with the country code)
     static QString phoneNumber;
 

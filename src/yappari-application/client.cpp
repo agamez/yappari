@@ -91,12 +91,6 @@ QString Client::textcolor;
 // Own JID
 QString Client::myJid;
 
-// Country code
-QString Client::cc;
-
-// Phone number in local format (without the country code)
-QString Client::number;
-
 // Phone number in international format (with the country code)
 QString Client::phoneNumber;
 
@@ -450,8 +444,6 @@ void Client::readSettings()
     this->syncFreq = settings->value(SETTINGS_SYNC_FREQ,QVariant(DEFAULT_SYNC_FREQ)).toInt();
 
     // Account
-    this->cc = settings->value(SETTINGS_CC).toString();
-    this->number = settings->value(SETTINGS_NUMBER).toString();
     this->phoneNumber = settings->value(SETTINGS_PHONENUMBER).toString();
     this->password = settings->value(SETTINGS_PASSWORD).toString();
     this->myJid = phoneNumber + "@s.whatsapp.net";
@@ -670,16 +662,12 @@ void Client::startRegistration()
 
 void Client::registrationSuccessful(QVariantMap result)
 {
-    cc = result["cc"].toString();
-    number = result["number"].toString();
     phoneNumber = result["login"].toString();
     password = result["pw"].toString();
     myJid = phoneNumber + "@s.whatsapp.net";
     isRegistered = true;
 
     settings->setValue(SETTINGS_REGISTERED,isRegistered);
-    settings->setValue(SETTINGS_NUMBER,number);
-    settings->setValue(SETTINGS_CC,cc);
     settings->setValue(SETTINGS_PHONENUMBER,phoneNumber);
     settings->setValue(SETTINGS_PASSWORD,password);
 

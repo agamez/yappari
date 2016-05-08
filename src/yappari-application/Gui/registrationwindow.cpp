@@ -135,10 +135,7 @@ void RegistrationWindow::onRegReply(const QVariantMap &result)
         //AccountSettings::GetInstance()->setValue("password", result["pw"]);
         //AccountSettings::GetInstance()->setValue("kind", result["kind"]);
         //AccountSettings::GetInstance()->setValue("expiration", result["expiration"]);
-        QVariantMap reply = result;
-        reply.insert("cc", this->cc);
-        reply.insert("number", this->number);
-        emit accept(reply);
+        emit accept(result);
         close();
     } else if (status == "fail") {
         QString fail_reason= result["reason"].toString();

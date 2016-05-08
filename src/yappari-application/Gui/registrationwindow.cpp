@@ -78,13 +78,9 @@ void RegistrationWindow::phoneNumberEntered(const QString &_cc, const QString &_
     QSystemNetworkInfo networkInfo(this);
     QString language = systemInfo.currentLanguage();
     QString country = systemInfo.currentCountryCode();
-    mcc = networkInfo.currentMobileCountryCode();
-    mnc = networkInfo.currentMobileNetworkCode();
-    if (mcc.length() < 3)
-        mcc = mcc.rightJustified(3, '0');
-    if (mnc.length() < 3)
-        mnc = mnc.rightJustified(3, '0');
-    /* */
+    mcc = networkInfo.currentMobileCountryCode().rightJustified(3, '0');
+    mnc = networkInfo.currentMobileNetworkCode().rightJustified(3, '0');
+
 
     if (m_id.isEmpty()) {
         m_id = QCryptographicHash::hash(QUuid::createUuid().toString().toAscii(), QCryptographicHash::Md5).toHex();

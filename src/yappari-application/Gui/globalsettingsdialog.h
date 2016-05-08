@@ -44,7 +44,6 @@ public:
     explicit GlobalSettingsDialog(QWidget *parent = 0);
     ~GlobalSettingsDialog();
 
-    quint16 getPort();
     QString getSync();
     bool getShowNicknames();
     bool getShowNumbers();
@@ -61,7 +60,6 @@ public:
 private:
     Ui::GlobalSettingsDialog *ui;
 
-    QMaemo5ListPickSelector *portSelector;
     QMaemo5ListPickSelector *syncSelector;
     QMaemo5ListPickSelector *syncFreqSelector;
     QMaemo5ListPickSelector *voiceCodecSelector;

@@ -166,9 +166,6 @@ public:
     // Account status (active/expired)
     static QString accountstatus;
 
-    // Port to connect to WhatsApp Servers (443/5222)
-    static quint16 port;
-
     // User Status
     static QString myStatus;
 

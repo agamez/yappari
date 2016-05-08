@@ -92,13 +92,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QMaemo5ValueButton" name="portButton">
-          <property name="text">
-           <string>Port</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QMaemo5ValueButton" name="voiceCodecButton">
           <property name="text">
            <string>Voice Codec</string>

@@ -110,7 +110,6 @@
 #define SETTINGS_EXPIRATION                 "expiration"
 #define SETTINGS_ACCOUNTSTATUS              "accountstatus"
 #define SETTINGS_KIND                       "kind"
-#define SETTINGS_PORT                       "port"
 #define SETTINGS_SHOW_NICKNAMES             "shownicknames"
 #define SETTINGS_SHOW_NUMBERS               "shownumbers"
 #define SETTINGS_POPUP_ON_FIRST_MESSAGE     "popuponfirstmessage"
@@ -133,7 +132,6 @@
 
 // Default settings values
 
-#define DEFAULT_PORT                        443
 #define DEFAULT_SHOW_NICKNAMES              false
 #define DEFAULT_SHOW_NUMBERS                true
 #define DEFAULT_POPUP_ON_FIRST_MESSAGE      false

@@ -752,7 +752,6 @@ void MainWindow::showGlobalSettingsDialog()
 
     if (dialog.exec() == QDialog::Accepted)
     {
-        Client::port = dialog.getPort();
         Client::sync = dialog.getSync();
 
         Client::showNicknames = dialog.getShowNicknames();

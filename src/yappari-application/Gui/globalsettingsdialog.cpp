@@ -44,23 +44,8 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // Configure the Port picker
-
-    QStandardItemModel *portModel = new QStandardItemModel(0,0,this);
-    QStandardItem *item = new QStandardItem("443");
-    portModel->appendRow(item);
-    item = new QStandardItem("5222");
-    portModel->appendRow(item);
-
-    ui->portButton->setValueLayout(QMaemo5ValueButton::ValueUnderText);
-    portSelector = new QMaemo5ListPickSelector(ui->portButton);
-    portSelector->setModel(portModel);
-
-    portSelector->setCurrentIndex((Client::port == DEFAULT_PORT) ? 0 : 1);
-    ui->portButton->setPickSelector(portSelector);
-
+    QStandardItem *item;
     // Configure the Sync picker
-
     QStandardItemModel *syncModel = new QStandardItemModel(0,0,this);
     item = new QStandardItem("Enabled");
     syncModel->appendRow(item);
@@ -137,11 +122,6 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent) :
 GlobalSettingsDialog::~GlobalSettingsDialog()
 {
     delete ui;
-}
-
-quint16 GlobalSettingsDialog::getPort()
-{
-    return (portSelector->currentIndex() == 0) ? 443 : 5222;
 }
 
 QString GlobalSettingsDialog::getSync()

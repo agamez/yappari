@@ -124,9 +124,6 @@ QString Client::kind;
 // Account status (active/expired)
 QString Client::accountstatus;
 
-// Port to connect to WhatsApp Servers (443/5222)
-quint16 Client::port;
-
 // User status
 QString Client::myStatus;
 
@@ -472,9 +469,6 @@ void Client::readSettings()
     this->expiration = settings->value(SETTINGS_EXPIRATION).toString();
     this->accountstatus = settings->value(SETTINGS_ACCOUNTSTATUS).toString();
 
-    // Port
-    this->port = settings->value(SETTINGS_PORT,QVariant(DEFAULT_PORT)).toInt();
-
     // Show nicknames in conversations
     this->showNicknames = settings->value(SETTINGS_SHOW_NICKNAMES,
                                           QVariant(DEFAULT_SHOW_NICKNAMES)).toBool();
@@ -550,7 +544,6 @@ void Client::updateSettings()
     // through GUI
 
     settings->setValue(SETTINGS_SYNC,sync);
-    settings->setValue(SETTINGS_PORT,port);
     settings->setValue(SETTINGS_SHOW_NICKNAMES,showNicknames);
     settings->setValue(SETTINGS_SHOW_NUMBERS,showNumbers);
     settings->setValue(SETTINGS_POPUP_ON_FIRST_MESSAGE,popupOnFirstMessage);

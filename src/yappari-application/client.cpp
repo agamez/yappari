@@ -160,9 +160,6 @@ int Client::syncFreq;
 // Start Yappari on boot
 bool Client::startOnBoot;
 
-// Android password encryption method enabled
-bool Client::android;
-
 // Is a synchronization active?
 bool Client::isSynchronizing;
 
@@ -451,9 +448,6 @@ void Client::readSettings()
     // Sync
     this->sync = settings->value(SETTINGS_SYNC).toString();
     this->syncFreq = settings->value(SETTINGS_SYNC_FREQ,QVariant(DEFAULT_SYNC_FREQ)).toInt();
-
-    // Android
-    this->android = settings->value(SETTINGS_ANDROID).toBool();
 
     // Account
     this->cc = settings->value(SETTINGS_CC).toString();

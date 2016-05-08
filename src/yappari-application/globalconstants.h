@@ -104,7 +104,6 @@
 #define SETTINGS_TEXTCOLOR                  "textcolor"
 #define SETTINGS_STATUS                     "status"
 #define SETTINGS_SYNC                       "sync"
-#define SETTINGS_ANDROID                    "android"
 #define SETTINGS_NEXTCHALLENGE              "nextchallenge"
 #define SETTINGS_CREATION                   "creation"
 #define SETTINGS_EXPIRATION                 "expiration"

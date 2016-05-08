@@ -202,9 +202,6 @@ public:
     // Start Yappari on boot
     static bool startOnBoot;
 
-    // Android password encryption method enabled
-    static bool android;
-
     // Is a synchronization active?
     static bool isSynchronizing;
 

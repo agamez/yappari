@@ -1,9 +1,6 @@
 #include "mainconnection.h"
-#include "src/settings/accountsettings.h"
-#include "src/settings/serverproperties.h"
-#include "src/constants.h"
+#include "constants.h"
 #include "regtools.h"
-#include "src/models/contactsbasemodel.h"
 
 #include <QThread>
 #include <QDateTime>
@@ -102,10 +99,6 @@ MainConnection::MainConnection(QObject *parent) :
 
     thread->start();
 
-    keepalive = new BackgroundActivity(this);
-    connect(keepalive, SIGNAL(running()), this, SLOT(checkActivity()));
-    connect(keepalive, SIGNAL(stopped()), this, SLOT(wakeupStopped()));
-
     m_needReconnect = false;
 
     nconf = new QNetworkConfigurationManager(this);
@@ -115,7 +108,7 @@ MainConnection::MainConnection(QObject *parent) :
     QObject::connect(nconf, SIGNAL(configurationChanged(QNetworkConfiguration)), this, SLOT(configurationChanged(QNetworkConfiguration)));
     onlineStateChanged(nconf->isOnline());
 
-    m_myJid = QString("%1@s.whatsapp.net").arg(AccountSettings::GetInstance()->value("login").toString());
+    m_myJid = QString("%1@s.whatsapp.net").arg(settings->value("login").toString());
     Q_EMIT myJidChanged();
 }
 
@@ -146,21 +139,21 @@ void MainConnection::login(bool force)
     }
 
     QVariantMap loginData;
-    loginData["login"] = AccountSettings::GetInstance()->value("login").toString();
-    loginData["password"] = AccountSettings::GetInstance()->value("password").toString();
-    QString platform = AccountSettings::GetInstance()->value("platform", "Android").toString();
+    loginData["login"] = settings->value("login").toString();
+    loginData["password"] = settings->value("password").toString();
+    QString platform = settings->value("platform", "Android").toString();
     loginData["resource"] = RegTools::getResource(platform);
     loginData["encryptionav"] = RegTools::getEncryptionAV(platform);
-    QString device = platform == "Android" ? RegTools::getDevice(platform) : AccountSettings::GetInstance()->value("device", RegTools::getDevice(platform)).toString();
+    QString device = platform == "Android" ? RegTools::getDevice(platform) : settings->value("device", RegTools::getDevice(platform)).toString();
     useragent = RegTools::getUseragent(device, platform);
     loginData["userAgent"] = useragent;
-    QString mcc = AccountSettings::GetInstance()->value("mcc").toString();
+    QString mcc = settings->value("mcc").toString();
     loginData["mcc"] = mcc.rightJustified(3, '0');
-    QString mnc = AccountSettings::GetInstance()->value("mnc").toString();
+    QString mnc = settings->value("mnc").toString();
     loginData["mnc"] = mnc.rightJustified(3, '0');
-    loginData["nextChallenge"] = AccountSettings::GetInstance()->value("nextChallenge").toString();
+    loginData["nextChallenge"] = settings->value("nextChallenge").toString();
     loginData["servers"] = RegTools::getServers();
-    AccountSettings::GetInstance()->setValue("nextChallenge", "");
+    settings->setValue("nextChallenge", "");
     QString dataFile = QString("%1/axolotl.db").arg(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
     loginData["database"] = dataFile;
     loginData["passive"] = ContactsBaseModel::GetInstance()->count() == 0;
@@ -526,17 +519,17 @@ QString MainConnection::myJid()
 
 int MainConnection::available()
 {
-    return AccountSettings::GetInstance()->value("available", true).toBool() ? 0 : 1;
+    return settings->value("available", true).toBool() ? 0 : 1;
 }
 
 void MainConnection::setAvailable(int value)
 {
     if (value != available()) {
-        AccountSettings::GetInstance()->setValue("available", value == Available);
+        settings->setValue("available", value == Available);
         Q_EMIT availableChanged();
 
         if (m_connectionStatus == LoggedIn) {
-            QString pushname = AccountSettings::GetInstance()->value("pushname").toString();
+            QString pushname = settings->value("pushname").toString();
             if (value == Available) {
                 Q_EMIT connectionSendAvailable(pushname);
             }
@@ -559,22 +552,6 @@ void MainConnection::onConnectionStatusChanged(int newConnectionStatus)
     qDebug() << newConnectionStatus;
     m_connectionStatus = newConnectionStatus;
     Q_EMIT connectionStatusChanged();
-
-    if (m_connectionStatus == WAConnection::Disconnected) {
-        if (keepalive->isWaiting()) {
-            keepalive->stop();
-        }
-    }
-}
-
-void MainConnection::checkActivity()
-{
-    keepalive->wait(BackgroundActivity::TenMinutes);
-}
-
-void MainConnection::wakeupStopped()
-{
-    qDebug() << "WAKEUP STOPPED! WHAT SHOULD I DO NOW!?";
 }
 
 void MainConnection::onlineStateChanged(bool isOnline)
@@ -643,24 +620,24 @@ void MainConnection::onDownloadProgress(const QString &jid, float progress, cons
 
 void MainConnection::onAuthSuccess(const AttributeList &accountData)
 {
-    m_myJid = QString("%1@s.whatsapp.net").arg(AccountSettings::GetInstance()->value("login").toString());
+    m_myJid = QString("%1@s.whatsapp.net").arg(settings->value("login").toString());
     Q_EMIT myJidChanged();
 
-    AccountSettings::GetInstance()->setValue("creation", accountData["creation"].toString());
-    AccountSettings::GetInstance()->setValue("expiration", accountData["expiration"].toString());
-    AccountSettings::GetInstance()->setValue("kind", accountData["kind"].toString());
-    AccountSettings::GetInstance()->setValue("status", accountData["status"].toString());
-    AccountSettings::GetInstance()->setValue("lastLogin", accountData["t"].toString());
-    AccountSettings::GetInstance()->setValue("nextChallenge", accountData["nextChallenge"].toString());
-    QString props = AccountSettings::GetInstance()->value("props", QString("1")).toString();
+    settings->setValue("creation", accountData["creation"].toString());
+    settings->setValue("expiration", accountData["expiration"].toString());
+    settings->setValue("kind", accountData["kind"].toString());
+    settings->setValue("status", accountData["status"].toString());
+    settings->setValue("lastLogin", accountData["t"].toString());
+    settings->setValue("nextChallenge", accountData["nextChallenge"].toString());
+    QString props = settings->value("props", QString("1")).toString();
     if (props != accountData["props"].toString()) {
-        AccountSettings::GetInstance()->setValue("props", accountData["props"].toString());
+        settings->setValue("props", accountData["props"].toString());
         Q_EMIT connectionSendGetProperties();
     }
-    QString login = AccountSettings::GetInstance()->value("login").toString();
+    QString login = settings->value("login").toString();
 
-    bool available = AccountSettings::GetInstance()->value("available", true).toBool();
-    QString pushname = AccountSettings::GetInstance()->value("pushname", login).toString();
+    bool available = settings->value("available", true).toBool();
+    QString pushname = settings->value("pushname", login).toString();
     if (available) {
         Q_EMIT connectionSendAvailable(pushname);
     }
@@ -668,15 +645,13 @@ void MainConnection::onAuthSuccess(const AttributeList &accountData)
         Q_EMIT connectionSendUnavailable(pushname);
     }
 
-    if (AccountSettings::GetInstance()->value("message").isNull()) {
+    if (settings->value("message").isNull()) {
         Q_EMIT connectionSendGetStatuses(QStringList() << m_myJid);
     }
 
-    if (AccountSettings::GetInstance()->value("avatar").isNull()) {
+    if (settings->value("avatar").isNull()) {
         Q_EMIT connectionSendGetPicture(m_myJid);
     }
-
-    keepalive->wait(BackgroundActivity::TenMinutes);
 
     Q_EMIT authSuccess();
 }
@@ -684,8 +659,8 @@ void MainConnection::onAuthSuccess(const AttributeList &accountData)
 void MainConnection::onAuthFailed()
 {
     qDebug() << "Auth failed";
-    AccountSettings::GetInstance()->setValue("login", QString());
-    AccountSettings::GetInstance()->setValue("password", QString());
-    AccountSettings::GetInstance()->setValue("nextChallenge", QString());
+    settings->setValue("login", QString());
+    settings->setValue("password", QString());
+    settings->setValue("nextChallenge", QString());
     Q_EMIT authFailed();
 }

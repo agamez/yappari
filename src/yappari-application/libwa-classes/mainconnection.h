@@ -4,9 +4,9 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 #include <QNetworkConfigurationManager>
-#include <keepalive/backgroundactivity.h>
+#include <QSettings>
 
-#include <libwa.h>
+#include <libwa-qt4/libwa.h>
 
 class MainConnection : public QObject
 {
@@ -80,7 +80,7 @@ private:
     bool m_needReconnect;
     QString m_myJid;
     QNetworkConfigurationManager *nconf;
-    BackgroundActivity *keepalive;
+    QSettings *settings;
 
     QString useragent;
 
@@ -90,9 +90,6 @@ private slots:
     void onServerProperties(const QVariantMap &props);
 
     void onConnectionStatusChanged(int newConnectionStatus);
-
-    void checkActivity();
-    void wakeupStopped();
 
     void onlineStateChanged(bool isOnline);
     void configurationAdded(const QNetworkConfiguration &config);

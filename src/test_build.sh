@@ -26,11 +26,13 @@ RET=$?
 cd ..
 
 if [ $RET -ne 0 ]; then
-	exit 1
+	exit $RET
 fi
 
 cp yappari-application/share/whatsnew.txt /usr/share/yappari
 cp build-scratchbox/yappari-application/Yappari .
-if [ -z $1 ]; then
+ARCH=$(sb-conf show -A)
+if [ $ARCH != "arm" ]; then
     run-standalone.sh ./Yappari
 fi
+exit $RET
